@@ -1,0 +1,2189 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SegurosCRM - Damián Kogan</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f7f8fa;--bg2:#fff;--bg3:#f1f3f7;
+  --text:#1a1d23;--text2:#6b7280;--text3:#9ca3af;
+  --border:#e5e7eb;--border2:#d1d5db;
+  --blue:#185FA5;--blue-light:#E6F1FB;--blue-dark:#0C447C;
+  --green:#3B6D11;--green-light:#EAF3DE;
+  --amber:#854F0B;--amber-light:#FAEEDA;
+  --red:#A32D2D;--red-light:#FCEBEB;
+  --purple:#534AB7;--purple-light:#EEEDFE;
+  --gray-tag:#5F5E5A;--gray-light:#F1EFE8;
+  --teal:#0F6E56;--teal-light:#E1F5EE;
+  --radius:8px;--radius-lg:12px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5}
+.app{display:flex;height:100vh;overflow:hidden}
+ 
+.sidebar{width:230px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
+.logo{padding:18px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.logo-icon{width:32px;height:32px;background:var(--blue);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo-icon i{color:#fff;font-size:16px}
+.logo-title{font-size:15px;font-weight:600;color:var(--text)}
+.logo-sub{font-size:11px;color:var(--text2)}
+.nav{padding:10px 8px;flex:1;overflow-y:auto}
+.nav-section{font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;padding:8px 10px 4px}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:var(--radius);cursor:pointer;font-size:13px;color:var(--text2);transition:all .15s;margin-bottom:1px;border:none;background:none;width:100%;text-align:left}
+.nav-item:hover{background:var(--bg3);color:var(--text)}
+.nav-item.active{background:var(--blue-light);color:var(--blue);font-weight:500}
+.nav-item i{font-size:17px;flex-shrink:0}
+.nav-badge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;padding:1px 6px;border-radius:10px;font-weight:600;min-width:18px;text-align:center}
+.sidebar-footer{padding:14px 16px;border-top:1px solid var(--border)}
+.sidebar-footer .name{font-size:13px;font-weight:500}
+.sidebar-footer .sub{font-size:11px;color:var(--text2)}
+ 
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.topbar{padding:14px 24px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0}
+.topbar-title{font-size:17px;font-weight:600;flex:1}
+.topbar-subtitle{font-size:13px;color:var(--text2);margin-top:1px}
+ 
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:var(--radius);border:1px solid var(--border2);background:var(--bg2);cursor:pointer;font-size:13px;color:var(--text);transition:all .15s;font-family:inherit;white-space:nowrap}
+.btn:hover{background:var(--bg3);border-color:var(--border2)}
+.btn:active{transform:scale(.98)}
+.btn-primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+.btn-primary:hover{background:var(--blue-dark);border-color:var(--blue-dark)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn-danger{color:var(--red);border-color:#F09595}
+.btn-danger:hover{background:var(--red-light)}
+.btn-wa{background:var(--teal);color:#fff;border-color:var(--teal)}
+.btn-wa:hover{background:#085041}
+.btn-success{background:var(--green);color:#fff;border-color:var(--green)}
+.btn-success:hover{background:#27500A}
+.btn-group{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+ 
+.content{flex:1;overflow-y:auto;padding:20px 24px}
+.view{display:none;flex-direction:column;height:100%;overflow:hidden}
+.view.active{display:flex}
+ 
+.controls-row{display:flex;gap:12px;margin-bottom:16px;align-items:center;flex-wrap:wrap}
+.search-wrap{display:flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:7px 12px;flex:1;min-width:200px}
+.search-wrap i{color:var(--text3);font-size:16px;flex-shrink:0}
+.search-wrap input{background:none;border:none;outline:none;font-size:13px;flex:1;color:var(--text);font-family:inherit}
+.sort-wrap{display:flex;align-items:center;gap:6px}
+ 
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px}
+.stat-label{font-size:11px;color:var(--text2);margin-bottom:5px;font-weight:500}
+.stat-val{font-size:26px;font-weight:700;line-height:1}
+.stat-blue{color:var(--blue)}
+.stat-green{color:var(--green)}
+.stat-amber{color:var(--amber)}
+.stat-red{color:var(--red)}
+ 
+.client-list{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;display:flex;flex-direction:column}
+.client-list-item{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s}
+.client-list-item:last-child{border-bottom:none}
+.client-list-item:hover{background:var(--bg3)}
+.client-info-block{display:flex;align-items:center;gap:12px;flex:2;min-width:0}
+.client-avatar{width:36px;height:36px;border-radius:50%;background:var(--blue-light);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--blue);flex-shrink:0}
+.client-name{font-size:14px;font-weight:600;color:var(--text)}
+.client-contact-block{flex:1.5;font-size:13px;color:var(--text2);display:flex;flex-direction:column;gap:2px}
+.client-tags-block{flex:1.5;display:flex;flex-wrap:wrap;gap:4px}
+.client-actions-block{display:flex;gap:6px;align-items:center}
+ 
+.tags{display:flex;flex-wrap:wrap;gap:4px}
+.tag{font-size:11px;padding:2px 8px;border-radius:10px;font-weight:500}
+.tag-blue{background:var(--blue-light);color:var(--blue)}
+.tag-green{background:var(--green-light);color:var(--green)}
+.tag-amber{background:var(--amber-light);color:var(--amber)}
+.tag-red{background:var(--red-light);color:var(--red)}
+.tag-purple{background:var(--purple-light);color:var(--purple)}
+.tag-gray{background:var(--gray-light);color:var(--gray-tag)}
+.tag-teal{background:var(--teal-light);color:var(--teal)}
+ 
+.table-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:9px 14px;font-size:11px;font-weight:600;color:var(--text2);border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:.05em;background:var(--bg3)}
+td{padding:11px 14px;border-bottom:1px solid var(--border)}
+tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:var(--bg3)}
+ 
+.detail-grid{display:grid;grid-template-columns:3fr 2fr;gap:14px}
+.section-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:12px}
+.section-title{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;padding-left:12px;border-left:4px solid var(--blue);}
+.detail-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px}
+.detail-row:last-child{border-bottom:none}
+.detail-label{color:var(--text2);display:flex;align-items:center;gap:5px}
+.poliza-item{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;margin-bottom:7px;display:flex;align-items:center;gap:10px}
+.poliza-icon{width:34px;height:34px;border-radius:var(--radius);background:var(--blue-light);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.poliza-icon i{color:var(--blue);font-size:16px}
+ 
+.report-bar-row{margin-bottom:12px}
+.report-bar-label{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;font-weight:500}
+.report-bar-bg{width:100%;height:8px;background:var(--bg3);border-radius:4px;overflow:hidden}
+.report-bar-fill{height:100%;background:var(--blue);border-radius:4px}
+
+.interaccion-item{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px}
+.interaccion-item:last-child{border-bottom:none}
+.interaccion-icon{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px}
+.int-llamada{background:#EAF3DE;color:var(--green)}
+.int-whatsapp{background:var(--teal-light);color:var(--teal)}
+.int-reunion{background:var(--blue-light);color:var(--blue)}
+.int-email{background:var(--purple-light);color:var(--purple)}
+.int-otro{background:var(--gray-light);color:var(--gray-tag)}
+.evol-bar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.evol-bar-label{width:90px;font-size:12px;color:var(--text2);text-align:right;flex-shrink:0}
+.evol-bar-track{flex:1;height:22px;background:var(--bg3);border-radius:4px;overflow:hidden;position:relative}
+.evol-bar-fill{height:100%;border-radius:4px;display:flex;align-items:center;padding-left:8px;font-size:11px;font-weight:600;color:#fff;transition:width .4s}
+.evol-bar-val{margin-left:8px;font-size:12px;font-weight:600;color:var(--text);white-space:nowrap}
+.evol-delta{font-size:11px;font-weight:500;margin-left:4px}
+ 
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:1000}
+.modal-backdrop.open{display:flex}
+.modal{background:var(--bg2);border-radius:var(--radius-lg);padding:24px;width:560px;max-width:95vw;max-height:90vh;overflow-y:auto;position:relative;box-shadow:0 8px 40px rgba(0,0,0,.18)}
+.modal-title{font-size:16px;font-weight:600;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between}
+.modal-close{background:none;border:none;cursor:pointer;color:var(--text2);font-size:20px;padding:2px;line-height:1}
+.modal-close:hover{color:var(--text)}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.full{grid-column:1/-1}
+.form-group{display:flex;flex-direction:column;gap:4px}
+label{font-size:12px;font-weight:500;color:var(--text2)}
+input,select,textarea{padding:8px 10px;border:1px solid var(--border2);border-radius:var(--radius);font-size:13px;background:var(--bg2);color:var(--text);outline:none;font-family:inherit;transition:border-color .15s}
+input:focus,select:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,95,165,.1)}
+textarea{resize:vertical;min-height:64px}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
+ 
+.kanban{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;align-items:start}
+.kanban-col{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px}
+.kanban-col-header{font-size:12px;font-weight:600;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.kanban-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin-bottom:8px;cursor:default;transition:border-color .15s;position:relative}
+.kanban-card:hover{border-color:var(--border2)}
+.kanban-actions{display:flex;justify-content:flex-end;margin-top:8px;gap:4px}
+ 
+.status-dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:5px}
+.dot-green{background:var(--green)}
+.dot-amber{background:#EF9F27}
+.dot-red{background:var(--red)}
+.dot-blue{background:var(--blue)}
+ 
+.empty{text-align:center;padding:48px 20px;color:var(--text2)}
+.empty i{font-size:36px;display:block;margin-bottom:10px;opacity:.4}
+.empty p{font-size:13px}
+ 
+.back-btn{display:inline-flex;align-items:center;gap:5px;font-size:13px;color:var(--text2);cursor:pointer;background:none;border:none;font-family:inherit;padding:4px 0}
+.back-btn:hover{color:var(--text)}
+ 
+.toast{position:fixed;bottom:24px;right:24px;background:var(--text);color:#fff;padding:10px 18px;border-radius:var(--radius);font-size:13px;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+ 
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:10px}
+
+/* DASHBOARD & CALENDAR DOTS */
+.dash-stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;cursor:pointer;transition:all .18s;display:flex;flex-direction:column;gap:6px}
+.dash-stat-card:hover{border-color:var(--blue);box-shadow:0 2px 12px rgba(24,95,165,.1);transform:translateY(-1px)}
+.dash-stat-card .stat-label{font-size:11px;color:var(--text2);font-weight:500;text-transform:uppercase;letter-spacing:.05em}
+.dash-stat-card .stat-val{font-size:32px;font-weight:700;line-height:1}
+.dash-stat-card .stat-link{font-size:11px;color:var(--blue);margin-top:2px;display:flex;align-items:center;gap:3px}
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+.cal-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px}
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.cal-title{font-size:14px;font-weight:600}
+.cal-nav{background:none;border:none;cursor:pointer;color:var(--text2);font-size:18px;padding:2px 6px;border-radius:var(--radius);line-height:1}
+.cal-nav:hover{background:var(--bg3);color:var(--text)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-dow{text-align:center;font-size:10px;font-weight:600;color:var(--text3);padding:4px 0;text-transform:uppercase}
+.cal-day{text-align:center;padding:5px 2px;border-radius:var(--radius);font-size:12px;cursor:default;min-height:34px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px}
+.cal-day.other{color:var(--text3)}
+.cal-day.today{background:var(--blue);color:#fff;font-weight:700}
+.cal-day.has-bday{background:var(--purple-light);color:var(--purple);font-weight:600;cursor:pointer}
+.cal-day.has-bday.today{background:var(--purple);color:#fff}
+.cal-day.has-task{background:var(--blue-light);color:var(--blue);font-weight:600;cursor:pointer}
+.cal-day.has-task.today{background:var(--blue-dark);color:#fff}
+
+.cal-dots-container{display:flex;gap:2px;justify-content:center;align-items:center}
+.cal-day-dot{width:4px;height:4px;border-radius:50%;flex-shrink:0}
+.cal-day.today .cal-day-dot{background:#fff !important}
+
+.bday-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+.bday-item:last-child{border-bottom:none}
+.bday-avatar{width:30px;height:30px;border-radius:50%;background:var(--purple-light);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--purple);flex-shrink:0}
+.bday-dias{margin-left:auto;font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px;white-space:nowrap}
+.bday-hoy{background:var(--purple-light);color:var(--purple)}
+.bday-pronto{background:var(--amber-light);color:var(--amber)}
+.bday-proximo{background:var(--bg3);color:var(--text2)}
+.dash-pend-item{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px;cursor:pointer}
+.dash-pend-item:hover{color:var(--blue)}
+.dash-pend-item:last-child{border-bottom:none}
+
+/* LINKS */
+.links-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.link-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 20px;display:flex;flex-direction:column;gap:10px;transition:all .18s;height:100%}
+.link-card:hover{border-color:var(--blue);box-shadow:0 2px 12px rgba(24,95,165,.1);transform:translateY(-1px)}
+.link-card-name{font-size:15px;font-weight:600}
+.link-card-desc{font-size:12px;color:var(--text2);flex:1;margin-bottom:8px}
+</style>
+</head>
+<body>
+ 
+<div id="login-screen" style="display:none;position:fixed;inset:0;background:#f7f8fa;z-index:9999;align-items:center;justify-content:center;flex-direction:column">
+  <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:40px 36px;width:100%;max-width:380px;box-shadow:0 4px 24px rgba(0,0,0,0.08)">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:28px">
+      <div style="width:36px;height:36px;background:#185FA5;border-radius:8px;display:flex;align-items:center;justify-content:center"><i class="ti ti-shield" style="color:#fff;font-size:18px"></i></div>
+      <div><div style="font-size:16px;font-weight:600">SegurosCRM</div><div style="font-size:12px;color:#6b7280">Damián Kogan</div></div>
+    </div>
+    <div style="margin-bottom:16px">
+      <label style="font-size:13px;font-weight:500;display:block;margin-bottom:6px">Correo electrónico</label>
+      <input id="login-email" type="email" placeholder="tu@email.com" style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;outline:none;font-family:inherit" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div style="margin-bottom:20px">
+      <label style="font-size:13px;font-weight:500;display:block;margin-bottom:6px">Contraseña</label>
+      <input id="login-pass" type="password" placeholder="••••••••" style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;outline:none;font-family:inherit" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div id="login-error" style="color:#A32D2D;font-size:13px;margin-bottom:12px;min-height:18px"></div>
+    <button onclick="doLogin()" style="width:100%;padding:10px;background:#185FA5;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">Ingresar</button>
+  </div>
+</div>
+<div class="app" id="app" style="display:none">
+<div class="sidebar">
+  <div class="logo">
+    <div class="logo-icon"><i class="ti ti-shield-check"></i></div>
+    <div>
+      <div class="logo-title">SegurosCRM</div>
+      <div class="logo-sub">Damián Kogan Asesor</div>
+    </div>
+  </div>
+  <nav class="nav">
+    <div class="nav-section">Principal</div>
+    <button class="nav-item active" id="nav-dashboard" onclick="showSection('dashboard')"><i class="ti ti-layout-dashboard"></i> Dashboard</button>
+    <button class="nav-item" id="nav-clientes" onclick="showSection('clientes')"><i class="ti ti-users"></i> Clientes</button>
+    <button class="nav-item" id="nav-prospectos" onclick="showSection('prospectos')"><i class="ti ti-user-plus"></i> Prospectos</button>
+    <div class="nav-section">Gestión</div>
+    <button class="nav-item" id="nav-siniestros" onclick="showSection('siniestros')"><i class="ti ti-alert-triangle"></i> Siniestros <span class="nav-badge" id="badge-sin">0</span></button>
+    <button class="nav-item" id="nav-pendientes" onclick="showSection('pendientes')"><i class="ti ti-clock"></i> Pendientes <span class="nav-badge" id="badge-pend">0</span></button>
+    <button class="nav-item" id="nav-polizas" onclick="showSection('polizas')"><i class="ti ti-file-certificate"></i> Pólizas</button>
+    <div class="nav-section">Administración</div>
+    <button class="nav-item" id="nav-facturacion" onclick="showSection('facturacion')"><i class="ti ti-receipt-2"></i> Facturación</button>
+    <button class="nav-item" id="nav-reportes" onclick="showSection('reportes')"><i class="ti ti-chart-bar"></i> Reportes</button>
+    <button class="nav-item" id="nav-links" onclick="showSection('links')"><i class="ti ti-external-link"></i> Links útiles</button>
+  </nav>
+  <div class="sidebar-footer" style="display:flex;align-items:center;justify-content:space-between">
+    <div class="name" style="margin-bottom: 4px;">Damián Kogan</div>
+    <div class="btn-group" style="flex-direction: column; align-items: stretch; gap: 4px; margin-bottom: 8px;">
+      <button class="btn btn-sm" onclick="exportarDatos()" style="justify-content: center;"><i class="ti ti-download"></i> Exportar Copia</button>
+      <button class="btn btn-sm" onclick="document.getElementById('import-file').click()" style="justify-content: center;"><i class="ti ti-upload"></i> Importar Copia</button>
+      <input type="file" id="import-file" accept=".json" onchange="importarDatos(event)" style="display:none">
+    </div>
+    <div class="sub">Productor Asesor de Seguros</div>
+  </div>
+</div>
+ 
+<div class="main" id="main">
+ 
+<div class="view active" id="sec-dashboard">
+  <div class="topbar">
+    <div style="flex:1">
+      <div class="topbar-title" id="dash-greeting">Dashboard</div>
+      <div class="topbar-subtitle" id="dash-date"></div>
+    </div>
+  </div>
+  <div class="content">
+    <div class="stats" style="grid-template-columns:repeat(4,1fr)">
+      <div class="dash-stat-card" onclick="showSection('clientes')">
+        <div class="stat-label">Total clientes</div>
+        <div class="stat-val stat-blue" id="dash-total">0</div>
+        <div class="stat-link"><i class="ti ti-arrow-right" style="font-size:10px"></i> Ver clientes</div>
+      </div>
+      <div class="dash-stat-card" onclick="showSection('polizas')">
+        <div class="stat-label">Pólizas activas</div>
+        <div class="stat-val stat-green" id="dash-polizas">0</div>
+        <div class="stat-link"><i class="ti ti-arrow-right" style="font-size:10px"></i> Ver pólizas</div>
+      </div>
+      <div class="dash-stat-card" onclick="showSection('siniestros')">
+        <div class="stat-label">Siniestros abiertos</div>
+        <div class="stat-val stat-amber" id="dash-sinopen">0</div>
+        <div class="stat-link"><i class="ti ti-arrow-right" style="font-size:10px"></i> Ver siniestros</div>
+      </div>
+      <div class="dash-stat-card" onclick="showSection('pendientes')">
+        <div class="stat-label">Pendientes activos</div>
+        <div class="stat-val stat-red" id="dash-pend">0</div>
+        <div class="stat-link"><i class="ti ti-arrow-right" style="font-size:10px"></i> Ver pendientes</div>
+      </div>
+    </div>
+    <div class="dash-grid">
+      <div>
+        <div class="cal-wrap">
+          <div class="cal-header">
+            <button class="cal-nav" onclick="calCambiarMes(-1)">&#8249;</button>
+            <div class="cal-title" id="cal-titulo"></div>
+            <button class="cal-nav" onclick="calCambiarMes(1)">&#8250;</button>
+          </div>
+          <div class="cal-grid" id="cal-grid"></div>
+        </div>
+      </div>
+      <div>
+        <div class="section-card" style="margin-bottom:0">
+          <div class="section-title">🎂 Próximos cumpleaños <span id="dash-bday-count" style="font-size:11px;font-weight:400;color:var(--text2);text-transform:none;letter-spacing:0"></span></div>
+          <div id="dash-bday-list"><p style="font-size:13px;color:var(--text2)">Ningún cumpleaños próximo.</p></div>
+        </div>
+      </div>
+    </div>
+    <div class="dash-grid" style="margin-top:14px">
+      <div class="section-card" style="margin-bottom:0">
+        <div class="section-title">Tareas pendientes <span style="font-size:11px;font-weight:400;text-transform:none;letter-spacing:0;color:var(--text2)"></span></div>
+        <div id="dash-tareas-urgentes"></div>
+      </div>
+      <div class="section-card" style="margin-bottom:0">
+        <div class="section-title">Siniestros en trámite</div>
+        <div id="dash-siniestros-abiertos"></div>
+      </div>
+    </div>
+  </div>
+</div>
+ 
+<div class="view" id="sec-clientes">
+  <div class="topbar">
+    <div style="flex:1"><div class="topbar-title">Clientes</div></div>
+    <div class="btn-group">
+      <button class="btn btn-primary" onclick="openModal('nuevo-cliente')"><i class="ti ti-plus"></i> Nuevo cliente</button>
+    </div>
+  </div>
+  <div class="content">
+    <div class="controls-row">
+      <div class="search-wrap">
+        <i class="ti ti-search"></i>
+        <input type="text" id="q-clientes" placeholder="Buscar por nombre, email o teléfono..." oninput="renderClientes()">
+      </div>
+      <div class="sort-wrap">
+        <label for="filtro-traido">Traído por:</label>
+        <select id="filtro-traido" onchange="renderClientes()">
+          <option value="">Todos</option>
+          <option value="Yo">Yo</option>
+          <option value="Leandro">Leandro</option>
+        </select>
+      </div>
+      <div class="sort-wrap">
+        <label for="sort-clientes">Ordenar por:</label>
+        <select id="sort-clientes" onchange="renderClientes()">
+          <option value="nombre-asc">Nombre (A → Z)</option>
+          <option value="nombre-desc">Nombre (Z → A)</option>
+        </select>
+      </div>
+    </div>
+    <div class="client-list" id="list-clientes"></div>
+  </div>
+</div>
+ 
+<div class="view" id="sec-detalle">
+  <div class="topbar">
+    <button class="back-btn" onclick="showSection('clientes')"><i class="ti ti-arrow-left"></i> Clientes</button>
+    <div style="flex:1;margin-left:14px">
+      <div class="topbar-title" id="det-nombre"></div>
+    </div>
+    <div class="btn-group" id="det-actions"></div>
+  </div>
+  <div class="content" id="det-body"></div>
+</div>
+ 
+<div class="view" id="sec-prospectos">
+  <div class="topbar">
+    <div style="flex:1"><div class="topbar-title">Prospectos</div></div>
+    <button class="btn btn-primary" onclick="openModal('nuevo-prospecto')"><i class="ti ti-plus"></i> Nuevo prospecto</button>
+  </div>
+  <div class="content">
+    <div class="kanban" id="kanban"></div>
+  </div>
+</div>
+ 
+<div class="view" id="sec-siniestros">
+  <div class="topbar">
+    <div style="flex:1"><div class="topbar-title">Siniestros</div></div>
+    <button class="btn btn-primary" onclick="openModal('nuevo-siniestro')"><i class="ti ti-plus"></i> Nuevo siniestro</button>
+  </div>
+  <div class="content">
+    <div class="controls-row">
+      <div class="search-wrap">
+        <i class="ti ti-search"></i>
+        <input type="text" id="q-siniestros" placeholder="Buscar por nombre de cliente..." oninput="renderSiniestros()">
+      </div>
+      <div class="sort-wrap">
+        <label for="sort-siniestros">Ordenar por:</label>
+        <select id="sort-siniestros" onchange="renderSiniestros()">
+          <option value="fecha-desc">Fecha (Reciente → Antiguo)</option>
+          <option value="fecha-asc">Fecha (Antiguo → Reciente)</option>
+          <option value="nombre-asc">Cliente (A-Z)</option>
+          <option value="nombre-desc">Cliente (Z-A)</option>
+          <option value="compania-asc">Compañía (A-Z)</option>
+          <option value="compania-desc">Compañía (Z-A)</option>
+          <option value="estado-asc">Estado (A-Z)</option>
+          <option value="estado-desc">Estado (Z-A)</option>
+        </select>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table><thead><tr><th>Cliente</th><th>Cobertura</th><th>Tipo Siniestro</th><th>Compañía</th><th>Fecha</th><th>Estado</th><th>Descripción</th><th>Acciones</th></tr></thead>
+      <tbody id="tb-siniestros"></tbody></table>
+    </div>
+  </div>
+</div>
+ 
+<div class="view" id="sec-pendientes">
+  <div class="topbar">
+    <div style="flex:1"><div class="topbar-title">Pendientes</div></div>
+    <button class="btn btn-primary" onclick="openModal('nuevo-pendiente')"><i class="ti ti-plus"></i> Nueva tarea</button>
+  </div>
+  <div class="content">
+    <div class="controls-row">
+      <div class="sort-wrap">
+        <label for="sort-pendientes">Ordenar por:</label>
+        <select id="sort-pendientes" onchange="renderPendientes()">
+          <option value="fecha-asc">Vencimiento (Próximo primero)</option>
+          <option value="fecha-desc">Vencimiento (Lejano primero)</option>
+        </select>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table><thead><tr><th>Tarea</th><th>Cliente</th><th>Vencimiento</th><th>Prioridad</th><th>Estado</th><th>Acciones</th></tr></thead>
+      <tbody id="tb-pendientes"></tbody></table>
+    </div>
+  </div>
+</div>
+ 
+<div class="view" id="sec-polizas">
+  <div class="topbar">
+    <div style="flex:1"><div class="topbar-title">Pólizas</div></div>
+  </div>
+  <div class="content">
+    <div class="controls-row" style="margin-bottom:16px">
+      <div class="search-wrap">
+        <i class="ti ti-search"></i>
+        <input type="text" id="q-polizas" placeholder="Buscar por cliente, tipo o compañía..." oninput="renderPolizas()">
+      </div>
+      <div class="sort-wrap">
+        <label for="filtro-vendedor-pol">Vendedor:</label>
+        <select id="filtro-vendedor-pol" onchange="renderPolizas()">
+          <option value="">Todos</option>
+          <option value="Yo">Yo</option>
+          <option value="Leandro">Leandro</option>
+        </select>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table><thead><tr><th>Cliente</th><th>Tipo</th><th>Compañía</th><th>Nro. póliza</th><th>Vendedor</th><th>Vencimiento</th><th>Estado</th></tr></thead>
+      <tbody id="tb-polizas"></tbody></table>
+    </div>
+  </div>
+</div>
+ 
+<div class="view" id="sec-facturacion">
+  <div class="topbar">
+    <div style="flex:1"><div class="topbar-title">Control de Facturación Mensual</div></div>
+    <button class="btn btn-primary" onclick="openModal('nueva-factura')"><i class="ti ti-plus"></i> Cargar registro mensual</button>
+  </div>
+  <div class="content">
+    <div class="controls-row">
+      <div class="sort-wrap">
+        <label for="filtro-mes-fact">Filtrar por Mes:</label>
+        <select id="filtro-mes-fact" onchange="renderFacturacion()"></select>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Compañía</th><th>Monto Facturado</th><th>Variación vs Mes Anterior</th><th>Acciones</th></tr></thead>
+          <tbody id="tb-facturacion"></tbody>
+        </table>
+      </div>
+      <div>
+        <div class="section-card" style="text-align:center;padding:20px">
+          <div class="section-title" style="justify-content:center">Total Consolidado del Mes</div>
+          <div class="stat-val stat-blue" id="fact-total-mes" style="font-size:32px;margin:10px 0">$0.00</div>
+          <div id="fact-cambio-total" style="font-weight:500"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+ 
+<div class="view" id="sec-reportes">
+  <div class="topbar"><div class="topbar-title">Reportes de Cartera</div></div>
+  <div class="content">
+    <div class="stats" style="grid-template-columns:1fr;margin-bottom:20px">
+      <div class="stat-card" style="text-align:center;padding:20px">
+        <div class="stat-label" style="font-size:13px;text-transform:uppercase;letter-spacing:0.05em">Pólizas Totales Vigentes</div>
+        <div class="stat-val stat-green" id="rpt-pol-vigentes" style="font-size:42px;margin-top:5px">0</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+      <div class="section-card">
+        <div class="section-title">Pólizas Vigentes por Ramo</div>
+        <div id="rpt-body-ramos"></div>
+      </div>
+      <div class="section-card">
+        <div class="section-title">Pólizas Vigentes por Compañía</div>
+        <div id="rpt-body-companias"></div>
+      </div>
+    </div>
+    <div class="section-card">
+      <div class="section-title">Altas de Pólizas por Mes <span id="rpt-evol-subtitle" style="font-size:11px;font-weight:400;color:var(--text2);text-transform:none;letter-spacing:0"></span></div>
+      <div id="rpt-body-evolucion"><p style="font-size:13px;color:var(--text2)">Sin datos de facturación cargados.</p></div>
+    </div>
+  </div>
+</div>
+ 
+<div class="view" id="sec-links">
+  <div class="topbar">
+    <div style="flex:1"><div class="topbar-title">Links — Portales de Compañías</div></div>
+  </div>
+  <div class="content">
+    <p style="font-size:13px;color:var(--text2);margin-bottom:18px">Accesos directos a los portales de intermediarios. Se abren en una pestaña nueva.</p>
+    <div class="links-grid">
+
+      <div class="link-card">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:36px;height:36px;border-radius:8px;background:var(--blue-light);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <i class="ti ti-shield" style="color:var(--blue);font-size:18px"></i>
+          </div>
+          <div class="link-card-name">Federación Patronal</div>
+        </div>
+        <div class="link-card-desc">Portal de productores — gestión de pólizas y siniestros</div>
+        <a href="https://online.fedpat.com.ar/self/homeWin32.do" target="_blank" rel="noopener" class="btn btn-primary btn-sm" style="justify-content:center"><i class="ti ti-external-link"></i> Ir al portal</a>
+      </div>
+
+      <div class="link-card">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:36px;height:36px;border-radius:8px;background:var(--amber-light);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <i class="ti ti-shield" style="color:var(--amber);font-size:18px"></i>
+          </div>
+          <div class="link-card-name">Mercantil Andina</div>
+        </div>
+        <div class="link-card-desc">Sistema SIGMA v3 — intermediarios</div>
+        <a href="https://online.elmercantil.com.ar" target="_blank" rel="noopener" class="btn btn-primary btn-sm" style="justify-content:center"><i class="ti ti-external-link"></i> Ir al portal</a>
+      </div>
+
+      <div class="link-card">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:36px;height:36px;border-radius:8px;background:var(--green-light);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <i class="ti ti-shield" style="color:var(--green);font-size:18px"></i>
+          </div>
+          <div class="link-card-name">San Cristóbal</div>
+        </div>
+        <div class="link-card-desc">Portal exclusivo para productores</div>
+        <a href="https://productores.sancristobal.com.ar/inicio" target="_blank" rel="noopener" class="btn btn-primary btn-sm" style="justify-content:center"><i class="ti ti-external-link"></i> Ir al portal</a>
+      </div>
+
+      <div class="link-card">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:36px;height:36px;border-radius:8px;background:var(--teal-light);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <i class="ti ti-shield" style="color:var(--teal);font-size:18px"></i>
+          </div>
+          <div class="link-card-name">Río Uruguay (RUS)</div>
+        </div>
+        <div class="link-card-desc">Sistema de gestión SIS — productores</div>
+        <a href="https://sis.rus.com.ar" target="_blank" rel="noopener" class="btn btn-primary btn-sm" style="justify-content:center"><i class="ti ti-external-link"></i> Ir al portal</a>
+      </div>
+
+      <div class="link-card">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:36px;height:36px;border-radius:8px;background:var(--purple-light);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <i class="ti ti-shield" style="color:var(--purple);font-size:18px"></i>
+          </div>
+          <div class="link-card-name">Sancor Seguros</div>
+        </div>
+        <div class="link-card-desc">Portal de intermediarios — Grupo Sancor Seguros</div>
+        <a href="https://portalintermediarios.gruposancorseguros.com/" target="_blank" rel="noopener" class="btn btn-primary btn-sm" style="justify-content:center"><i class="ti ti-external-link"></i> Ir al portal</a>
+      </div>
+
+      <div class="link-card">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:36px;height:36px;border-radius:8px;background:var(--blue-light);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <i class="ti ti-shield" style="color:var(--blue-dark);font-size:18px"></i>
+          </div>
+          <div class="link-card-name">Allianz</div>
+        </div>
+        <div class="link-card-desc">AllianzNet — portal de productores Argentina</div>
+        <a href="https://net.allianz.com.ar/#/home" target="_blank" rel="noopener" class="btn btn-primary btn-sm" style="justify-content:center"><i class="ti ti-external-link"></i> Ir al portal</a>
+      </div>
+
+      <div class="link-card">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:36px;height:36px;border-radius:8px;background:var(--red-light);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <i class="ti ti-shield" style="color:var(--red);font-size:18px"></i>
+          </div>
+          <div class="link-card-name">Rivadavia</div>
+        </div>
+        <div class="link-card-desc">Sistema de gestión para productores</div>
+        <a href="https://www.sistemas.segurosrivadavia.com/sistemas/login/login.php?u=P" target="_blank" rel="noopener" class="btn btn-primary btn-sm" style="justify-content:center"><i class="ti ti-external-link"></i> Ir al portal</a>
+      </div>
+
+      <div class="link-card">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:36px;height:36px;border-radius:8px;background:var(--green-light);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <i class="ti ti-shield" style="color:var(--green);font-size:18px"></i>
+          </div>
+          <div class="link-card-name">Prevención Seguros</div>
+        </div>
+        <div class="link-card-desc">Portal de intermediarios — Grupo Sancor Seguros</div>
+        <a href="https://portalintermediarios.gruposancorseguros.com/" target="_blank" rel="noopener" class="btn btn-primary btn-sm" style="justify-content:center"><i class="ti ti-external-link"></i> Ir al portal</a>
+      </div>
+
+      <div class="link-card">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:36px;height:36px;border-radius:8px;background:var(--teal-light);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <i class="ti ti-shield" style="color:var(--teal);font-size:18px"></i>
+          </div>
+          <div class="link-card-name">SMG — Swiss Medical</div>
+        </div>
+        <div class="link-card-desc">Oficina virtual Swiss Medical Seguros</div>
+        <a href="https://oficina.smg.com.ar/SMGSTSPasivo/Login.aspx" target="_blank" rel="noopener" class="btn btn-primary btn-sm" style="justify-content:center"><i class="ti ti-external-link"></i> Ir al portal</a>
+      </div>
+
+      <div class="link-card">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:36px;height:36px;border-radius:8px;background:var(--teal-light);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <i class="ti ti-shield" style="color:var(--teal);font-size:18px"></i>
+          </div>
+          <div class="link-card-name">Datacar</div>
+        </div>
+        <div class="link-card-desc">Consulta de vehículos</div>
+        <a href="https://www.datacar.com.ar" target="_blank" rel="noopener" class="btn btn-primary btn-sm" style="justify-content:center"><i class="ti ti-external-link"></i> Ir al portal</a>
+      </div>
+
+      <div class="link-card">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:36px;height:36px;border-radius:8px;background:var(--teal-light);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <i class="ti ti-shield" style="color:var(--teal);font-size:18px"></i>
+          </div>
+          <div class="link-card-name">Energas</div>
+        </div>
+        <div class="link-card-desc">Consulta de GNC</div>
+        <a href="https://www.enargas.gob.ar/secciones/gas-natural-comprimido/consulta-dominio.php" target="_blank" rel="noopener" class="btn btn-primary btn-sm" style="justify-content:center"><i class="ti ti-external-link"></i> Ir al portal</a>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+</div></div>
+
+<div class="modal-backdrop" id="modal-backdrop" onclick="closeModalOutside(event)">
+  <div class="modal" id="modal-body"></div>
+</div>
+ 
+<div class="toast" id="toast"></div>
+ 
+<script>
+// ============================================================
+// CONSTANTES
+// ============================================================
+var TIPOS = ['Auto','Hogar','Comercio','Vida','Accidentes Personales','Moto','Transporte','Embarcación','Responsabilidad Civil','Agrícola'];
+var COMPANIAS = ['Federación Patronal','Mercantil','San Cristóbal','Río Uruguay','Sancor','Allianz','Rivadavia','Banco del Sol','SMG','Prevención'];
+var STAGES = ['Primer contacto','En negociación','Propuesta enviada'];
+var TIPO_ICON = {Auto:'ti-car',Hogar:'ti-home',Vida:'ti-heart',Comercio:'ti-building-store',Moto:'ti-motorbike','Accidentes Personales':'ti-first-aid-kit',Transporte:'ti-truck','Embarcación':'ti-sailboat','Responsabilidad Civil':'ti-certificate','Agrícola':'ti-plant'};
+var TIPO_TAG = {Auto:'tag-blue',Hogar:'tag-teal',Vida:'tag-purple',Comercio:'tag-amber',Moto:'tag-blue','Accidentes Personales':'tag-red',Transporte:'tag-amber','Embarcación':'tag-teal','Responsabilidad Civil':'tag-gray','Agrícola':'tag-green'};
+var MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+ 
+// ============================================================
+// ESTADO
+// ============================================================
+var DB = {clients:[], siniestros:[], pendientes:[], prospectos:[], facturacion:[]};
+var currentDetailClientId = null;
+
+// ============================================================
+// FIREBASE CONFIG
+// ============================================================
+var firebaseConfig = {
+  apiKey: "AIzaSyCRSWClVtULGeWcBWnz-ba7Pj28oIVAOjE",
+  authDomain: "mi-crm-96657.firebaseapp.com",
+  projectId: "mi-crm-96657",
+  storageBucket: "mi-crm-96657.firebasestorage.app",
+  messagingSenderId: "745712278339",
+  appId: "1:745712278339:web:e455f6bcbef50f2a77adf6"
+};
+firebase.initializeApp(firebaseConfig);
+var fbdb = firebase.firestore();
+var fbauth = firebase.auth();
+
+function loadDB() {
+  fbdb.collection('crm').doc('data').get().then(function(doc) {
+    if (doc.exists) {
+      DB = doc.data();
+      var hoyMig = new Date().toISOString().split('T')[0];
+      if (!DB.clients) DB.clients = [];
+      DB.clients.forEach(function(c){
+        if(!c.interacciones) c.interacciones=[];
+        if(!c.fechaNacimiento) c.fechaNacimiento='';
+        if(!c.traidoPor) c.traidoPor='Yo';
+        if(c.polizas) c.polizas.forEach(function(p){ if(!p.fechaAlta) p.fechaAlta=hoyMig; });
+      });
+      if (!DB.prospectos) DB.prospectos = [];
+      if (!DB.facturacion) { seedFacturacion(); saveDB(); }
+      if (!DB.siniestros) DB.siniestros = [];
+      DB.siniestros.forEach(function(s){ if(!s.avances) s.avances=[]; });
+    } else {
+      seedData();
+    }
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('app').style.display='flex';
+    showSection('dashboard');
+  }).catch(function(e){ console.error(e); seedData(); showSection('dashboard'); });
+}
+
+function saveDB() {
+  fbdb.collection('crm').doc('data').set(DB).catch(function(e){ console.error('Error guardando:', e); });
+}
+ 
+function seedFacturacion() {
+  DB.facturacion = [
+    {id:101,anio:2026,mes:0,compania:'Federación Patronal',monto:450000},
+    {id:102,anio:2026,mes:0,compania:'Sancor',monto:300000},
+    {id:103,anio:2026,mes:0,compania:'Allianz',monto:150000},
+    {id:104,anio:2026,mes:1,compania:'Federación Patronal',monto:490000},
+    {id:105,anio:2026,mes:1,compania:'Sancor',monto:280000},
+    {id:106,anio:2026,mes:1,compania:'Allianz',monto:165000},
+    {id:107,anio:2026,mes:2,compania:'Federación Patronal',monto:520000},
+    {id:108,anio:2026,mes:2,compania:'Sancor',monto:310000},
+    {id:109,anio:2026,mes:2,compania:'Allianz',monto:160000}
+  ];
+}
+ 
+function seedData() {
+  DB = {
+    clients: [
+      {id:1,nombre:'Martín Gómez',whatsapp:'1151567041',mail:'martingomez@gmail.com',fechaNacimiento:'1985-11-15',polizas:[
+        {tipo:'Auto',compania:'Federación Patronal',nro:'A-1234',vto:'2026-12-01',vendedor:'Yo',fechaAlta:'2025-01-10'},
+        {tipo:'Hogar',compania:'Federación Patronal',nro:'H-5678',vto:'2026-08-15',vendedor:'Yo',fechaAlta:'2025-01-10'}
+      ],notas:'Cliente muy cumplidor. Prefiere atención por WhatsApp.',interacciones:[
+        {id:9001,fecha:'2026-05-10',tipo:'Llamada',nota:'Consulta sobre estado del siniestro de auto.'},
+        {id:9002,fecha:'2026-03-22',tipo:'WhatsApp',nota:'Se le envió el resumen de pólizas renovadas.'}
+      ]},
+      {id:2,nombre:'María García',whatsapp:'1165432109',mail:'maria.garcia@gmail.com',fechaNacimiento:'1990-06-08',polizas:[
+        {tipo:'Vida',compania:'Allianz',nro:'V-9012',vto:'2027-03-20',vendedor:'Yo',fechaAlta:'2025-02-05'},
+        {tipo:'Auto',compania:'Allianz',nro:'A-3456',vto:'2026-11-30',vendedor:'Leandro',fechaAlta:'2025-03-18'}
+      ],notas:'Renovó coberturas en marzo.',interacciones:[
+        {id:9003,fecha:'2026-04-15',tipo:'Reunión',nota:'Reunión para revisar actualización de capitales.'}
+      ]},
+      {id:3,nombre:'Carlos Rodríguez',whatsapp:'1143218765',mail:'carlos.r@hotmail.com',fechaNacimiento:'1978-05-29',polizas:[
+        {tipo:'Comercio',compania:'Sancor',nro:'C-7890',vto:'2026-09-10',vendedor:'Yo',fechaAlta:'2025-03-01'}
+      ],notas:'Local comercial en zona norte.',interacciones:[]},
+      {id:4,nombre:'Laura Fernández',whatsapp:'1178654321',mail:'lauraf@gmail.com',fechaNacimiento:'1992-06-03',polizas:[
+        {tipo:'Hogar',compania:'Sancor',nro:'H-2345',vto:'2027-01-05',vendedor:'Leandro',fechaAlta:'2025-04-22'},
+        {tipo:'Moto',compania:'San Cristóbal',nro:'M-6789',vto:'2026-10-20',vendedor:'Yo',fechaAlta:'2025-05-07'}
+      ],notas:'',interacciones:[]}
+    ],
+    siniestros: [
+      {id:1,clienteId:1,tipo:'Auto',tipoSiniestro:'Choque',compania:'Federación Patronal',fecha:'2026-05-10',estado:'En trámite',notas:'Choque por alcance menor.'},
+      {id:2,clienteId:3,tipo:'Comercio',tipoSiniestro:'Cristales',compania:'Sancor',fecha:'2026-04-28',estado:'En trámite',notas:'Rotura de vidrios por tormenta.'},
+      {id:3,clienteId:2,tipo:'Auto',tipoSiniestro:'Granizo',compania:'Allianz',fecha:'2026-02-15',estado:'Cerrado',notas:'Granizo reparado al 100%.'}
+    ],
+    pendientes: [
+      {id:1,tarea:'Renovar póliza de Auto',clienteId:1,vto:'2026-06-05',prioridad:'Alta',done:false},
+      {id:2,tarea:'Enviar propuesta de Vida',clienteId:3,vto:'2026-06-12',prioridad:'Media',done:false},
+      {id:3,tarea:'Llamar por estado del siniestro',clienteId:1,vto:'2026-06-02',prioridad:'Alta',done:false}
+    ],
+    prospectos: [
+      {id:1,nombre:'Roberto Sánchez',telefono:'1155667788',interes:'Auto + Hogar',stage:1,notes:'Recomendado por Martín Gómez.',fechaEmision:'',fechaRecontacto:'',responsable:'YO'},
+      {id:2,nombre:'Analía Torres',telefono:'1199887766',interes:'Comercio',stage:0,notes:'Tiene una distribuidora.',fechaEmision:'',fechaRecontacto:'',responsable:'Leandro'},
+      {id:3,nombre:'Jorge Méndez',telefono:'1122334455',interes:'Vida',stage:2,notes:'Pidió cotización familiar completa.',fechaEmision:'',fechaRecontacto:'',responsable:'YO'}
+    ]
+  };
+  seedFacturacion();
+  saveDB();
+}
+ 
+// ============================================================
+// HELPERS
+// ============================================================
+function uid() { return Date.now() + Math.floor(Math.random()*1000); }
+function ini(n) { var p=n.trim().split(' '); return (p[0][0]+(p[1]?p[1][0]:'')).toUpperCase(); }
+function calcEdad(fechaNac) {
+  if(!fechaNac) return '?';
+  var hoy=new Date(), p=fechaNac.split('-');
+  var edad=hoy.getFullYear()-parseInt(p[0]);
+  var m=hoy.getMonth()+1-parseInt(p[1]);
+  if(m<0||(m===0&&hoy.getDate()<parseInt(p[2]))) edad--;
+  return edad;
+}
+function fmt(d) { if(!d) return '-'; var p=d.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; }
+function getClient(id) { return DB.clients.find(function(c){return c.id==id}); }
+function getProspecto(id) { return DB.prospectos.find(function(p){return p.id==id}); }
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function abrirFichaProspecto(id) { openModal('ficha-prospecto', id); }
+function abrirFichaSiniestro(id) { openModal('ficha-siniestro', id); }
+function getSiniestro(id) { return DB.siniestros.find(function(s){return s.id==id}); }
+function abrirWA(num) { if(num) window.open('https://wa.me/'+num.replace(/\D/g,''),'_blank'); }
+function toast(msg) {
+  var t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  setTimeout(function(){t.classList.remove('show')},2500);
+}
+function updateBadges() {
+  var sinOpen=DB.siniestros.filter(function(s){return s.estado!=='Cerrado'}).length;
+  var pndOpen=DB.pendientes.filter(function(p){return !p.done}).length;
+  document.getElementById('badge-sin').textContent=sinOpen;
+  document.getElementById('badge-pend').textContent=pndOpen;
+  var totalPol=DB.clients.reduce(function(a,c){return a+c.polizas.length},0);
+  
+  var dTotal=document.getElementById('dash-total'); if(dTotal) dTotal.textContent=DB.clients.length;
+  var dPol=document.getElementById('dash-polizas'); if(dPol) dPol.textContent=totalPol;
+  var dSin=document.getElementById('dash-sinopen'); if(dSin) dSin.textContent=sinOpen;
+  var dPend=document.getElementById('dash-pend'); if(dPend) dPend.textContent=pndOpen;
+}
+ 
+// ============================================================
+// NAVEGACIÓN
+// ============================================================
+function showSection(s) {
+  document.querySelectorAll('.view').forEach(function(v){v.classList.remove('active')});
+  document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active')});
+  var sec=document.getElementById('sec-'+s);
+  if(sec) sec.classList.add('active');
+  var nav=document.getElementById('nav-'+s);
+  if(nav) nav.classList.add('active');
+  if(s==='dashboard') renderDashboard();
+  if(s==='clientes') renderClientes();
+  if(s==='siniestros') renderSiniestros();
+  if(s==='pendientes') renderPendientes();
+  if(s==='prospectos') renderProspectos();
+  if(s==='polizas') renderPolizas();
+  if(s==='facturacion'){initFiltrosFacturacion();renderFacturacion();}
+  if(s==='reportes') renderReportes();
+  updateBadges();
+}
+ 
+// ============================================================
+// DASHBOARD & CALENDARIO
+// ============================================================
+var calViewDate = new Date();
+
+function renderDashboard() {
+  updateBadges();
+  var ahora = new Date();
+  var hora = ahora.getHours();
+  var saludo = hora < 12 ? 'Buenos días' : hora < 19 ? 'Buenas tardes' : 'Buenas noches';
+  var el = document.getElementById('dash-greeting');
+  if(el) el.textContent = saludo + ', Damián Kogan';
+  var dias = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  var mesesL = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  var elD = document.getElementById('dash-date');
+  if(elD) elD.textContent = dias[ahora.getDay()] + ', ' + ahora.getDate() + ' de ' + mesesL[ahora.getMonth()] + ' de ' + ahora.getFullYear();
+
+  renderCalendario();
+  renderBdays();
+  renderDashPendientes();
+  renderDashSiniestros();
+}
+
+function calCambiarMes(delta) {
+  calViewDate = new Date(calViewDate.getFullYear(), calViewDate.getMonth() + delta, 1);
+  renderCalendario();
+  renderBdays();
+}
+
+function renderCalendario() {
+  var hoy = new Date();
+  var anio = calViewDate.getFullYear();
+  var mes  = calViewDate.getMonth();
+
+  var bdayMap = {};
+  DB.clients.forEach(function(c){
+    if(!c.fechaNacimiento) return;
+    var p = c.fechaNacimiento.split('-');
+    if(parseInt(p[1])-1 === mes) {
+      var dia = parseInt(p[2]);
+      if(!bdayMap[dia]) bdayMap[dia]=[];
+      bdayMap[dia].push(c.nombre);
+    }
+  });
+
+  var taskMap = {};
+  DB.pendientes.forEach(function(p){
+    if(p.done || !p.vto) return;
+    var parts = p.vto.split('-');
+    if(parseInt(parts[0]) === anio && parseInt(parts[1])-1 === mes) {
+      var dia = parseInt(parts[2]);
+      if(!taskMap[dia]) taskMap[dia]=[];
+      taskMap[dia].push(p.tarea);
+    }
+  });
+
+  var titulo = document.getElementById('cal-titulo');
+  if(titulo) titulo.textContent = MESES[mes] + ' ' + anio;
+
+  var grid = document.getElementById('cal-grid');
+  if(!grid) return;
+
+  var html = ['Lu','Ma','Mi','Ju','Vi','Sa','Do'].map(function(d){
+    return '<div class="cal-dow">'+d+'</div>';
+  }).join('');
+
+  var primerDia = new Date(anio, mes, 1).getDay();
+  primerDia = (primerDia + 6) % 7;
+  var diasMes = new Date(anio, mes+1, 0).getDate();
+
+  for(var i=0; i<primerDia; i++) html += '<div class="cal-day other"></div>';
+  for(var d=1; d<=diasMes; d++){
+    var esHoy = (d===hoy.getDate() && mes===hoy.getMonth() && anio===hoy.getFullYear());
+    var tieneBday = !!bdayMap[d];
+    var tieneTarea = !!taskMap[d];
+    
+    var cls = 'cal-day';
+    if(esHoy) cls += ' today';
+    if(tieneBday) cls += ' has-bday';
+    if(tieneTarea && !tieneBday) cls += ' has-task';
+    
+    var dotHTML = '<div class="cal-dots-container">';
+    if(tieneBday) dotHTML += '<div class="cal-day-dot" style="background:var(--purple)"></div>';
+    if(tieneTarea) dotHTML += '<div class="cal-day-dot" style="background:var(--blue)"></div>';
+    dotHTML += '</div>';
+    
+    var titleParts = [];
+    if(tieneBday) titleParts.push('Cumpleaños: ' + bdayMap[d].join(', '));
+    if(tieneTarea) titleParts.push('Tareas/Recontactos: ' + taskMap[d].join(', '));
+    var title = titleParts.length ? ' title="'+escHtml(titleParts.join(' | '))+'"' : '';
+    
+    html += '<div class="'+cls+'"'+title+'>'+d+dotHTML+'</div>';
+  }
+  grid.innerHTML = html;
+}
+
+function renderBdays() {
+  var hoy = new Date();
+  var hoyAnio = hoy.getFullYear();
+  var lista = [];
+
+  DB.clients.forEach(function(c){
+    if(!c.fechaNacimiento) return;
+    var p = c.fechaNacimiento.split('-');
+    var mes = parseInt(p[1])-1, dia = parseInt(p[2]);
+    var cumple = new Date(hoyAnio, mes, dia);
+    if(cumple < hoy && !(cumple.getDate()===hoy.getDate() && cumple.getMonth()===hoy.getMonth())) {
+      cumple = new Date(hoyAnio+1, mes, dia);
+    }
+    var diff = Math.round((cumple - hoy) / 86400000);
+    var edad = hoyAnio - parseInt(p[0]) + (diff === 0 ? 0 : (cumple.getFullYear() > hoyAnio ? -1 : 0));
+    lista.push({c:c, diff:diff, dia:dia, mes:mes, edad:edad});
+  });
+
+  lista.sort(function(a,b){return a.diff - b.diff;});
+  lista = lista.slice(0,8);
+
+  var bdayCount = document.getElementById('dash-bday-count');
+  if(bdayCount) bdayCount.textContent = lista.length ? '(próximos 8)' : '';
+
+  var bdayList = document.getElementById('dash-bday-list');
+  if(!bdayList) return;
+  if(!lista.length){
+    bdayList.innerHTML='<p style="font-size:13px;color:var(--text2)">Ningún cumpleaños próximo registrado.</p>';
+    return;
+  }
+
+  bdayList.innerHTML = lista.map(function(item){
+    var c=item.c, diff=item.diff;
+    var diaStr = String(item.dia).padStart(2,'0')+'/'+ String(item.mes+1).padStart(2,'0');
+    var badgeCls, badgeTxt;
+    if(diff===0){badgeCls='bday-hoy';badgeTxt='¡Hoy! 🎉';}
+    else if(diff<=7){badgeCls='bday-pronto';badgeTxt='en '+diff+' día'+(diff>1?'s':'');}
+    else{badgeCls='bday-proximo';badgeTxt='en '+diff+' días';}
+    return '<div class="bday-item" style="cursor:pointer" onclick="showDetail('+c.id+')">'+
+      '<div class="bday-avatar">'+ini(c.nombre)+'</div>'+
+      '<div>'+
+        '<div style="font-weight:500">'+escHtml(c.nombre)+'</div>'+
+        '<div style="font-size:11px;color:var(--text2)">'+diaStr+' · cumple '+item.edad+' años</div>'+
+      '</div>'+
+      '<span class="bday-dias '+badgeCls+'">'+badgeTxt+'</span>'+
+    '</div>';
+  }).join('');
+}
+
+function renderDashPendientes() {
+  var el = document.getElementById('dash-tareas-urgentes');
+  if(!el) return;
+  var lista = DB.pendientes.filter(function(p){return !p.done;});
+  lista.sort(function(a,b){
+    return (a.vto || '').localeCompare(b.vto || '');
+  }).slice(0,10);
+  if(!lista.length){el.innerHTML='<p style="font-size:13px;color:var(--text2);padding:6px 0">Sin tareas pendientes activos.</p>';return;}
+  el.innerHTML = lista.map(function(p){
+    var c=getClient(p.clienteId);
+    var displayName = c ? escHtml(c.nombre) : 'Prospecto/General';
+    
+    // Si no hay cliente pero hay prosId, buscar el nombre del prospecto
+    if (!c && p.prosId) {
+      var pros = DB.prospectos.find(function(pr){ return pr.id == p.prosId; });
+      if (pros) displayName = escHtml(pros.nombre);
+    }
+    
+    var iconColor = p.prioridad==='Alta'?'var(--red)':p.prioridad==='Media'?'var(--amber)':'var(--text3)';
+    var clickAction = p.prosId ? 'abrirFichaProspecto('+p.prosId+')' : (c ? 'showDetail('+c.id+')' : 'showSection(\'pendientes\')');
+    return '<div class="dash-pend-item" onclick="'+clickAction+'" title="Abrir ficha relacionada">'+ 
+      '<i class="ti ti-clock" style="color:'+iconColor+';font-size:15px;flex-shrink:0"></i>'+
+      '<div style="flex:1;min-width:0">'+
+        '<div style="font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+escHtml(p.tarea)+'</div>'+
+        '<div style="font-size:11px;color:var(--text2)">'+displayName+' · '+escHtml(p.prioridad)+' · Vto: '+fmt(p.vto)+'</div>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+function renderDashSiniestros() {
+  var el = document.getElementById('dash-siniestros-abiertos');
+  if(!el) return;
+  var lista = DB.siniestros.filter(function(s){return s.estado!=='Cerrado'}).slice(0,5);
+  if(!lista.length){el.innerHTML='<p style="font-size:13px;color:var(--text2);padding:6px 0">Sin siniestros en trámite activos.</p>';return;}
+  el.innerHTML = lista.map(function(s){
+    var c=getClient(s.clienteId);
+    var dot = s.estado==='Peritado'?'dot-blue':'dot-amber';
+    return '<div class="dash-pend-item" onclick="showSection(\'siniestros\')">'+
+      '<span class="status-dot '+dot+'" style="flex-shrink:0;margin-right:0"></span>'+
+      '<div style="flex:1;min-width:0">'+
+        '<div style="font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(c?escHtml(c.nombre):'—')+' — '+escHtml(s.tipoSiniestro||s.tipo)+'</div>'+
+        '<div style="font-size:11px;color:var(--text2)">'+escHtml(s.compania)+' · '+escHtml(s.estado)+'</div>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+// ============================================================
+// RENDER CLIENTES
+// ============================================================
+function renderClientes() {
+  var q=(document.getElementById('q-clientes').value||'').toLowerCase();
+  var sortVal=document.getElementById('sort-clientes').value || 'nombre-asc';
+
+  var filtroTraido=(document.getElementById('filtro-traido').value||'');
+  var list=DB.clients.filter(function(c){
+    var matchQ=!q||c.nombre.toLowerCase().includes(q)||(c.mail||'').toLowerCase().includes(q)||(c.whatsapp||'').includes(q);
+    var matchTraido=!filtroTraido||(c.traidoPor||'Yo')===filtroTraido;
+    return matchQ&&matchTraido;
+  });
+  
+  list.sort(function(a, b) {
+    if(sortVal === 'nombre-desc') return b.nombre.localeCompare(a.nombre);
+    return a.nombre.localeCompare(b.nombre);
+  });
+  
+  var container=document.getElementById('list-clientes');
+  if(!list.length){container.innerHTML='<div class="empty"><i class="ti ti-users"></i><p>No se encontraron clientes</p></div>';return;}
+  container.innerHTML=list.map(function(c){
+    var tags=c.polizas.map(function(p){return '<span class="tag '+(TIPO_TAG[p.tipo]||'tag-blue')+'">'+escHtml(p.tipo)+'</span>'}).join('');
+    return '<div class="client-list-item" onclick="showDetail('+c.id+')">'+
+      '<div class="client-info-block">'+
+        '<div class="client-avatar">'+ini(c.nombre)+'</div>'+
+        '<div><div class="client-name">'+escHtml(c.nombre)+'</div><div style="font-size:12px;color:var(--text3)">ID: #'+c.id+'</div></div>'+
+      '</div>'+
+      '<div class="client-contact-block">'+
+        '<div><i class="ti ti-mail" style="margin-right:4px;vertical-align:-2px"></i>'+escHtml(c.mail||'-')+'</div>'+
+        '<div><i class="ti ti-phone" style="margin-right:4px;vertical-align:-2px"></i>'+escHtml(c.whatsapp||'-')+'</div>'+
+      '</div>'+
+      '<div class="client-tags-block">'+tags+'</div>'+
+      '<div class="client-actions-block" onclick="event.stopPropagation()">'+
+        '<button class="btn btn-sm btn-wa" onclick="abrirWA(\''+escHtml(c.whatsapp||'')+'\')"><i class="ti ti-brand-whatsapp"></i></button>'+
+        '<button class="btn btn-sm" onclick="showDetail('+c.id+')"><i class="ti ti-eye"></i> Ver</button>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+ 
+// ============================================================
+// DETALLE CLIENTE
+// ============================================================
+function showDetail(id) {
+  var c=getClient(id);
+  if(!c) return;
+  currentDetailClientId=id;
+ 
+  document.querySelectorAll('.view').forEach(function(v){v.classList.remove('active')});
+  document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active')});
+  document.getElementById('sec-detalle').classList.add('active');
+  document.getElementById('det-nombre').textContent=c.nombre;
+  
+  document.getElementById('det-actions').innerHTML=
+    '<button class="btn btn-sm btn-wa" onclick="abrirWA(\''+escHtml(c.whatsapp||'')+'\')"><i class="ti ti-brand-whatsapp"></i> WhatsApp</button>'+
+    '<button class="btn btn-sm" onclick="openModal(\'nuevo-pendiente\','+c.id+')"><i class="ti ti-clock-play"></i> Tarea</button>'+
+    '<button class="btn btn-sm" onclick="agregarPoliza('+c.id+')"><i class="ti ti-plus"></i> Póliza</button>'+
+    '<button class="btn btn-sm" onclick="openModal(\'nuevo-siniestro\','+c.id+')"><i class="ti ti-alert-triangle"></i> Cargar Siniestro</button>'+
+    '<button class="btn btn-sm btn-danger" onclick="eliminarCliente('+c.id+')"><i class="ti ti-trash"></i> Eliminar Cliente</button>';
+ 
+  var polizasHTML = c.polizas && c.polizas.length ? c.polizas.map(function(p,i){
+    var ic=TIPO_ICON[p.tipo]||'ti-file';
+    var vendTag=p.vendedor?' · Vendedor: '+p.vendedor:'';
+    return '<div class="poliza-item">'+
+      '<div class="poliza-icon"><i class="ti '+ic+'"></i></div>'+
+      '<div style="flex:1">'+
+        '<div style="font-size:13px;font-weight:600">'+escHtml(p.tipo)+'</div>'+
+        '<div style="font-size:12px;color:var(--text2)">'+escHtml(p.compania)+' · Nro: '+escHtml(p.nro||'-')+escHtml(vendTag)+'</div>'+
+        '<div style="font-size:11px;color:var(--text3);margin-top:1px">Alta: '+fmt(p.fechaAlta||'')+'</div>'+
+      '</div>'+
+      '<div style="font-size:12px;color:var(--text2);margin-right:8px">Vto: '+fmt(p.vto)+'</div>'+
+      '<div class="btn-group">'+
+        '<button class="btn btn-sm" onclick="openModal(\'editar-poliza\',\''+c.id+'_'+i+'\')" title="Editar"><i class="ti ti-edit"></i></button>'+
+        '<button class="btn btn-sm btn-danger" onclick="borrarPoliza('+c.id+','+i+')" title="Eliminar"><i class="ti ti-trash"></i></button>'+
+      '</div>'+
+    '</div>';
+  }).join('') : '<p style="font-size:13px;color:var(--text2)">Sin pólizas activas vinculadas.</p>';
+ 
+  var sinClient=DB.siniestros.filter(function(s){return s.clienteId==c.id});
+  var sinHTML=sinClient.length ? sinClient.map(function(s){
+    var dot=s.estado==='Cerrado'?'dot-green':s.estado==='En trámite'?'dot-amber':'dot-blue';
+    var txtSin=(s.tipoSiniestro?'['+s.tipoSiniestro+'] ':'')+(s.notes||'');
+    return '<div class="detail-row" onclick="abrirFichaSiniestro('+s.id+')" style="cursor:pointer" title="Ver detalle y avances"><span>'+escHtml(s.tipo)+' — '+escHtml(txtSin)+'</span>'+
+      '<div class="btn-group" onclick="event.stopPropagation()"><span><span class="status-dot '+dot+'"></span>'+escHtml(s.estado)+'</span>'+
+      '<button class="btn btn-sm" style="padding:2px 6px" onclick="abrirFichaSiniestro('+s.id+')"><i class="ti ti-eye"></i></button></div></div>';
+  }).join('') : '<p style="font-size:13px;color:var(--text2)">Sin historial de siniestros.</p>';
+ 
+  var pendClient=DB.pendientes.filter(function(p){return p.clienteId==c.id&&!p.done});
+  var pendHTML=pendClient.length ? pendClient.map(function(p){
+    var pr=p.prioridad==='Alta'?'tag-red':p.prioridad==='Media'?'tag-amber':'tag-gray';
+    return '<div class="detail-row">'+
+      '<span style="flex:1;margin-right:8px">'+escHtml(p.tarea)+'</span>'+
+      '<div class="btn-group">'+
+        '<span class="tag '+pr+'">'+escHtml(p.prioridad)+'</span>'+
+        '<button class="btn btn-sm" style="padding:2px 6px" onclick="openModal(\'editar-pendiente-detalle\','+p.id+')" title="Editar"><i class="ti ti-edit"></i></button>'+
+        '<button class="btn btn-sm btn-success" style="padding:2px 6px" onclick="togglePendDetalle('+p.id+')" title="Completar"><i class="ti ti-check"></i></button>'+
+        '<button class="btn btn-sm btn-danger" style="padding:2px 6px" onclick="borrarPendDetalle('+p.id+')" title="Eliminar"><i class="ti ti-trash"></i></button>'+
+      '</div>'+
+    '</div>';
+  }).join('') : '<p style="font-size:13px;color:var(--text2)">Sin tareas pendientes.</p>';
+ 
+  if(!c.interacciones) c.interacciones=[];
+  var INT_ICON = {Llamada:'ti-phone',WhatsApp:'ti-brand-whatsapp',Reunión:'ti-users',Email:'ti-mail',Otro:'ti-notes'};
+  var INT_CLS  = {Llamada:'int-llamada',WhatsApp:'int-whatsapp',Reunión:'int-reunion',Email:'int-email',Otro:'int-otro'};
+  var interacciones_sorted = c.interacciones.slice().sort(function(a,b){return (b.fecha||'').localeCompare(a.fecha||'');});
+  var intHTML = interacciones_sorted.length ? interacciones_sorted.map(function(it){
+    var icn = INT_ICON[it.tipo]||'ti-notes';
+    var cls = INT_CLS[it.tipo]||'int-otro';
+    return '<div class="interaccion-item">'+
+      '<div class="interaccion-icon '+cls+'"><i class="ti '+icn+'"></i></div>'+
+      '<div style="flex:1">'+
+        '<div style="font-weight:500">'+escHtml(it.tipo)+'<span style="font-weight:400;color:var(--text3);margin-left:8px;font-size:12px">'+fmt(it.fecha)+'</span></div>'+
+        '<div style="color:var(--text2);margin-top:2px">'+escHtml(it.nota||'')+'</div>'+
+      '</div>'+
+      '<button class="btn btn-sm btn-danger" style="padding:2px 6px;flex-shrink:0" onclick="borrarInteraccion('+c.id+','+it.id+')" title="Eliminar"><i class="ti ti-trash"></i></button>'+
+    '</div>';
+  }).join('') : '<p style="font-size:13px;color:var(--text2)">Sin interacciones registradas.</p>';
+
+  document.getElementById('det-body').innerHTML=
+    '<div class="detail-grid">'+
+    '<div>'+
+      '<div class="section-card"><div class="section-title">Datos de contacto'+
+        '<button class="btn btn-sm" style="text-transform:none;letter-spacing:0;font-size:11px" onclick="openModal(\'editar-contacto\','+c.id+')"><i class="ti ti-edit"></i> Editar</button>'+
+      '</div>'+
+        '<div class="detail-row"><span class="detail-label"><i class="ti ti-phone"></i> WhatsApp</span><span>'+escHtml(c.whatsapp||'-')+'</span></div>'+
+        '<div class="detail-row"><span class="detail-label"><i class="ti ti-mail"></i> Email</span><span>'+escHtml(c.mail||'-')+'</span></div>'+
+        '<div class="detail-row"><span class="detail-label"><i class="ti ti-cake"></i> Nacimiento</span><span>'+(c.fechaNacimiento?fmt(c.fechaNacimiento)+' ('+calcEdad(c.fechaNacimiento)+' años)':'-')+'</span></div>'+
+        '<div class="detail-row"><span class="detail-label"><i class="ti ti-user-share"></i> Lo trajo</span><span>'+escHtml(c.traidoPor||'Yo')+'</span></div>'+
+      '</div>'+
+      '<div class="section-card"><div class="section-title">Pólizas vinculadas <span style="font-size:11px;font-weight:400;color:var(--text2)">('+c.polizas.length+')</span></div>'+polizasHTML+'</div>'+
+      '<div class="section-card"><div class="section-title">Historial Clínico de Gestiones <span style="font-size:11px;font-weight:400;color:var(--text2)">('+c.interacciones.length+')</span>'+
+        '<button class="btn btn-sm" style="text-transform:none;letter-spacing:0;font-size:11px" onclick="openModal(\'nueva-interaccion\','+c.id+')"><i class="ti ti-plus"></i> Registrar</button>'+
+      '</div>'+intHTML+'</div>'+
+    '</div>'+
+    '<div>'+
+      '<div class="section-card"><div class="section-title">Siniestros Tramitados</div>'+sinHTML+'</div>'+
+      '<div class="section-card"><div class="section-title">Tareas y Alertas Pendientes <span style="font-size:11px;font-weight:400;color:var(--text2)">('+pendClient.length+')</span></div>'+pendHTML+'</div>'+
+      (c.notas?'<div class="section-card"><div class="section-title">Notas Generales</div><p style="font-size:13px;color:var(--text2);white-space:pre-line">'+escHtml(c.notas)+'</p></div>':'')+
+    '</div></div>';
+}
+ 
+function irASiniestrosFiltrados(nombreCliente) {
+  showSection('siniestros');
+  document.getElementById('q-siniestros').value=nombreCliente;
+  renderSiniestros();
+}
+ 
+function togglePendDetalle(pendId) {
+  var p=DB.pendientes.find(function(i){return i.id==pendId});
+  if(p){p.done=true; saveDB(); toast('Tarea completada'); showDetail(currentDetailClientId); updateBadges();}
+}
+function borrarPendDetalle(pendId) {
+  if(confirm('¿Eliminar esta tarea pendiente?')){
+    DB.pendientes=DB.pendientes.filter(function(i){return i.id!=pendId});
+    saveDB(); toast('Tarea eliminada'); showDetail(currentDetailClientId); updateBadges();}
+}
+ 
+function borrarPoliza(clienteId,index) {
+  if(confirm('¿Estás seguro de que deseas eliminar esta póliza?')){
+    var c=getClient(clienteId);
+    if(c&&c.polizas){c.polizas.splice(index,1);saveDB();toast('Póliza eliminada');showDetail(clienteId);updateBadges();}
+  }
+}
+ 
+function eliminarCliente(id) {
+  if(confirm('¿Eliminar por completo este cliente y todas sus referencias asociadas?')){
+    DB.clients=DB.clients.filter(function(c){return c.id!=id});
+    DB.siniestros=DB.siniestros.filter(function(s){return s.clienteId!=id});
+    DB.pendientes=DB.pendientes.filter(function(p){return p.clienteId!=id});
+    saveDB();toast('Cliente eliminado de la base de datos');showSection('clientes');
+  }
+}
+ 
+function agregarPoliza(clienteId){openModal('nueva-poliza',clienteId);}
+ 
+// ============================================================
+// RENDER SINIESTROS
+// ============================================================
+function renderSiniestros() {
+  var b=document.getElementById('tb-siniestros');
+  var q=(document.getElementById('q-siniestros').value||'').toLowerCase();
+  var sortVal=document.getElementById('sort-siniestros').value;
+  var list=DB.siniestros.filter(function(s){
+    var c=getClient(s.clienteId);
+    var nombreCl=c?c.nombre.toLowerCase():'';
+    return !q||nombreCl.includes(q);
+  });
+  list.sort(function(m,n){
+    var clM=getClient(m.clienteId),clN=getClient(n.clienteId);
+    var nameM=clM?clM.nombre.toLowerCase():'',nameN=clN?clN.nombre.toLowerCase():'';
+    var compM=m.compania.toLowerCase(),compN=n.compania.toLowerCase();
+    var dateM=m.fecha||'',dateN=n.fecha||'';
+    if(sortVal==='fecha-desc') return dateN.localeCompare(dateM);
+    if(sortVal==='fecha-asc') return dateM.localeCompare(dateN);
+    if(sortVal==='nombre-asc') return nameM.localeCompare(nameN);
+    if(sortVal==='nombre-desc') return nameN.localeCompare(nameM);
+    if(sortVal==='compania-asc') return compM.localeCompare(compN);
+    if(sortVal==='compania-desc') return compN.localeCompare(compM);
+    if(sortVal==='estado-asc') return (m.estado||'').localeCompare(n.estado||'');
+    if(sortVal==='estado-desc') return (n.estado||'').localeCompare(m.estado||'');
+    return 0;
+  });
+  if(!list.length){b.innerHTML='<tr><td colspan="8"><div class="empty"><i class="ti ti-alert-triangle"></i><p>Sin siniestros registrados</p></div></td></tr>';return;}
+  b.innerHTML=list.map(function(s){
+    var c=getClient(s.clienteId);
+    var dot=s.estado==='Cerrado'?'dot-green':s.estado==='Peritado'?'dot-blue':'dot-amber';
+    var tagst=s.estado==='Cerrado'?'tag-green':s.estado==='Peritado'?'tag-blue':'tag-amber';
+    return '<tr onclick="abrirFichaSiniestro('+s.id+')" style="cursor:pointer" title="Ver detalle y avances">'+
+      '<td style="font-weight:500">'+(c?escHtml(c.nombre):'—')+'</td>'+
+      '<td><span class="tag '+(TIPO_TAG[s.tipo]||'tag-blue')+'">'+escHtml(s.tipo)+'</span></td>'+
+      '<td><span class="tag tag-gray">'+escHtml(s.tipoSiniestro||'General')+'</span></td>'+
+      '<td>'+escHtml(s.compania)+'</td>'+
+      '<td>'+fmt(s.fecha)+'</td>'+
+      '<td><span class="tag '+tagst+'"><span class="status-dot '+dot+'"></span>'+escHtml(s.estado)+'</span></td>'+
+      '<td style="font-size:12px;color:var(--text2);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escHtml(s.notes||'')+'</td>'+
+      '<td><div class="btn-group" onclick="event.stopPropagation()">'+
+        '<button class="btn btn-sm" onclick="editarSiniestro('+s.id+')"><i class="ti ti-edit"></i></button>'+
+        '<button class="btn btn-sm btn-danger" onclick="borrarSiniestro('+s.id+')"><i class="ti ti-trash"></i></button>'+
+      '</div></td></tr>';
+  }).join('');
+}
+ 
+// ============================================================
+// RENDER PENDIENTES
+// ============================================================
+function renderPendientes() {
+  var b=document.getElementById('tb-pendientes');
+  if(!DB.pendientes||!DB.pendientes.length){b.innerHTML='<tr><td colspan="6"><div class="empty"><i class="ti ti-clock"></i><p>Sin tareas pendientes</p></div></td></tr>';return;}
+  var sortPend=document.getElementById('sort-pendientes').value;
+  var list=DB.pendientes.slice();
+  list.sort(function(a,b){
+    var dA=a.vto||'',dB=b.vto||'';
+    if(sortPend==='fecha-asc') return dA.localeCompare(dB);
+    if(sortPend==='fecha-desc') return dB.localeCompare(dA);
+    return 0;
+  });
+  b.innerHTML=list.map(function(p){
+    var c=getClient(p.clienteId);
+    var pr=p.prioridad==='Alta'?'tag-red':p.prioridad==='Media'?'tag-amber':'tag-gray';
+    var est=p.done?'<span class="tag tag-green">Completado</span>':'<span class="tag">Pendiente</span>';
+    var pros = !c && p.prosId ? getProspecto(p.prosId) : null;
+    var nombreRelacionado = c ? escHtml(c.nombre) : (pros ? '<span style="color:var(--blue);font-weight:500">'+escHtml(pros.nombre)+'</span>' : '<span style="color:var(--text3)">Prospecto / General</span>');
+    var rowAction = c ? 'showDetail('+c.id+')' : (pros ? 'abrirFichaProspecto('+pros.id+')' : '');
+    return '<tr style="opacity:'+(p.done?.55:1)+';cursor:'+(rowAction?'pointer':'default')+'" '+(rowAction?'onclick="'+rowAction+'" title="Abrir ficha relacionada"':'')+'>'+
+      '<td style="font-weight:500;'+(p.done?'text-decoration:line-through':'')+'">'+escHtml(p.tarea)+'</td>'+
+      '<td>'+nombreRelacionado+'</td>'+
+      '<td>'+fmt(p.vto)+'</td>'+
+      '<td><span class="tag '+pr+'">'+escHtml(p.prioridad)+'</span></td>'+
+      '<td>'+est+'</td>'+
+      '<td><div class="btn-group" onclick="event.stopPropagation()">'+
+        '<button class="btn btn-sm btn-success" onclick="togglePend('+p.id+')">'+(p.done?'Reabrir':'Listo')+'</button>'+
+        '<button class="btn btn-sm" onclick="openModal(\'editar-pendiente\','+p.id+')"><i class="ti ti-edit"></i></button>'+
+        '<button class="btn btn-sm btn-danger" onclick="borrarPend('+p.id+')"><i class="ti ti-trash"></i></button>'+
+      '</div></td></tr>';
+  }).join('');
+}
+ 
+// ============================================================
+// RENDER PÓLIZAS
+// ============================================================
+function renderPolizas() {
+  var b=document.getElementById('tb-polizas');
+  var q=(document.getElementById('q-polizas').value||'').toLowerCase();
+  var filtroVendedor=(document.getElementById('filtro-vendedor-pol').value||'');
+  var list=[];
+  DB.clients.forEach(function(c){
+    if(c.polizas) c.polizas.forEach(function(p){
+      var matchQ=!q||c.nombre.toLowerCase().includes(q)||p.tipo.toLowerCase().includes(q)||p.compania.toLowerCase().includes(q);
+      var matchVendedor=!filtroVendedor||(p.vendedor||'Yo')===filtroVendedor;
+      if(matchQ&&matchVendedor)
+        list.push({c:c,p:p});
+    });
+  });
+  if(!list.length){b.innerHTML='<tr><td colspan="7"><div class="empty"><i class="ti ti-file"></i><p>Sin pólizas vigentes encontradas</p></div></td></tr>';return;}
+  b.innerHTML=list.map(function(i){
+return '<tr onclick="showDetail('+i.c.id+')" style="cursor:pointer">'+
+'<td>'+escHtml(i.c.nombre)+'</td>'+
+'<td>'+escHtml(i.p.tipo)+'</td>'+
+'<td>'+escHtml(i.p.compania)+'</td>'+
+'<td>'+escHtml(i.p.nro)+'</td>'+
+'<td><span class="tag tag-gray">'+escHtml(i.p.vendedor||'Yo')+'</span></td>'+
+'<td>'+fmt(i.p.vto)+'</td>'+
+'<td><span class="tag tag-green">Vigente</span></td>'+
+'</tr>';
+  }).join('');
+}
+ 
+// ============================================================
+// RENDER PROSPECTOS (CON NUEVOS BOTONES)
+// ============================================================
+function renderProspectos() {
+  var k=document.getElementById('kanban');
+  k.innerHTML=STAGES.map(function(st,idx){
+    var filter=DB.prospectos.filter(function(p){return p.stage==idx});
+    filter.sort(function(a, b) {
+      var dA = a.fechaRecontacto || '9999-99-99';
+      var dB = b.fechaRecontacto || '9999-99-99';
+      return dA.localeCompare(dB);
+    });
+    var cards=filter.map(function(p){
+      
+      var infoEmision = p.fechaEmision ? '<div style="font-size:11px;color:var(--green);font-weight:600;margin-top:3px"><i class="ti ti-calendar-check"></i> Emisión: '+fmt(p.fechaEmision)+'</div>' : '';
+      var infoRecontacto = p.fechaRecontacto ? '<div style="font-size:11px;color:var(--purple);font-weight:600;margin-top:1px"><i class="ti ti-clock"></i> Recontacto: '+fmt(p.fechaRecontacto)+'</div>' : '';
+
+      return '<div class="kanban-card" onclick="abrirFichaProspecto('+p.id+')" title="Abrir ficha del prospecto">'+
+        '<div style="font-weight:600">'+escHtml(p.nombre)+'</div>'+
+        '<div style="font-size:12px;color:var(--text2);margin-top:2px"><i class="ti ti-phone" style="font-size:12px"></i> '+escHtml(p.telefono||'-')+'</div>'+
+        '<div style="font-size:12px;color:var(--blue);font-weight:500;margin-top:2px">'+escHtml(p.interes)+'</div>'+
+        infoEmision + infoRecontacto + '<div style="font-size:11px;color:var(--text2);margin-top:2px"><i class="ti ti-user"></i> Responsable: <b>'+(p.responsable||'YO')+'</b></div>' +
+        (p.notes?'<div style="font-size:11px;color:var(--text3);margin-top:5px;border-top:1px dashed var(--border);padding-top:4px;white-space:pre-line">'+escHtml(p.notes)+'</div>':'')+
+        
+        '<div style="display:flex;gap:4px;margin-top:8px;flex-wrap:wrap">'+
+          '<button class="btn btn-sm" style="padding:2px 6px;font-size:11px;background:var(--bg3)" onclick="event.stopPropagation();openModal(\'fecha-emision\','+p.id+')"><i class="ti ti-calendar"></i> Emisión</button>'+
+          '<button class="btn btn-sm" style="padding:2px 6px;font-size:11px;background:var(--purple-light);color:var(--purple);border-color:#D2CFFE" onclick="event.stopPropagation();openModal(\'recontacto\','+p.id+')"><i class="ti ti-calendar-plus"></i> Recontacto</button>'+
+        '</div>'+
+
+        '<div class="kanban-actions" style="margin-top:8px;border-top:1px solid var(--border);padding-top:6px">'+
+          '<button class="btn btn-sm btn-success" style="padding:2px 6px;font-size:11px" onclick="event.stopPropagation();convertirProspectoACliente('+p.id+')" title="Convertir a Cliente"><i class="ti ti-user-check"></i> Convertir</button>'+
+          '<button class="btn btn-sm" style="padding:2px 6px" onclick="event.stopPropagation();openModal(\'editar-prospecto\','+p.id+')"><i class="ti ti-edit"></i></button>'+
+          '<button class="btn btn-sm btn-danger" style="padding:2px 6px" onclick="event.stopPropagation();borrarProspecto('+p.id+')"><i class="ti ti-trash"></i></button>'+
+        '</div>'+
+      '</div>';
+    }).join('');
+    return '<div class="kanban-col"><div class="kanban-col-header">'+st+' <span>'+filter.length+'</span></div>'+cards+'</div>';
+  }).join('');
+}
+ 
+// ============================================================
+// MÓDULO DE FACTURACIÓN
+// ============================================================
+function initFiltrosFacturacion() {
+  var selector=document.getElementById('filtro-mes-fact');
+  if(!selector) return;
+  var prevSelection=selector.value;
+  var Periodos=[];
+  DB.facturacion.forEach(function(f){
+    var key=f.anio+'-'+f.mes;
+    if(!Periodos.includes(key)) Periodos.push(key);
+  });
+  Periodos.sort(function(a,b){
+    var pA=a.split('-'),pB=b.split('-');
+    return(pB[0]*12+parseInt(pB[1]))-(pA[0]*12+parseInt(pA[1]));
+  });
+  if(Periodos.length===0){var hoy=new Date();Periodos.push(hoy.getFullYear()+'-'+hoy.getMonth());}
+  selector.innerHTML=Periodos.map(function(p){
+    var partes=p.split('-');
+    return '<option value="'+p+'">'+MESES[partes[1]]+' '+partes[0]+'</option>';
+  }).join('');
+  if(prevSelection&&selector.querySelector('option[value="'+prevSelection+'"]')) selector.value=prevSelection;
+}
+ 
+function renderFacturacion() {
+  var b=document.getElementById('tb-facturacion');
+  var selector=document.getElementById('filtro-mes-fact');
+  if(!selector) return;
+  var selectorValue=selector.value;
+  if(!selectorValue) return;
+  var partes=selectorValue.split('-');
+  var anioSel=parseInt(partes[0]),mesSel=parseInt(partes[1]);
+  var mesAnt=mesSel===0?11:mesSel-1,anioAnt=mesSel===0?anioSel-1:anioSel;
+  var facturasMesActual=DB.facturacion.filter(function(f){return f.anio==anioSel&&f.mes==mesSel;});
+  var facturasMesAnterior=DB.facturacion.filter(function(f){return f.anio==anioAnt&&f.mes==mesAnt;});
+  var totalMesActual=0,totalMesAnterior=0;
+  facturasMesActual.forEach(function(f){totalMesActual+=f.monto;});
+  facturasMesAnterior.forEach(function(f){totalMesAnterior+=f.monto;});
+  if(!facturasMesActual.length){
+    b.innerHTML='<tr><td colspan="4"><div class="empty"><i class="ti ti-receipt-2"></i><p>Sin registros de facturación cargados este mes</p></div></td></tr>';
+    document.getElementById('fact-total-mes').textContent='$0.00';
+    document.getElementById('fact-cambio-total').innerHTML='';
+    return;
+  }
+  b.innerHTML=facturasMesActual.map(function(f){
+    var fAnt=facturasMesAnterior.find(function(fa){return fa.compania===f.compania;});
+    var celdaVariacion='<span style="color:var(--text3)">— Base</span>';
+    if(fAnt&&fAnt.monto>0){
+      var diff=f.monto-fAnt.monto,pct=((diff/fAnt.monto)*100).toFixed(1);
+      if(diff>0) celdaVariacion='<span style="color:var(--green);font-weight:500"><i class="ti ti-trending-up"></i> +'+pct+'% (+$'+diff.toLocaleString()+')</span>';
+      else if(diff<0) celdaVariacion='<span style="color:var(--red);font-weight:500"><i class="ti ti-trending-down"></i> '+pct+'% (-$'+Math.abs(diff).toLocaleString()+')</span>';
+      else celdaVariacion='<span style="color:var(--text2)">0.0% (Estable)</span>';
+    }
+    return '<tr>'+
+      '<td style="font-weight:600">'+escHtml(f.compania)+'</td>'+
+      '<td>$'+f.monto.toLocaleString('es-AR',{minimumFractionDigits:2})+'</td>'+
+      '<td>'+celdaVariacion+'</td>'+
+      '<td><div class="btn-group"><button class="btn btn-sm btn-danger" onclick="borrarFactura('+f.id+')"><i class="ti ti-trash"></i></button></div></td>'+
+      '</tr>';
+  }).join('');
+  document.getElementById('fact-total-mes').textContent='$'+totalMesActual.toLocaleString('es-AR',{minimumFractionDigits:2});
+  var indicadorTotal=document.getElementById('fact-cambio-total');
+  if(totalMesAnterior>0){
+    var diffTotal=totalMesActual-totalMesAnterior,pctTotal=((diffTotal/totalMesAnterior)*100).toFixed(1);
+    if(diffTotal>0) indicadorTotal.innerHTML='<span style="color:var(--green)"><i class="ti ti-arrow-up-right"></i> +'+pctTotal+'% vs mes anterior</span>';
+    else if(diffTotal<0) indicadorTotal.innerHTML='<span style="color:var(--red)"><i class="ti ti-arrow-down-right"></i> '+pctTotal+'% vs mes anterior</span>';
+    else indicadorTotal.innerHTML='<span style="color:var(--text2)">Estable vs periodo anterior</span>';
+  } else {
+    indicadorTotal.innerHTML='<span style="color:var(--text3)">Historial base inicial</span>';
+  }
+}
+ 
+function borrarFactura(id) {
+  if(confirm('¿Eliminar este registro de facturación de la cartera?')){
+    DB.facturacion=DB.facturacion.filter(function(f){return f.id!=id;});
+    saveDB();toast('Registro de producción eliminado');initFiltrosFacturacion();renderFacturacion();
+  }
+}
+ 
+// ============================================================
+// MÓDULO DE REPORTES
+// ============================================================
+function renderReportes() {
+  var totalPolizasVigentes=0,ramosCount={},companiasCount={};
+  DB.clients.forEach(function(c){
+    if(c.polizas&&c.polizas.length) c.polizas.forEach(function(p){
+      totalPolizasVigentes++;
+      if(!ramosCount[p.tipo]) ramosCount[p.tipo]=0; ramosCount[p.tipo]++;
+      if(!companiasCount[p.compania]) companiasCount[p.compania]=0; companiasCount[p.compania]++;
+    });
+  });
+  document.getElementById('rpt-pol-vigentes').textContent=totalPolizasVigentes;
+  var ramosBody=document.getElementById('rpt-body-ramos');
+  if(!totalPolizasVigentes){ramosBody.innerHTML='<p style="color:var(--text2);font-size:13px">No hay pólizas activas en cartera.</p>';}
+  else {
+    var ramosHTML='';
+    for(var ramo in ramosCount){var cant=ramosCount[ramo],pct=((cant/totalPolizasVigentes)*100).toFixed(1);ramosHTML+='<div class="report-bar-row"><div class="report-bar-label"><span>'+escHtml(ramo)+'</span><span style="color:var(--text2)">'+cant+' ('+pct+'%)</span></div><div class="report-bar-bg"><div class="report-bar-fill" style="width:'+pct+'%;background:var(--blue)"></div></div></div>';}
+    ramosBody.innerHTML=ramosHTML;
+  }
+  var compBody=document.getElementById('rpt-body-companias');
+  if(!totalPolizasVigentes){compBody.innerHTML='<p style="color:var(--text2);font-size:13px">No hay pólizas activas en cartera.</p>';}
+  else {
+    var compHTML='';
+    for(var comp in companiasCount){var cant=companiasCount[comp],pct=((cant/totalPolizasVigentes)*100).toFixed(1);compHTML+='<div class="report-bar-row"><div class="report-bar-label"><span>'+escHtml(comp)+'</span><span style="color:var(--text2)">'+cant+' ('+pct+'%)</span></div><div class="report-bar-bg"><div class="report-bar-fill" style="width:'+pct+'%;background:var(--teal)"></div></div></div>';}
+    compBody.innerHTML=compHTML;
+  }
+
+  var evolBody = document.getElementById('rpt-body-evolucion');
+  var mesMap = {};
+  DB.clients.forEach(function(c){
+    if(!c.polizas) return;
+    c.polizas.forEach(function(p){
+      if(!p.fechaAlta) return;
+      var partes = p.fechaAlta.split('-');
+      var key = partes[0] + '-' + partes[1];
+      if(!mesMap[key]) mesMap[key] = {anio:parseInt(partes[0]), mes:parseInt(partes[1])-1, count:0};
+      mesMap[key].count++;
+    });
+  });
+  var periodos = Object.keys(mesMap).sort();
+
+  if(!periodos.length){
+    evolBody.innerHTML='<p style="color:var(--text2);font-size:13px">Sin pólizas con fecha de alta registrada para analizar evolución.</p>';
+    document.getElementById('rpt-evol-subtitle').textContent='';
+    return;
+  }
+
+  var maxCount = 0;
+  periodos.forEach(function(k){ if(mesMap[k].count > maxCount) maxCount = mesMap[k].count; });
+
+  var acumulado = 0;
+  var html = '';
+  periodos.forEach(function(k, idx){
+    var d = mesMap[k];
+    acumulado += d.count;
+    var label = MESES[d.mes].substring(0,3) + ' ' + d.anio;
+    var pct = maxCount > 0 ? ((d.count / maxCount) * 100).toFixed(0) : 0;
+
+    var deltaHTML = '';
+    if(idx > 0){
+      var prev = mesMap[periodos[idx-1]].count;
+      var diff = d.count - prev;
+      if(diff > 0)      deltaHTML = '<span class="evol-delta" style="color:var(--green)">▲ +'+diff+'</span>';
+      else if(diff < 0) deltaHTML = '<span class="evol-delta" style="color:var(--red)">▼ '+diff+'</span>';
+      else              deltaHTML = '<span class="evol-delta" style="color:var(--text3)">—</span>';
+    }
+
+    var barColor = idx === periodos.length-1 ? 'var(--blue)' : 'var(--border2)';
+    html += '<div class="evol-bar-row">'+
+      '<div class="evol-bar-label">'+label+'</div>'+
+      '<div class="evol-bar-track">'+
+        '<div class="evol-bar-fill" style="width:'+pct+'%;background:'+barColor+'"></div>'+
+      '</div>'+
+      '<div class="evol-bar-val">'+d.count+' alta'+(d.count!==1?'s':'')+deltaHTML+
+        '<span style="font-size:11px;color:var(--text3);margin-left:6px">(Total acumulado: '+acumulado+')</span>'+
+      '</div>'+
+    '</div>';
+  });
+
+  var tendencia = '';
+  if(periodos.length >= 2){
+    var primer  = mesMap[periodos[0]].count;
+    var ultimo  = mesMap[periodos[periodos.length-1]].count;
+    var totalAltas = 0; periodos.forEach(function(k){totalAltas+=mesMap[k].count;});
+    var prom = (totalAltas / periodos.length).toFixed(1);
+    var colorTend = ultimo >= primer ? 'var(--green-light)' : 'var(--red-light)';
+    var iconTend  = ultimo >= primer ? 'ti-trending-up' : 'ti-trending-down';
+    var colorText = ultimo >= primer ? 'var(--green)' : 'var(--red)';
+    tendencia = '<div style="margin-top:14px;padding:10px 14px;background:'+colorTend+';border-radius:var(--radius);font-size:13px;color:'+colorText+';font-weight:500">'+
+      '<i class="ti '+iconTend+'"></i> '+totalAltas+' nuevas pólizas vigentes incorporadas en '+periodos.length+' meses de gestión · Promedio: '+prom+' altas mensuales.</div>';
+  }
+
+  document.getElementById('rpt-evol-subtitle').textContent = '('+periodos.length+' meses bajo análisis)';
+  evolBody.innerHTML = html + tendencia;
+}
+ 
+function borrarSiniestro(id){if(confirm('¿Eliminar registro de siniestro?')){DB.siniestros=DB.siniestros.filter(function(s){return s.id!=id});saveDB();renderSiniestros();updateBadges();}}
+function togglePend(id){var p=DB.pendientes.find(function(i){return i.id==id});if(p){p.done=!p.done;saveDB();renderPendientes();updateBadges();}}
+function borrarPend(id){DB.pendientes=DB.pendientes.filter(function(i){return i.id!=id});saveDB();renderPendientes();updateBadges();}
+function borrarProspecto(id){if(confirm('¿Eliminar este prospecto del pipeline?')){DB.prospectos=DB.prospectos.filter(function(p){return p.id!=id});saveDB();renderProspectos();}}
+ 
+// ============================================================
+// MODALES (INCLUYE NUEVOS FORMULARIOS)
+// ============================================================
+function openModal(type, targetId) {
+  var b=document.getElementById('modal-body');
+  document.getElementById('modal-backdrop').classList.add('open');
+ 
+  if(type==='nueva-factura'){
+    var optComp=COMPANIAS.map(function(c){return '<option value="'+c+'">'+c+'</option>'}).join('');
+    var optMes=MESES.map(function(m,i){return '<option value="'+i+'">'+m+'</option>'}).join('');
+    var anioActual=new Date().getFullYear();
+    b.innerHTML='<div class="modal-title">Cargar Facturación Mensual de Compañía <button class="modal-close" onclick="closeModal()">&times;</button></div>'+
+      '<form onsubmit="guardarFactura(event)"><div class="form-grid">'+
+      '<div class="form-group"><label>Año Comercial</label><input type="number" id="fact-anio" value="'+anioActual+'" required></div>'+
+      '<div class="form-group"><label>Mes Liquidación</label><select id="fact-mes">'+optMes+'</select></div>'+
+      '<div class="form-group full"><label>Compañía</label><select id="fact-comp">'+optComp+'</select></div>'+
+      '<div class="form-group full"><label>Monto Total Facturado Neto ($)</label><input type="number" step="0.01" id="fact-monto" placeholder="0.00" required></div>'+
+      '</div><div class="modal-actions"><button type="button" class="btn" onclick="closeModal()">Cancelar</button><button type="submit" class="btn btn-primary">Registrar Monto</button></div></form>';
+  }
+ 
+  else if(type==='nuevo-siniestro'){
+    var optCl=DB.clients.map(function(c){
+      return '<option value="'+c.id+'"'+(targetId && c.id==targetId?' selected':'')+'>'+escHtml(c.nombre)+'</option>';
+    }).join('');
+    var optTip=TIPOS.map(function(t){return '<option value="'+t+'">'+t+'</option>'}).join('');
+    var optComp=COMPANIAS.map(function(c){return '<option value="'+c+'">'+c+'</option>'}).join('');
+    var hoyStr=new Date().toISOString().split('T')[0];
+    b.innerHTML='<div class="modal-title">Registrar Nuevo Siniestro <button class="modal-close" onclick="closeModal()">&times;</button></div>'+
+      '<form onsubmit="guardarSiniestro(event)"><div class="form-grid">'+
+      '<div class="form-group full"><label>Cliente Asegurado</label><select id="sin-cli">'+optCl+'</select></div>'+
+      '<div class="form-group"><label>Ramo Comercial</label><select id="sin-tipo">'+optTip+'</select></div>'+
+      '<div class="form-group"><label>Tipo de Siniestro (Hecho)</label><input type="text" id="sin-tsiniestro" placeholder="Ej: Choque, Robo, Daño Eléctrico" required></div>'+
+      '<div class="form-group"><label>Compañía Concurrente</label><select id="sin-comp">'+optComp+'</select></div>'+
+      '<div class="form-group"><label>Fecha del Siniestro</label><input type="date" id="sin-fecha" value="'+hoyStr+'" required></div>'+
+      '<div class="form-group full"><label>Estado del Trámite</label><select id="sin-est"><option>En trámite</option><option>Peritado</option><option>Cerrado</option></select></div>'+
+      '<div class="form-group full"><label>Descripción Detallada / Terceros</label><textarea id="sin-notas" required></textarea></div>'+
+      '</div><div class="modal-actions"><button type="button" class="btn" onclick="closeModal()">Cancelar</button><button type="submit" class="btn btn-primary">Guardar Siniestro</button></div></form>';
+  }
+ 
+    else if(type==='editar-siniestro'){
+    var sin=DB.siniestros.find(function(s){return s.id==targetId});
+    if(!sin) return closeModal();
+    var optCl=DB.clients.map(function(c){return '<option value="'+c.id+'"'+(c.id==sin.clienteId?' selected':'')+'>'+escHtml(c.nombre)+'</option>';}).join('');
+    var optTip=TIPOS.map(function(t){return '<option value="'+t+'"'+(t==sin.tipo?' selected':'')+'>'+t+'</option>';}).join('');
+    var optComp=COMPANIAS.map(function(c){return '<option value="'+c+'"'+(c==sin.compania?' selected':'')+'>'+c+'</option>';}).join('');
+    
+    var avancesHTML = (sin.avances || []).map(function(av, idx){
+      return '<div class="detail-row" style="font-size:12px"><span>'+fmt(av.fecha)+' - '+escHtml(av.nota)+'</span>'+
+             '<button type="button" class="btn btn-sm btn-danger" style="padding:2px 6px" onclick="eliminarAvanceSiniestro('+sin.id+','+idx+')"><i class="ti ti-trash"></i></button></div>';
+    }).join('');
+
+    b.innerHTML='<div class="modal-title">Editar Siniestro Registrado <button class="modal-close" onclick="closeModal()">&times;</button></div>'+
+      '<form onsubmit="actualizarSiniestro(event,'+sin.id+')"><div class="form-grid">'+
+      '<div class="form-group full"><label>Cliente</label><select id="sin-cli">'+optCl+'</select></div>'+
+      '<div class="form-group"><label>Ramo</label><select id="sin-tipo">'+optTip+'</select></div>'+
+      '<div class="form-group"><label>Tipo de Siniestro</label><input type="text" id="sin-tsiniestro" value="'+escHtml(sin.tipoSiniestro||'')+'" required></div>'+
+      '<div class="form-group"><label>Compañía</label><select id="sin-comp">'+optComp+'</select></div>'+
+      '<div class="form-group"><label>Fecha</label><input type="date" id="sin-fecha" value="'+sin.fecha+'" required></div>'+
+      '<div class="form-group full"><label>Estado</label><select id="sin-est">'+
+        '<option'+(sin.estado==='En trámite'?' selected':'')+'>En trámite</option>'+
+        '<option'+(sin.estado==='Peritado'?' selected':'')+'>Peritado</option>'+
+        '<option'+(sin.estado==='Cerrado'?' selected':'')+'>Cerrado</option>'+
+      '</select></div>'+
+      '<div class="form-group full"><label>Descripción / Notas Iniciales</label><textarea id="sin-notas" required>'+escHtml(sin.notes||'')+'</textarea></div>'+
+      '<div class="form-group full" style="margin-top:10px;border-top:1px solid var(--border);padding-top:10px"><label>Bitácora de Avances (Editar/Eliminar)</label>'+
+        '<div style="max-height:150px;overflow-y:auto;background:var(--bg3);border-radius:var(--radius);padding:8px">'+avancesHTML+'</div>'+
+      '</div>'+
+      '</div><div class="modal-actions"><button type="button" class="btn" onclick="closeModal()">Cancelar</button><button type="submit" class="btn btn-primary">Actualizar Siniestro</button></div></form>';
+  }
+
+  else if(type==='nuevo-pendiente'){
+    var optCl=DB.clients.map(function(c){return '<option value="'+c.id+'"'+(targetId&&c.id==targetId?' selected':'')+'>'+escHtml(c.nombre)+'</option>';}).join('');
+    b.innerHTML='<div class="modal-title">Nueva Tarea Pendiente <button class="modal-close" onclick="closeModal()">&times;</button></div>'+
+      '<form onsubmit="guardarPendiente(event)"><div class="form-grid">'+
+      '<div class="form-group full"><label>Asunto / Descripción de la Tarea</label><input type="text" id="pnd-tarea" placeholder="Ej: Solicitar inspección previa..." required></div>'+
+      '<div class="form-group"><label>Asignar Cliente Relacionado</label><select id="pnd-cli"><option value="0">— Ninguno / General —</option>'+optCl+'</select></div>'+
+      '<div class="form-group"><label>Vencimiento / Plazo Límite</label><input type="date" id="pnd-vto" required></div>'+
+      '<div class="form-group full"><label>Prioridad de Atención</label><select id="pnd-prio"><option>Baja</option><option selected>Media</option><option>Alta</option></select></div>'+
+      '</div><div class="modal-actions"><button type="button" class="btn" onclick="closeModal()">Cancelar</button><button type="submit" class="btn btn-primary">Crear Tarea</button></div></form>';
+  }
+ 
+  else if(type==='editar-pendiente' || type==='editar-pendiente-detalle'){
+    var pnd=DB.pendientes.find(function(p){return p.id==targetId});
+    if(!pnd) return closeModal();
+    var isFromDetail = (type === 'editar-pendiente-detalle');
+    var optCl=DB.clients.map(function(c){return '<option value="'+c.id+'"'+(c.id==pnd.clienteId?' selected':'')+'>'+escHtml(c.nombre)+'</option>';}).join('');
+    b.innerHTML='<div class="modal-title">Editar Tarea Pendiente <button class="modal-close" onclick="closeModal()">&times;</button></div>'+
+      '<form onsubmit="actualizarPendiente(event,'+pnd.id+','+isFromDetail+')"><div class="form-grid">'+
+      '<div class="form-group full"><label>Asunto / Tarea</label><input type="text" id="pnd-tarea" value="'+escHtml(pnd.tarea)+'" required></div>'+
+      '<div class="form-group"><label>Cliente</label><select id="pnd-cli"><option value="0">— Ninguno / General —</option>'+optCl+'</select></div>'+
+      '<div class="form-group"><label>Vencimiento</label><input type="date" id="pnd-vto" value="'+pnd.vto+'" required></div>'+
+      '<div class="form-group full"><label>Prioridad</label><select id="pnd-prio">'+
+        '<option'+(pnd.prioridad==='Baja'?' selected':'')+'>Baja</option>'+
+        '<option'+(pnd.prioridad==='Media'?' selected':'')+'>Media</option>'+
+        '<option'+(pnd.prioridad==='Alta'?' selected':'')+'>Alta</option>'+
+      '</select></div>'+
+      '</div><div class="modal-actions"><button type="button" class="btn" onclick="closeModal()">Cancelar</button><button type="submit" class="btn btn-primary">Actualizar Tarea</button></div></form>';
+  }
+ 
+  else if(type==='nueva-poliza'){
+    var optTip=TIPOS.map(function(t){return '<option value="'+t+'">'+t+'</option>'}).join('');
+    var optComp=COMPANIAS.map(function(c){return '<option value="'+c+'">'+c+'</option>'}).join('');
+    var hoy=new Date().toISOString().split('T')[0];
+    b.innerHTML='<div class="modal-title">Vincular Nueva Póliza Emitida <button class="modal-close" onclick="closeModal()">&times;</button></div>'+
+      '<form onsubmit="guardarPoliza(event,'+targetId+')"><div class="form-grid">'+
+      '<div class="form-group"><label>Ramo de Cobertura</label><select id="pol-tipo">'+optTip+'</select></div>'+
+      '<div class="form-group"><label>Compañía Aseguradora</label><select id="pol-comp">'+optComp+'</select></div>'+
+      '<div class="form-group"><label>Número de Póliza</label><input type="text" id="pol-nro" placeholder="Ej: 45-896541-0" required></div>'+
+      '<div class="form-group"><label>Productor / Canal Ejecutivo</label><select id="pol-vendedor"><option value="Yo">Yo</option><option value="Leandro">Leandro</option></select></div>'+
+      '<div class="form-group"><label>Fecha de Inicio Vigencia (Alta)</label><input type="date" id="pol-alta" value="'+hoy+'" required></div>'+
+      '<div class="form-group"><label>Fecha de Fin Vigencia (Vto)</label><input type="date" id="pol-vto" required></div>'+
+      '</div><div class="modal-actions"><button type="button" class="btn" onclick="closeModal()">Cancelar</button><button type="submit" class="btn btn-primary">Vincular Póliza</button></div></form>';
+  }
+ 
+  else if(type==='editar-poliza'){
+    var parts=String(targetId).split('_');
+    var cliId=parseInt(parts[0]),polIdx=parseInt(parts[1]);
+    var c=getClient(cliId);
+    if(!c||!c.polizas[polIdx]) return closeModal();
+    var p=c.polizas[polIdx];
+    var optTip=TIPOS.map(function(t){return '<option value="'+t+'"'+(t==p.tipo?' selected':'')+'>'+t+'</option>';}).join('');
+    var optComp=COMPANIAS.map(function(comp){return '<option value="'+comp+'"'+(comp==p.compania?' selected':'')+'>'+comp+'</option>';}).join('');
+    b.innerHTML='<div class="modal-title">Editar Datos de Póliza <button class="modal-close" onclick="closeModal()">&times;</button></div>'+
+      '<form onsubmit="actualizarPoliza(event,'+cliId+','+polIdx+')"><div class="form-grid">'+
+      '<div class="form-group"><label>Ramo</label><select id="pol-tipo">'+optTip+'</select></div>'+
+      '<div class="form-group"><label>Compañía Aseguradora</label><select id="pol-comp">'+optComp+'</select></div>'+
+      '<div class="form-group"><label>Número de Póliza</label><input type="text" id="pol-nro" value="'+escHtml(p.nro||'')+'" required></div>'+
+      '<div class="form-group"><label>Productor Asignado</label>'+
+        '<select id="pol-vendedor">'+
+          '<option value="Yo"'+(p.vendedor==='Yo'?' selected':'')+'>Yo</option>'+
+          '<option value="Leandro"'+(p.vendedor==='Leandro'?' selected':'')+'>Leandro</option>'+
+        '</select>'+
+      '</div>'+
+      '<div class="form-group"><label>Fecha de Alta</label><input type="date" id="pol-alta" value="'+escHtml(p.fechaAlta||'')+'" required></div>'+
+      '<div class="form-group"><label>Vencimiento de Cobertura</label><input type="date" id="pol-vto" value="'+escHtml(p.vto||'')+'" required></div>'+
+      '</div><div class="modal-actions"><button type="button" class="btn" onclick="closeModal()">Cancelar</button><button type="submit" class="btn btn-primary">Guardar Póliza</button></div></form>';
+  }
+ 
+  else if(type==='editar-contacto'){
+    var c=getClient(targetId);
+    if(!c) return closeModal();
+    b.innerHTML='<div class="modal-title">Editar Ficha de Datos Personales <button class="modal-close" onclick="closeModal()">&times;</button></div>'+
+      '<form onsubmit="actualizarContacto(event,'+c.id+')"><div class="form-grid">'+
+      '<div class="form-group full"><label>Nombre y Apellido Completo</label><input type="text" id="cont-nombre" value="'+escHtml(c.nombre)+'" required></div>'+
+      '<div class="form-group"><label>WhatsApp (Sin espacios/guiones)</label><input type="text" id="cont-wa" value="'+escHtml(c.whatsapp||'')+'" required></div>'+
+      '<div class="form-group"><label>Correo Electrónico</label><input type="email" id="cont-mail" value="'+escHtml(c.mail||'')+'" required></div>'+
+      '<div class="form-group"><label>Fecha de Nacimiento</label><input type="date" id="cont-fnac" value="'+escHtml(c.fechaNacimiento||'')+'"></div>'+
+      '<div class="form-group"><label>Traído por</label>'+
+        '<select id="cont-traido">'+
+          '<option value="Yo"'+((!c.traidoPor||c.traidoPor==='Yo')?' selected':'')+'>Yo</option>'+
+          '<option value="Leandro"'+(c.traidoPor==='Leandro'?' selected':'')+'>Leandro</option>'+
+        '</select>'+
+      '</div>'+
+      '<div class="form-group full"><label>Notas / Direcciones / Riesgos Vinculados</label><textarea id="cont-notas">'+escHtml(c.notes||'')+'</textarea></div>'+
+      '</div><div class="modal-actions"><button type="button" class="btn" onclick="closeModal()">Cancelar</button><button type="submit" class="btn btn-primary">Guardar Cambios</button></div></form>';
+  }
+ 
+  else if(type==='nueva-interaccion'){
+    var hoy=new Date().toISOString().split('T')[0];
+    b.innerHTML='<div class="modal-title">Registrar Interacción con Cliente <button class="modal-close" onclick="closeModal()">&times;</button></div>'+
+      '<form onsubmit="guardarInteraccion(event,'+targetId+')"><div class="form-grid">'+
+      '<div class="form-group"><label>Fecha Gestión</label><input type="date" id="int-fecha" value="'+hoy+'" required></div>'+
+      '<div class="form-group"><label>Vía de Contacto</label><select id="int-tipo"><option>WhatsApp</option><option>Llamada</option><option>Reunión</option><option>Email</option><option>Otro</option></select></div>'+
+      '<div class="form-group full"><label>Nota Ejecutiva / Resumen de lo Acordado</label><textarea id="int-nota" placeholder="¿Qué se conversó con el asegurado?" required></textarea></div>'+
+      '</div><div class="modal-actions"><button type="button" class="btn" onclick="closeModal()">Cancelar</button><button type="submit" class="btn btn-primary">Guardar Bitácora</button></div></form>';
+  }
+
+  else if(type==='ficha-siniestro'){
+    var s=getSiniestro(targetId);
+    if(!s) return closeModal();
+    var c=getClient(s.clienteId);
+    var dot=s.estado==='Cerrado'?'dot-green':s.estado==='En trámite'?'dot-amber':'dot-blue';
+    var avancesHTML = (s.avances || []).slice().sort(function(a,b){return b.fecha.localeCompare(a.fecha)}).map(function(av){
+      return '<div class="interaccion-item"><div class="interaccion-icon int-reunion"><i class="ti ti-notes"></i></div><div style="flex:1">'+
+             '<div style="font-weight:600;font-size:12px">'+fmt(av.fecha)+'</div><div style="font-size:13px;color:var(--text2)">'+escHtml(av.nota)+'</div></div></div>';
+    }).join('') || '<p style="font-size:13px;color:var(--text2)">No hay avances registrados aún.</p>';
+    
+    b.innerHTML='<div class="modal-title">Seguimiento de Siniestro <button class="modal-close" onclick="closeModal()">&times;</button></div>'+
+      '<div class="section-card" style="margin-bottom:12px">'+
+        '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">'+
+          '<div><div style="font-size:16px;font-weight:700">'+(c?escHtml(c.nombre):'Cliente Desconocido')+'</div>'+
+          '<div style="font-size:12px;color:var(--text2)">'+escHtml(s.tipo)+' · '+escHtml(s.compania)+'</div></div>'+
+          '<span class="tag"><span class="status-dot '+dot+'"></span>'+escHtml(s.estado)+'</span>'+
+        '</div>'+
+        '<div class="detail-row"><span class="detail-label">Hecho</span><span>'+escHtml(s.tipoSiniestro||'General')+'</span></div>'+
+        '<div class="detail-row"><span class="detail-label">Fecha Hecho</span><span>'+fmt(s.fecha)+'</span></div>'+
+        '<div style="margin-top:10px;font-size:13px;color:var(--text2);background:var(--bg3);padding:8px;border-radius:var(--radius)">'+escHtml(s.notes||'Sin descripción inicial.')+'</div>'+
+      '</div>'+
+      '<div class="section-card"><div class="section-title">Bitácora de Avances</div>'+
+        '<form onsubmit="guardarAvanceSiniestro(event,'+s.id+')" style="margin-bottom:15px;display:flex;gap:8px">'+
+          '<input type="text" id="av-nota" placeholder="Describa el nuevo avance..." style="flex:1" required>'+
+          '<button type="submit" class="btn btn-primary btn-sm">Agregar</button>'+
+        '</form>'+
+        '<div style="max-height:200px;overflow-y:auto">'+avancesHTML+'</div>'+
+      '</div>'+
+      '<div class="modal-actions">'+
+        '<button class="btn btn-sm" onclick="editarSiniestro('+s.id+')"><i class="ti ti-edit"></i> Editar Siniestro</button>'+
+        '<button class="btn btn-sm btn-wa" onclick="abrirWA(\''+(c?c.whatsapp:'')+'\')"><i class="ti ti-brand-whatsapp"></i> Informar al Cliente</button>'+
+      '</div>';
+  }
+
+  else if(type==='ficha-prospecto'){
+    var pros=getProspecto(targetId);
+    if(!pros) return closeModal();
+    var tareasPros=(DB.pendientes||[]).filter(function(p){return p.prosId==pros.id && !p.done;});
+    var tareasHTML=tareasPros.length ? tareasPros.map(function(t){
+      var pr=t.prioridad==='Alta'?'tag-red':t.prioridad==='Media'?'tag-amber':'tag-gray';
+      return '<div class="detail-row"><span style="flex:1;margin-right:8px">'+escHtml(t.tarea)+'</span><span class="tag '+pr+'">'+escHtml(t.prioridad)+'</span><span style="font-size:12px;color:var(--text2);margin-left:8px">Vto: '+fmt(t.vto)+'</span></div>';
+    }).join('') : '<p style="font-size:13px;color:var(--text2)">Sin tareas pendientes asociadas.</p>';
+    b.innerHTML='<div class="modal-title">Ficha del Prospecto <button class="modal-close" onclick="closeModal()">&times;</button></div>'+ 
+      '<div class="section-card" style="margin-bottom:12px">'+
+        '<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">'+
+          '<div class="client-avatar">'+ini(pros.nombre)+'</div>'+ 
+          '<div><div style="font-size:16px;font-weight:700">'+escHtml(pros.nombre)+'</div><div style="font-size:12px;color:var(--text2)">Prospecto · '+escHtml(STAGES[pros.stage]||'Sin etapa')+'</div></div>'+ 
+        '</div>'+ 
+        '<div class="detail-row"><span class="detail-label"><i class="ti ti-phone"></i> Teléfono</span><span>'+escHtml(pros.telefono||'-')+'</span></div>'+ 
+        '<div class="detail-row"><span class="detail-label"><i class="ti ti-shield-plus"></i> Interés</span><span>'+escHtml(pros.interes||'-')+'</span></div>'+ 
+        '<div class="detail-row"><span class="detail-label"><i class="ti ti-user"></i> Responsable</span><span>'+escHtml(pros.responsable||'YO')+'</span></div>'+ 
+        '<div class="detail-row"><span class="detail-label"><i class="ti ti-calendar-check"></i> Emisión</span><span>'+(pros.fechaEmision?fmt(pros.fechaEmision):'-')+'</span></div>'+ 
+        '<div class="detail-row"><span class="detail-label"><i class="ti ti-clock"></i> Recontacto</span><span>'+(pros.fechaRecontacto?fmt(pros.fechaRecontacto):'-')+'</span></div>'+ 
+        (pros.notes?'<div style="margin-top:10px;font-size:13px;color:var(--text2);white-space:pre-line"><b>Notas:</b><br>'+escHtml(pros.notes)+'</div>':'')+
+      '</div>'+ 
+      '<div class="section-card"><div class="section-title">Tareas asociadas <span style="font-size:11px;font-weight:400;color:var(--text2)">('+tareasPros.length+')</span></div>'+tareasHTML+'</div>'+ 
+      '<div class="modal-actions">'+
+        '<button type="button" class="btn" onclick="openModal(\'editar-prospecto\','+pros.id+')"><i class="ti ti-edit"></i> Editar</button>'+ 
+        '<button type="button" class="btn" onclick="openModal(\'recontacto\','+pros.id+')"><i class="ti ti-calendar-plus"></i> Recontacto</button>'+ 
+        '<button type="button" class="btn btn-success" onclick="convertirProspectoACliente('+pros.id+')"><i class="ti ti-user-check"></i> Convertir</button>'+ 
+      '</div>';
+  }
+ 
+  else if(type==='nuevo-cliente'){
+    b.innerHTML='<div class="modal-title">Dar de Alta Nuevo Cliente Inicial <button class="modal-close" onclick="closeModal()">&times;</button></div>'+
+      '<form onsubmit="guardarCliente(event)"><div class="form-grid">'+
+      '<div class="form-group full"><label>Nombre Completo</label><input type="text" id="cli-nombre" required></div>'+
+      '<div class="form-group"><label>WhatsApp</label><input type="text" id="cli-wa" placeholder="Ej: 1151567041" required></div>'+
+      '<div class="form-group"><label>Email</label><input type="email" id="cli-mail" required></div>'+
+      '<div class="form-group"><label>Lo trajo</label><select id="cli-traido"><option value="Yo">Yo</option><option value="Leandro">Leandro</option></select></div>'+
+      '<div class="form-group"><label>Fecha de Nacimiento</label><input type="date" id="cli-fnac"></div>'+
+      '<div class="form-group full"><label>Notas Iniciales</label><textarea id="cli-notas"></textarea></div>'+
+      '</div><div class="modal-actions"><button type="button" class="btn" onclick="closeModal()">Cancelar</button><button type="submit" class="btn btn-primary">Dar de Alta</button></div></form>';
+  }
+ 
+  else if(type==='nuevo-prospecto'){
+    var optStg=STAGES.map(function(s,i){return '<option value="'+i+'">'+s+'</option>'}).join('');
+    b.innerHTML='<div class="modal-title">Nuevo Prospecto Comercial <button class="modal-close" onclick="closeModal()">&times;</button></div>'+
+      '<form onsubmit="guardarProspecto(event)"><div class="form-grid">'+
+      '<div class="form-group full"><label>Nombre del Interesado</label><input type="text" id="pros-nombre" required></div>'+
+      '<div class="form-group"><label>Teléfono</label><input type="text" id="pros-tel" required></div>'+
+      '<div class="form-group"><label>Ramo de Interés / Cobertura</label><input type="text" id="pros-int" placeholder="Ej: Auto Todo Riesgo" required></div>'+
+      '<div class="form-group full"><label>Etapa Kanban inicial</label><select id="pros-stage">'+optStg+'</select></div>'+
+      '<div class="form-group full"><label>Responsable</label><select id="pros-responsable"><option value="YO">YO</option><option value="Leandro">Leandro</option></select></div>'+
+      '<div class="form-group full"><label>Comentarios adicionales</label><textarea id="pros-notas"></textarea></div>'+
+      '</div><div class="modal-actions"><button type="button" class="btn" onclick="closeModal()">Cancelar</button><button type="submit" class="btn btn-primary">Crear Prospecto</button></div></form>';
+  }
+ 
+  else if(type==='editar-prospecto'){
+    var pros=DB.prospectos.find(function(p){return p.id==targetId});
+    if(!pros) return closeModal();
+    var optStg=STAGES.map(function(s,i){return '<option value="'+i+'"'+(pros.stage==i?' selected':'')+'>'+s+'</option>';}).join('');
+    b.innerHTML='<div class="modal-title">Editar Datos de Prospecto <button class="modal-close" onclick="closeModal()">&times;</button></div>'+
+      '<form onsubmit="actualizarProspecto(event,'+pros.id+')"><div class="form-grid">'+
+      '<div class="form-group full"><label>Nombre del Interesado</label><input type="text" id="pros-nombre" value="'+escHtml(pros.nombre)+'" required></div>'+
+      '<div class="form-group"><label>Teléfono</label><input type="text" id="pros-tel" value="'+escHtml(pros.telefono||'')+'" required></div>'+
+      '<div class="form-group"><label>Ramo de Interés</label><input type="text" id="pros-int" value="'+escHtml(pros.interes||'')+'" required></div>'+
+      '<div class="form-group full"><label>Etapa del Pipeline Kanban</label><select id="pros-stage">'+optStg+'</select></div>'+
+      '<div class="form-group full"><label>Responsable</label><select id="pros-responsable"><option value="YO"'+(pros.responsable==='YO'?' selected':'')+'>YO</option><option value="Leandro"'+(pros.responsable==='Leandro'?' selected':'')+'>Leandro</option></select></div>'+
+      '<div class="form-group full"><label>Comentarios / Notas de Gestión</label><textarea id="pros-notas">'+escHtml(pros.notes||'')+'</textarea></div>'+
+      '</div><div class="modal-actions"><button type="button" class="btn" onclick="closeModal()">Cancelar</button><button type="submit" class="btn btn-primary">Guardar Prospecto</button></div></form>';
+  }
+
+  /* NUEVOS MODALES DE GESTIÓN PARA PROSPECTOS */
+  else if(type==='fecha-emision'){
+    var pros=DB.prospectos.find(function(p){return p.id==targetId});
+    if(!pros) return closeModal();
+    b.innerHTML='<div class="modal-title">Fijar Fecha de Emisión Prevista — '+escHtml(pros.nombre)+' <button class="modal-close" onclick="closeModal()">&times;</button></div>'+
+      '<form onsubmit="guardarFechaEmision(event,'+pros.id+')"><div class="form-grid">'+
+      '<div class="form-group full"><label>Fecha de Emisión de Póliza</label><input type="date" id="pros-f-emision" value="'+(pros.fechaEmision||'')+'" required></div>'+
+      '</div><div class="modal-actions"><button type="button" class="btn" onclick="closeModal()">Cancelar</button><button type="submit" class="btn btn-primary">Fijar Fecha de Emisión</button></div></form>';
+  }
+
+  else if(type==='recontacto'){
+    var pros=DB.prospectos.find(function(p){return p.id==targetId});
+    if(!pros) return closeModal();
+    var hoyStr = new Date().toISOString().split('T')[0];
+    b.innerHTML='<div class="modal-title">Agendar Tarea de Recontacto — '+escHtml(pros.nombre)+' <button class="modal-close" onclick="closeModal()">&times;</button></div>'+
+      '<form onsubmit="guardarRecontacto(event,'+pros.id+')"><div class="form-grid">'+
+      '<div class="form-group full"><label>Fecha Programada para Recontacto</label><input type="date" id="pros-f-recontacto" value="'+(pros.fechaRecontacto||hoyStr)+'" required></div>'+
+      '<div class="form-group full"><label>Asunto / Detalle de Recordatorio</label><input type="text" id="pros-nota-recontacto" value="Llamar a prospecto '+escHtml(pros.nombre)+' para cierre de propuesta" required></div>'+
+      '</div><div class="modal-actions"><button type="button" class="btn" onclick="closeModal()">Cancelar</button><button type="submit" class="btn btn-primary">Agendar en Calendario</button></div></form>';
+  }
+}
+ 
+function closeModal(){document.getElementById('modal-backdrop').classList.remove('open');}
+function closeModalOutside(e){if(e.target.id==='modal-backdrop') closeModal();}
+ 
+// ============================================================
+// SUBMITS & LÓGICA DE NEGOCIO
+// ============================================================
+function guardarFactura(e){
+  e.preventDefault();
+  var anio=parseInt(document.getElementById('fact-anio').value);
+  var mes=parseInt(document.getElementById('fact-mes').value);
+  var compania=document.getElementById('fact-comp').value;
+  var monto=parseFloat(document.getElementById('fact-monto').value);
+  var existiendo=DB.facturacion.find(function(f){return f.anio==anio&&f.mes==mes&&f.compania===compania;});
+  if(existiendo){existiendo.monto=monto;toast('Monto actualizado con éxito para '+compania);}
+  else{DB.facturacion.push({id:uid(),anio:anio,mes:mes,compania:compania,monto:monto});toast('Registro de producción consolidado');}
+  saveDB();closeModal();initFiltrosFacturacion();
+  document.getElementById('filtro-mes-fact').value=anio+'-'+mes;
+  renderFacturacion();
+}
+ 
+function guardarSiniestro(e){
+  e.preventDefault();
+  var cliId = parseInt(document.getElementById('sin-cli').value);
+  DB.siniestros.push({id:uid(),clienteId:cliId,tipo:document.getElementById('sin-tipo').value,tipoSiniestro:document.getElementById('sin-tsiniestro').value,compania:document.getElementById('sin-comp').value,fecha:document.getElementById('sin-fecha').value,estado:document.getElementById('sin-est').value,notes:document.getElementById('sin-notas').value});
+  saveDB();closeModal();toast('Siniestro registrado de manera exitosa');
+  
+  var secDetalle=document.getElementById('sec-detalle');
+  if(secDetalle && secDetalle.classList.contains('active')){showDetail(cliId);}
+  else{showSection('siniestros');}
+}
+ 
+function editarSiniestro(id){openModal('editar-siniestro',id);}
+ 
+function actualizarSiniestro(e,id){
+  e.preventDefault();
+  var sin=DB.siniestros.find(function(s){return s.id==id});
+  if(sin){
+    sin.clienteId=parseInt(document.getElementById('sin-cli').value);
+    sin.tipo=document.getElementById('sin-tipo').value;
+    sin.tipoSiniestro=document.getElementById('sin-tsiniestro').value;
+    sin.compania=document.getElementById('sin-comp').value;
+    sin.fecha=document.getElementById('sin-fecha').value;
+    sin.estado=document.getElementById('sin-est').value;
+    sin.notes=document.getElementById('sin-notas').value;
+    saveDB();closeModal();toast('Ficha de siniestro actualizada');renderSiniestros();updateBadges();
+  }
+}
+ 
+function guardarPendiente(e){
+  e.preventDefault();
+  var cliId=parseInt(document.getElementById('pnd-cli').value);
+  DB.pendientes.push({id:uid(),tarea:document.getElementById('pnd-tarea').value,clienteId:cliId,vto:document.getElementById('pnd-vto').value,prioridad:document.getElementById('pnd-prio').value,done:false});
+  saveDB();closeModal();toast('Tarea pendiente agendada');
+  var secDetalle=document.getElementById('sec-detalle');
+  if(secDetalle&&secDetalle.classList.contains('active')){showDetail(cliId);updateBadges();}
+  else{showSection('pendientes');}
+}
+ 
+function actualizarPendiente(e,id,fromDetail){
+  e.preventDefault();
+  var pnd=DB.pendientes.find(function(p){return p.id==id});
+  if(pnd){
+    pnd.tarea=document.getElementById('pnd-tarea').value;
+    pnd.clienteId=parseInt(document.getElementById('pnd-cli').value);
+    pnd.vto=document.getElementById('pnd-vto').value;
+    pnd.prioridad=document.getElementById('pnd-prio').value;
+    saveDB();closeModal();toast('Tarea actualizada correctamente');
+    if(fromDetail&&currentDetailClientId){showDetail(currentDetailClientId);}
+    else{renderPendientes();}
+    updateBadges();
+  }
+}
+ 
+function guardarPoliza(e,clienteId){
+  e.preventDefault();
+  var c=getClient(clienteId);
+  if(c){
+    if(!c.polizas) c.polizas=[];
+    c.polizas.push({tipo:document.getElementById('pol-tipo').value,compania:document.getElementById('pol-comp').value,nro:document.getElementById('pol-nro').value,vendedor:document.getElementById('pol-vendedor').value,vto:document.getElementById('pol-vto').value,fechaAlta:document.getElementById('pol-alta').value});
+    saveDB();closeModal();toast('Nueva póliza vinculada al tomador');showDetail(clienteId);
+  }
+}
+ 
+function actualizarPoliza(e,clienteId,polIdx){
+  e.preventDefault();
+  var c=getClient(clienteId);
+  if(c&&c.polizas&&c.polizas[polIdx]){
+    c.polizas[polIdx].tipo=document.getElementById('pol-tipo').value;
+    c.polizas[polIdx].compania=document.getElementById('pol-comp').value;
+    c.polizas[polIdx].nro=document.getElementById('pol-nro').value;
+    c.polizas[polIdx].vendedor=document.getElementById('pol-vendedor').value;
+    c.polizas[polIdx].vto=document.getElementById('pol-vto').value;
+    c.polizas[polIdx].fechaAlta=document.getElementById('pol-alta').value;
+    saveDB();closeModal();toast('Registro de póliza modificado');showDetail(clienteId);updateBadges();
+  }
+}
+ 
+function actualizarContacto(e,id){
+  e.preventDefault();
+  var c=getClient(id);
+  if(c){
+    var nuevoNombre=document.getElementById('cont-nombre').value;
+    c.nombre=nuevoNombre;
+    c.whatsapp=document.getElementById('cont-wa').value;
+    c.mail=document.getElementById('cont-mail').value;
+    c.fechaNacimiento=document.getElementById('cont-fnac').value||'';
+    c.traidoPor=document.getElementById('cont-traido').value;
+    c.notes=document.getElementById('cont-notas').value;
+    saveDB();closeModal();toast('Datos de contacto guardados');
+    showDetail(id);
+    document.getElementById('det-nombre').textContent=nuevoNombre;
+  }
+}
+ 
+function guardarCliente(e){
+  e.preventDefault();
+  DB.clients.push({id:uid(),nombre:document.getElementById('cli-nombre').value,whatsapp:document.getElementById('cli-wa').value,mail:document.getElementById('cli-mail').value,fechaNacimiento:document.getElementById('cli-fnac').value||'',traidoPor:document.getElementById('cli-traido').value,polizas:[],notas:document.getElementById('cli-notas').value,interacciones:[]});
+  saveDB();closeModal();toast('Cliente incorporado al CRM');showSection('clientes');
+}
+ 
+function guardarProspecto(e){
+  e.preventDefault();
+  if(!DB.prospectos) DB.prospectos=[];
+
+  DB.prospectos.push({
+  id:uid(),
+  nombre:document.getElementById('pros-nombre').value,
+  telefono:document.getElementById('pros-tel').value,
+  interes:document.getElementById('pros-int').value,
+  stage:parseInt(document.getElementById('pros-stage').value),
+  responsable:document.getElementById('pros-responsable').value,
+  notes:document.getElementById('pros-notas').value,
+  fechaEmision:'',
+  fechaRecontacto:''
+});
+  saveDB();closeModal();toast('Prospecto creado en el pipeline');renderProspectos();
+}
+ 
+function actualizarProspecto(e,id){
+  e.preventDefault();
+
+  var pros=DB.prospectos.find(function(p){return p.id==id});
+
+  if(pros){
+    pros.nombre=document.getElementById('pros-nombre').value;
+    pros.telefono=document.getElementById('pros-tel').value;
+    pros.interes=document.getElementById('pros-int').value;
+    pros.stage=parseInt(document.getElementById('pros-stage').value);
+    pros.responsable=document.getElementById('pros-responsable').value;
+    pros.notes=document.getElementById('pros-notas').value;
+
+    saveDB();
+    closeModal();
+    toast('Ficha del prospecto actualizada');
+    renderProspectos();
+  }
+}
+
+/* CONTROLADORES DE LOS NUEVOS ATRIBUTOS DE PROSPECTOS */
+function guardarFechaEmision(e, id) {
+  e.preventDefault();
+  var pros = DB.prospectos.find(function(p){return p.id==id});
+  if(pros){
+    pros.fechaEmision = document.getElementById('pros-f-emision').value;
+    saveDB();closeModal();toast('Fecha de emisión estimada guardada');renderProspectos();
+  }
+}
+
+function guardarRecontacto(e, id) {
+  e.preventDefault();
+  var pros = DB.prospectos.find(function(p){return p.id==id});
+  if(pros){
+    var fecha = document.getElementById('pros-f-recontacto').value;
+    var nota = document.getElementById('pros-nota-recontacto').value;
+    
+    pros.fechaRecontacto = fecha;
+    
+    // Lo incorporamos nativamente a la tabla de pendientes generales para sincronizar calendario del dashboard
+    DB.pendientes.push({
+      id: uid(),
+      tarea: nota,
+      clienteId: 0,
+      prosId: id,
+      vto: fecha,
+      prioridad: 'Media',
+      done: false
+    });
+    
+    saveDB();closeModal();toast('Recontacto agendado y cargado en Calendario');renderProspectos();updateBadges();
+  }
+}
+
+// ============================================================
+// BACKUPS Y COPIAS DE SEGURIDAD
+// ============================================================
+function exportarDatos() {
+  try {
+    var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(DB, null, 2));
+    var downloadAnchor = document.createElement('a');
+    var hoy = new Date();
+    var fechaStr = hoy.getFullYear() + "-" + String(hoy.getMonth() + 1).padStart(2, '0') + "-" + String(hoy.getDate()).padStart(2, '0');
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute("download", "Backup_CRM_Seguros_" + fechaStr + ".json");
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+    toast('Copia de seguridad exportada');
+  } catch (e) { toast('Error al exportar copia'); }
+}
+
+function importarDatos(e) {
+  var file = e.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(evt) {
+    try {
+      var datosImportados = JSON.parse(evt.target.result);
+      if (datosImportados.clients && datosImportados.siniestros && datosImportados.pendientes) {
+        if (confirm('¿Desea importar el archivo? Esto sobrescribirá por completo todos los datos locales actuales.')) {
+          DB = datosImportados;
+          saveDB();
+          toast('Base de datos restaurada correctamente');
+          showSection('dashboard');
+        }
+      } else { alert('El archivo seleccionado no cumple con el esquema válido de SegurosCRM.'); }
+    } catch (err) { alert('Error crítico al procesar el archivo estructurado JSON.'); }
+    document.getElementById('import-file').value = "";
+  };
+  reader.readAsText(file);
+}
+ 
+// ============================================================
+// BITÁCORA DE INTERACCIONES Y PROCESO DE CONVERSIÓN
+// ============================================================
+function eliminarAvanceSiniestro(sinId, idx) {
+  if(!confirm('¿Eliminar esta entrada de la bitácora?')) return;
+  var s = getSiniestro(sinId);
+  if(s && s.avances) {
+    s.avances.splice(idx, 1);
+    saveDB();
+    openModal('editar-siniestro', sinId);
+  }
+}
+
+function guardarAvanceSiniestro(e, sinId) {
+  e.preventDefault();
+  var s = getSiniestro(sinId);
+  if(!s) return;
+  if(!s.avances) s.avances = [];
+  var nota = document.getElementById('av-nota').value;
+  s.avances.push({
+    fecha: new Date().toISOString().split('T')[0],
+    nota: nota
+  });
+  saveDB();
+  toast('Avance registrado');
+  abrirFichaSiniestro(sinId);
+  renderSiniestros();
+}
+
+function guardarInteraccion(e, clienteId) {
+  e.preventDefault();
+  var c = getClient(clienteId);
+  if (!c) return;
+  if (!c.interacciones) c.interacciones = [];
+  c.interacciones.push({
+    id: uid(),
+    fecha: document.getElementById('int-fecha').value,
+    tipo: document.getElementById('int-tipo').value,
+    nota: document.getElementById('int-nota').value
+  });
+  saveDB(); closeModal(); toast('Interacción asentada en bitácora');
+  showDetail(clienteId);
+}
+
+function borrarInteraccion(clienteId, intId) {
+  var c = getClient(clienteId);
+  if (c && c.interacciones) {
+    c.interacciones = c.interacciones.filter(function(i){ return i.id != intId; });
+    saveDB(); toast('Registro de interacción eliminado'); showDetail(clienteId);
+  }
+}
+
+function convertirProspectoACliente(prosId) {
+  var pros = DB.prospectos.find(function(p){ return p.id == prosId; });
+  if (!pros) return;
+  if (!confirm('¿Desea convertir formalmente a "'+pros.nombre+'" en Cliente Activo? Se creará su ficha comercial y se removerá del pipeline.')) return;
+  
+  var nuevasNotas = (pros.notes || '') + 
+                    (pros.interes ? '\\nRamo de origen interesado: ' + pros.interes : '') + 
+                    (pros.fechaEmision ? '\\nFecha emisión pactada original: ' + fmt(pros.fechaEmision) : '');
+                    
+  var nuevo = {
+    id: uid(),
+    nombre: pros.nombre,
+    whatsapp: pros.telefono || '',
+    mail: '',
+    fechaNacimiento: '',
+    traidoPor: pros.responsable === 'Leandro' ? 'Leandro' : 'Yo',
+    polizas: [],
+    notas: nuevasNotas.trim(),
+    interacciones: []
+  };
+  
+  DB.clients.push(nuevo);
+  DB.prospectos = DB.prospectos.filter(function(p){ return p.id != prosId; });
+  saveDB();
+  toast(pros.nombre + ' migrado a Cliente Activo');
+  showDetail(nuevo.id);
+  updateBadges();
+}
+
+window.onload = function() {
+  fbauth.onAuthStateChanged(function(user) {
+    if (user) {
+      loadDB();
+    } else {
+      document.getElementById('login-screen').style.display='flex';
+      document.getElementById('app').style.display='none';
+    }
+  });
+};
+
+function doLogin() {
+  var email = document.getElementById('login-email').value.trim();
+  var pass = document.getElementById('login-pass').value;
+  var errEl = document.getElementById('login-error');
+  errEl.textContent = '';
+  fbauth.signInWithEmailAndPassword(email, pass)
+    .then(function() { /* onAuthStateChanged handles it */ })
+    .catch(function(e) {
+      errEl.textContent = 'Email o contraseña incorrectos.';
+    });
+}
+
+function doLogout() {
+  fbauth.signOut();
+}
+</script>
+</body>
+</html>
