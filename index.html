@@ -269,7 +269,7 @@ textarea{resize:vertical;min-height:64px}
     <button class="nav-item" id="nav-reportes" onclick="showSection('reportes')"><i class="ti ti-chart-bar"></i> Reportes</button>
     <button class="nav-item" id="nav-links" onclick="showSection('links')"><i class="ti ti-external-link"></i> Links útiles</button>
   </nav>
-  <div class="sidebar-footer" style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+  <div class="sidebar-footer">
     <div class="name" style="margin-bottom: 4px;">Damián Kogan</div>
     <div class="btn-group" style="flex-direction: column; align-items: stretch; gap: 4px; margin-bottom: 8px;">
       <button class="btn btn-sm" onclick="exportarDatos()" style="justify-content: center;"><i class="ti ti-download"></i> Exportar Copia</button>
@@ -954,6 +954,7 @@ function renderCalendario() {
 }
 
 function abrirDiaCalendario(dia,anio,mes,bdays,tareas){
+  window._calTaskData = window._calTaskData || {};
   var MF=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
   var html='<div style="font-size:15px;font-weight:600;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border)"><i class="ti ti-calendar-event" style="margin-right:6px;color:var(--blue)"></i>'+dia+' de '+MF[mes]+' '+anio+'</div>';
   if(bdays&&bdays.length){
@@ -965,8 +966,10 @@ function abrirDiaCalendario(dia,anio,mes,bdays,tareas){
   }
   if(tareas&&tareas.length){
     html+='<div><div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">📋 Tareas pendientes</div>';
-    tareas.forEach(function(item){
-      html+='<div onclick="abrirDetallesTarea('+item.clienteId+','+JSON.stringify(item).replace(/"/g,"&quot;")+',false)" style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--blue-light);border-radius:var(--radius);margin-bottom:6px;color:var(--blue);font-weight:500;cursor:pointer"><i class="ti ti-check"></i><div style="flex:1"><div>'+escHtml(item.tarea)+'</div>'+(item.clienteNombre?'<div style="font-size:11px;opacity:.7">'+escHtml(item.clienteNombre)+'</div>':'')+'</div><i class="ti ti-chevron-right" style="font-size:12px"></i></div>';
+    tareas.forEach(function(item,idx){
+      var taskKey = 'task_'+Date.now()+'_'+idx;
+      window._calTaskData[taskKey] = item;
+      html+='<div onclick="abrirDetallesTarea(\''+taskKey+'\')" style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--blue-light);border-radius:var(--radius);margin-bottom:6px;color:var(--blue);font-weight:500;cursor:pointer"><i class="ti ti-check"></i><div style="flex:1"><div>'+escHtml(item.tarea)+'</div>'+(item.clienteNombre?'<div style="font-size:11px;opacity:.7">'+escHtml(item.clienteNombre)+'</div>':'')+'</div><i class="ti ti-chevron-right" style="font-size:12px"></i></div>';
     });
     html+='</div>';
   }
@@ -975,18 +978,19 @@ function abrirDiaCalendario(dia,anio,mes,bdays,tareas){
   document.getElementById('modal-backdrop').classList.add('open');
 }
 
-function abrirDetallesTarea(clienteId,itemJson,fromDetail){
-  var item=JSON.parse(itemJson.replace(/&quot;/g,'"'));
-  var cli=getClient(clienteId);
+function abrirDetallesTarea(taskKey){
+  var item = window._calTaskData[taskKey];
+  if(!item) return;
+  var cli = getClient(item.clienteId);
   var html='<div style="font-size:15px;font-weight:600;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border)"><i class="ti ti-clipboard-check" style="margin-right:6px;color:var(--blue)"></i>Detalles de la Tarea</div>';
   html+='<div style="margin-bottom:14px"><div style="font-size:12px;color:var(--text3);margin-bottom:4px">TAREA</div><div style="font-size:14px;font-weight:600">'+escHtml(item.tarea)+'</div></div>';
   html+='<div style="margin-bottom:14px"><div style="font-size:12px;color:var(--text3);margin-bottom:4px">CLIENTE</div><div style="font-size:14px;font-weight:600">'+escHtml(cli?cli.nombre:'')+'</div></div>';
-  if(item.clienteId){
-    html+='<div style="margin-bottom:14px"><div style="font-size:12px;color:var(--text3);margin-bottom:4px">VENCIMIENTO</div><div style="font-size:13px">'+escHtml(item.vto||'')+'</div></div>';
+  if(item.vto){
+    html+='<div style="margin-bottom:14px"><div style="font-size:12px;color:var(--text3);margin-bottom:4px">VENCIMIENTO</div><div style="font-size:13px">'+escHtml(item.vto)+'</div></div>';
   }
   html+='<div style="display:flex;gap:8px;margin-top:20px">';
-  if(!fromDetail) html+='<button class="btn btn-secondary" onclick="closeModal();abrirDetallesTarea('+clienteId+','+JSON.stringify(item).replace(/"/g,"&quot;")+'  ,true);showDetail('+clienteId+')" style="flex:1">Ver Cliente Completo</button>';
-  html+='<button class="btn btn-primary" onclick="closeModal()" style="flex:1">Cerrar</button>';
+  html+='<button class="btn btn-secondary" onclick="closeModal();showDetail('+item.clienteId+')" style="flex:1">Ver Cliente</button>';
+  html+='<button class="btn btn-primary" onclick="document.getElementById(\'modal-body\').innerHTML=\'\';closeModal();abrirDiaCalendario(1,0,0,[],[])" style="flex:1">Atrás</button>';
   html+='</div>';
   document.getElementById('modal-body').innerHTML=html;
   document.getElementById('modal-backdrop').classList.add('open');
