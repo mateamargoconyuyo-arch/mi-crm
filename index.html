@@ -229,27 +229,27 @@ textarea{resize:vertical;min-height:64px}
 </head>
 <body>
  
-<div id="login-screen" style="display:flex;position:fixed;inset:0;background:#f7f8fa;z-index:9999;align-items:center;justify-content:center;flex-direction:column">
-  <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:40px 36px;width:calc(100% - 48px);max-width:380px;box-shadow:0 4px 24px rgba(0,0,0,0.08)">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:28px">
-      <div style="width:36px;height:36px;background:#185FA5;border-radius:8px;display:flex;align-items:center;justify-content:center"><i class="ti ti-shield" style="color:#fff;font-size:18px"></i></div>
+<div id="mob-login" style="display:flex;position:fixed;inset:0;background:#f7f8fa;z-index:9999;align-items:center;justify-content:center;padding:20px;box-sizing:border-box">
+  <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:36px 28px;width:100%;max-width:380px;box-shadow:0 4px 24px rgba(0,0,0,0.08)">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:24px">
+      <div style="width:36px;height:36px;background:#185FA5;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-shield" style="color:#fff;font-size:18px"></i></div>
       <div><div style="font-size:16px;font-weight:600">SegurosCRM</div><div style="font-size:12px;color:#6b7280">Damián Kogan</div></div>
     </div>
-    <div style="margin-bottom:16px">
-      <label style="font-size:13px;font-weight:500;display:block;margin-bottom:6px">Correo electrónico</label>
-      <input id="login-email" type="email" placeholder="tu@email.com" style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;outline:none;font-family:inherit;box-sizing:border-box" onkeydown="if(event.key==='Enter')doLogin()">
+    <div style="margin-bottom:14px">
+      <label style="font-size:13px;font-weight:500;display:block;margin-bottom:5px">Correo electrónico</label>
+      <input id="mob-email" type="email" placeholder="tu@email.com" style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:16px;outline:none;font-family:inherit;box-sizing:border-box" onkeydown="if(event.key==='Enter')doLogin()">
     </div>
-    <div style="margin-bottom:20px">
-      <label style="font-size:13px;font-weight:500;display:block;margin-bottom:6px">Contraseña</label>
-      <input id="login-pass" type="password" placeholder="••••••••" style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;outline:none;font-family:inherit;box-sizing:border-box" onkeydown="if(event.key==='Enter')doLogin()">
+    <div style="margin-bottom:18px">
+      <label style="font-size:13px;font-weight:500;display:block;margin-bottom:5px">Contraseña</label>
+      <input id="mob-pass" type="password" placeholder="••••••••" style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:16px;outline:none;font-family:inherit;box-sizing:border-box" onkeydown="if(event.key==='Enter')doLogin()">
     </div>
-    <div id="login-error" style="color:#A32D2D;font-size:13px;margin-bottom:12px;min-height:18px"></div>
-    <button onclick="doLogin()" style="width:100%;padding:10px;background:#185FA5;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">Ingresar</button>
+    <div id="mob-err" style="color:#A32D2D;font-size:13px;margin-bottom:10px;min-height:18px"></div>
+    <button onclick="doLogin()" style="width:100%;padding:11px;background:#185FA5;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit">Ingresar</button>
   </div>
 </div>
-<div class="app" id="app" style="display:none">
-<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
-<div class="sidebar" id="sidebar">
+<div class="app" id="mob-app" style="display:none">
+<div class="mob-overlay" id="mob-overlay" onclick="mobClose()"></div>
+<div class="sidebar" id="mob-sidebar">
   <div class="logo">
     <div class="logo-icon"><i class="ti ti-shield-check"></i></div>
     <div>
@@ -286,7 +286,7 @@ textarea{resize:vertical;min-height:64px}
  
 <div class="view active" id="sec-dashboard">
   <div class="topbar">
-    <button class="hamburger" onclick="toggleSidebar()" aria-label="Menú"><i class="ti ti-menu-2" style="font-size:20px"></i></button>
+    <button class="mob-hamburger" onclick="mobToggle()"><i class="ti ti-menu-2" style="font-size:22px"></i></button>
     <div style="flex:1">
       <div class="topbar-title" id="dash-greeting">Dashboard</div>
       <div class="topbar-subtitle" id="dash-date"></div>
@@ -348,7 +348,7 @@ textarea{resize:vertical;min-height:64px}
  
 <div class="view" id="sec-clientes">
   <div class="topbar">
-    <button class="hamburger" onclick="toggleSidebar()" aria-label="Menú"><i class="ti ti-menu-2" style="font-size:20px"></i></button>
+    <button class="mob-hamburger" onclick="mobToggle()"><i class="ti ti-menu-2" style="font-size:22px"></i></button>
     <div style="flex:1"><div class="topbar-title">Clientes</div></div>
     <div class="btn-group">
       <button class="btn btn-primary" onclick="openModal('nuevo-cliente')"><i class="ti ti-plus"></i> Nuevo cliente</button>
@@ -382,7 +382,7 @@ textarea{resize:vertical;min-height:64px}
  
 <div class="view" id="sec-detalle">
   <div class="topbar">
-    <button class="hamburger" onclick="toggleSidebar()" aria-label="Menú"><i class="ti ti-menu-2" style="font-size:20px"></i></button>
+    <button class="mob-hamburger" onclick="mobToggle()"><i class="ti ti-menu-2" style="font-size:22px"></i></button>
     <button class="back-btn" onclick="showSection('clientes')"><i class="ti ti-arrow-left"></i> Clientes</button>
     <div style="flex:1;margin-left:14px">
       <div class="topbar-title" id="det-nombre"></div>
@@ -394,7 +394,7 @@ textarea{resize:vertical;min-height:64px}
  
 <div class="view" id="sec-prospectos">
   <div class="topbar">
-    <button class="hamburger" onclick="toggleSidebar()" aria-label="Menú"><i class="ti ti-menu-2" style="font-size:20px"></i></button>
+    <button class="mob-hamburger" onclick="mobToggle()"><i class="ti ti-menu-2" style="font-size:22px"></i></button>
     <div style="flex:1"><div class="topbar-title">Prospectos</div></div>
     <button class="btn btn-primary" onclick="openModal('nuevo-prospecto')"><i class="ti ti-plus"></i> Nuevo prospecto</button>
   </div>
@@ -405,7 +405,7 @@ textarea{resize:vertical;min-height:64px}
  
 <div class="view" id="sec-siniestros">
   <div class="topbar">
-    <button class="hamburger" onclick="toggleSidebar()" aria-label="Menú"><i class="ti ti-menu-2" style="font-size:20px"></i></button>
+    <button class="mob-hamburger" onclick="mobToggle()"><i class="ti ti-menu-2" style="font-size:22px"></i></button>
     <div style="flex:1"><div class="topbar-title">Siniestros</div></div>
     <button class="btn btn-primary" onclick="openModal('nuevo-siniestro')"><i class="ti ti-plus"></i> Nuevo siniestro</button>
   </div>
@@ -438,7 +438,7 @@ textarea{resize:vertical;min-height:64px}
  
 <div class="view" id="sec-pendientes">
   <div class="topbar">
-    <button class="hamburger" onclick="toggleSidebar()" aria-label="Menú"><i class="ti ti-menu-2" style="font-size:20px"></i></button>
+    <button class="mob-hamburger" onclick="mobToggle()"><i class="ti ti-menu-2" style="font-size:22px"></i></button>
     <div style="flex:1"><div class="topbar-title">Pendientes</div></div>
     <button class="btn btn-primary" onclick="openModal('nuevo-pendiente')"><i class="ti ti-plus"></i> Nueva tarea</button>
   </div>
@@ -461,18 +461,18 @@ textarea{resize:vertical;min-height:64px}
  
 <div class="view" id="sec-polizas">
   <div class="topbar">
-    <button class="hamburger" onclick="toggleSidebar()" aria-label="Menú"><i class="ti ti-menu-2" style="font-size:20px"></i></button>
+    <button class="mob-hamburger" onclick="mobToggle()"><i class="ti ti-menu-2" style="font-size:22px"></i></button>
     <div style="flex:1"><div class="topbar-title">Pólizas</div></div>
   </div>
   <div class="content">
     <div class="controls-row" style="margin-bottom:16px">
       <div class="search-wrap">
         <i class="ti ti-search"></i>
-        <input type="text" id="q-polizas" placeholder="Buscar por cliente, tipo o compañía..." oninput="renderPolizas()">
+        <input type="text" id="q-polizas" placeholder="Buscar..." oninput="renderPolizas()">
       </div>
       <div class="sort-wrap">
-        <label for="filtro-vendedor-pol">Vendedor:</label>
-        <select id="filtro-vendedor-pol" onchange="renderPolizas()">
+        <label for="filtro-vpol">Vendedor:</label>
+        <select id="filtro-vpol" onchange="renderPolizas()">
           <option value="">Todos</option>
           <option value="Yo">Yo</option>
           <option value="Leandro">Leandro</option>
@@ -488,7 +488,7 @@ textarea{resize:vertical;min-height:64px}
  
 <div class="view" id="sec-facturacion">
   <div class="topbar">
-    <button class="hamburger" onclick="toggleSidebar()" aria-label="Menú"><i class="ti ti-menu-2" style="font-size:20px"></i></button>
+    <button class="mob-hamburger" onclick="mobToggle()"><i class="ti ti-menu-2" style="font-size:22px"></i></button>
     <div style="flex:1"><div class="topbar-title">Control de Facturación Mensual</div></div>
     <button class="btn btn-primary" onclick="openModal('nueva-factura')"><i class="ti ti-plus"></i> Cargar registro mensual</button>
   </div>
@@ -519,7 +519,7 @@ textarea{resize:vertical;min-height:64px}
  
 <div class="view" id="sec-reportes">
   <div class="topbar">
-    <button class="hamburger" onclick="toggleSidebar()" aria-label="Menú"><i class="ti ti-menu-2" style="font-size:20px"></i></button><div class="topbar-title">Reportes de Cartera</div></div>
+    <button class="mob-hamburger" onclick="mobToggle()"><i class="ti ti-menu-2" style="font-size:22px"></i></button><div class="topbar-title">Reportes de Cartera</div></div>
   <div class="content">
     <div class="stats" style="grid-template-columns:1fr;margin-bottom:20px">
       <div class="stat-card" style="text-align:center;padding:20px">
@@ -546,7 +546,7 @@ textarea{resize:vertical;min-height:64px}
  
 <div class="view" id="sec-links">
   <div class="topbar">
-    <button class="hamburger" onclick="toggleSidebar()" aria-label="Menú"><i class="ti ti-menu-2" style="font-size:20px"></i></button>
+    <button class="mob-hamburger" onclick="mobToggle()"><i class="ti ti-menu-2" style="font-size:22px"></i></button>
     <div style="flex:1"><div class="topbar-title">Links — Portales de Compañías</div></div>
   </div>
   <div class="content">
@@ -731,14 +731,14 @@ function loadDB() {
     if (!DB.facturacion) { seedFacturacion(); saveDB(); }
     if (!DB.siniestros) DB.siniestros = [];
     DB.siniestros.forEach(function(s){ if(!s.avances) s.avances=[]; });
-    document.getElementById('login-screen').style.display='none';
-    document.getElementById('app').style.display='flex';
+    document.getElementById('mob-login').style.display = 'none';
+    document.getElementById('mob-app').style.display = 'flex';
     showSection('dashboard');
   }).catch(function(e){ console.error(e); });
 }
 
 function saveDB() {
-  fbdb.collection('crm').doc('data').set(DB).catch(function(e){ console.error('Error guardando:', e); });
+  fbdb.collection('crm').doc('data').set(DB).catch(function(e){ console.error(e); });
 }
  
 function seedFacturacion() {
@@ -841,7 +841,7 @@ function updateBadges() {
 // NAVEGACIÓN
 // ============================================================
 function showSection(s) {
-  closeSidebar();
+  mobClose();
   document.querySelectorAll('.view').forEach(function(v){v.classList.remove('active')});
   document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active')});
   var sec=document.getElementById('sec-'+s);
@@ -911,7 +911,7 @@ function renderCalendario() {
     if(parseInt(parts[0]) === anio && parseInt(parts[1])-1 === mes) {
       var dia = parseInt(parts[2]);
       if(!taskMap[dia]) taskMap[dia]=[];
-      var _cli=getClient(p.clienteId); taskMap[dia].push({tarea:p.tarea,clienteId:p.clienteId,clienteNombre:_cli?_cli.nombre:'',vto:p.vto||''});
+      var _cl=getClient(p.clienteId); taskMap[dia].push({tarea:p.tarea,clienteId:p.clienteId,clienteNombre:_cl?_cl.nombre:'',vto:p.vto||''});
     }
   });
 
@@ -952,50 +952,50 @@ function renderCalendario() {
     
     var _oc='';
     if(tieneBday||tieneTarea){
-      window._calData=window._calData||{};
-      var _dk='d'+anio+'_'+mes+'_'+d;
-      window._calData[_dk]={bdays:tieneBday?bdayMap[d]:[],tareas:tieneTarea?taskMap[d]:[]};
-      _oc=' onclick="var _x=window._calData[\''+_dk+'\'];abrirDiaCalendario('+d+','+anio+','+mes+',_x.bdays,_x.tareas)" style="cursor:pointer"';
+      window._calD=window._calD||{};
+      var _dk='k'+anio+'_'+mes+'_'+d;
+      window._calD[_dk]={b:tieneBday?bdayMap[d]:[],t:tieneTarea?taskMap[d]:[]};
+      _oc=' onclick="var _v=window._calD[\''+_dk+'\'];abrirDiaCal('+d+','+anio+','+mes+',_v.b,_v.t)" style="cursor:pointer"';
     }
     html += '<div class="'+cls+'"'+title+_oc+'>'+d+dotHTML+'</div>';
   }
   grid.innerHTML = html;
 }
 
-function abrirDiaCalendario(dia,anio,mes,bdays,tareas){
+function abrirDiaCal(dia,anio,mes,bdays,tareas){
   var MF=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
   var html='<div style="font-size:15px;font-weight:600;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border)"><i class="ti ti-calendar-event" style="margin-right:6px;color:var(--blue)"></i>'+dia+' de '+MF[mes]+' '+anio+'</div>';
   if(bdays&&bdays.length){
     html+='<div style="margin-bottom:14px"><div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">🎂 Cumpleaños</div>';
     bdays.forEach(function(item){
-      html+='<div onclick="closeModal();showDetail('+item.id+')" style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--purple-light);border-radius:var(--radius);margin-bottom:6px;color:var(--purple);font-weight:500;cursor:pointer"><i class="ti ti-cake"></i>'+escHtml(item.nombre)+'<i class="ti ti-chevron-right" style="margin-left:auto;font-size:12px"></i></div>';
+      html+='<div onclick="closeModal();showDetail('+item.id+')" style="display:flex;align-items:center;gap:8px;padding:9px 10px;background:var(--purple-light);border-radius:var(--radius);margin-bottom:6px;color:var(--purple);font-weight:500;cursor:pointer"><i class="ti ti-cake"></i>'+escHtml(item.nombre)+'<i class="ti ti-chevron-right" style="margin-left:auto"></i></div>';
     });
     html+='</div>';
   }
   if(tareas&&tareas.length){
-    html+='<div><div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">📋 Tareas pendientes</div>';
+    html+='<div><div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">📋 Tareas</div>';
     tareas.forEach(function(item,idx){
-      window._calTaskData=window._calTaskData||{};
+      window._calT=window._calT||{};
       var tk='t'+Date.now()+'_'+idx;
-      window._calTaskData[tk]=item;
-      html+='<div onclick="abrirDetalleTarea(\''+tk+'\')" style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--blue-light);border-radius:var(--radius);margin-bottom:6px;color:var(--blue);font-weight:500;cursor:pointer"><i class="ti ti-check"></i><div style="flex:1"><div>'+escHtml(item.tarea)+'</div>'+(item.clienteNombre?'<div style="font-size:11px;opacity:.7">'+escHtml(item.clienteNombre)+'</div>':'')+'</div><i class="ti ti-chevron-right" style="font-size:12px"></i></div>';
+      window._calT[tk]=item;
+      html+='<div onclick="abrirDetalleTarea(\''+tk+'\')" style="display:flex;align-items:center;gap:8px;padding:9px 10px;background:var(--blue-light);border-radius:var(--radius);margin-bottom:6px;color:var(--blue);font-weight:500;cursor:pointer"><i class="ti ti-check"></i><div style="flex:1"><div>'+escHtml(item.tarea)+'</div>'+(item.clienteNombre?'<div style="font-size:11px;opacity:.7">'+escHtml(item.clienteNombre)+'</div>':'')+'</div><i class="ti ti-chevron-right"></i></div>';
     });
     html+='</div>';
   }
-  html+='<div style="margin-top:18px;text-align:right"><button class="btn btn-primary" onclick="closeModal()">Cerrar</button></div>';
+  html+='<div style="margin-top:16px;text-align:right"><button class="btn btn-primary" onclick="closeModal()">Cerrar</button></div>';
   document.getElementById('modal-body').innerHTML=html;
   document.getElementById('modal-backdrop').classList.add('open');
 }
 function abrirDetalleTarea(tk){
-  var item=window._calTaskData[tk];
+  var item=window._calT[tk];
   if(!item) return;
   var cli=getClient(item.clienteId);
-  var html='<div style="font-size:15px;font-weight:600;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border)"><i class="ti ti-clipboard-check" style="margin-right:6px;color:var(--blue)"></i>Detalle de la Tarea</div>';
-  html+='<div style="margin-bottom:12px"><div style="font-size:11px;color:var(--text3);margin-bottom:3px">TAREA</div><div style="font-size:14px;font-weight:600">'+escHtml(item.tarea)+'</div></div>';
-  if(cli) html+='<div style="margin-bottom:12px"><div style="font-size:11px;color:var(--text3);margin-bottom:3px">CLIENTE</div><div style="font-size:14px;font-weight:600">'+escHtml(cli.nombre)+'</div></div>';
-  if(item.vto) html+='<div style="margin-bottom:12px"><div style="font-size:11px;color:var(--text3);margin-bottom:3px">VENCIMIENTO</div><div style="font-size:14px">'+escHtml(item.vto)+'</div></div>';
-  html+='<div style="display:flex;gap:8px;margin-top:20px">';
-  if(cli) html+='<button class="btn btn-secondary" onclick="closeModal();showDetail('+item.clienteId+')" style="flex:1"><i class="ti ti-user"></i> Ver Cliente</button>';
+  var html='<div style="font-size:15px;font-weight:600;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border)"><i class="ti ti-clipboard-check" style="margin-right:6px;color:var(--blue)"></i>Detalle de Tarea</div>';
+  html+='<div style="margin-bottom:12px"><div style="font-size:11px;color:var(--text3);margin-bottom:3px">TAREA</div><div style="font-weight:600">'+escHtml(item.tarea)+'</div></div>';
+  if(cli) html+='<div style="margin-bottom:12px"><div style="font-size:11px;color:var(--text3);margin-bottom:3px">CLIENTE</div><div style="font-weight:600">'+escHtml(cli.nombre)+'</div></div>';
+  if(item.vto) html+='<div style="margin-bottom:12px"><div style="font-size:11px;color:var(--text3);margin-bottom:3px">VENCIMIENTO</div><div>'+escHtml(item.vto)+'</div></div>';
+  html+='<div style="display:flex;gap:8px;margin-top:18px">';
+  if(cli) html+='<button class="btn btn-secondary" onclick="closeModal();showDetail('+item.clienteId+')" style="flex:1">Ver cliente</button>';
   html+='<button class="btn btn-primary" onclick="closeModal()" style="flex:1">Cerrar</button>';
   html+='</div>';
   document.getElementById('modal-body').innerHTML=html;
@@ -1105,11 +1105,11 @@ function renderClientes() {
   var q=(document.getElementById('q-clientes').value||'').toLowerCase();
   var sortVal=document.getElementById('sort-clientes').value || 'nombre-asc';
 
-  var filtroTraido=(document.getElementById('filtro-traido').value||'');
+  var filtroT=(document.getElementById('filtro-traido').value||'');
   var list=DB.clients.filter(function(c){
-    var matchQ=!q||c.nombre.toLowerCase().includes(q)||(c.mail||'').toLowerCase().includes(q)||(c.whatsapp||'').includes(q);
-    var matchT=!filtroTraido||(c.traidoPor||'Yo')===filtroTraido;
-    return matchQ&&matchT;
+    var mQ=!q||c.nombre.toLowerCase().includes(q)||(c.mail||'').toLowerCase().includes(q)||(c.whatsapp||'').includes(q);
+    var mT=!filtroT||(c.traidoPor||'Yo')===filtroT;
+    return mQ&&mT;
   });
   
   list.sort(function(a, b) {
@@ -1362,12 +1362,12 @@ function renderPendientes() {
 function renderPolizas() {
   var b=document.getElementById('tb-polizas');
   var q=(document.getElementById('q-polizas').value||'').toLowerCase();
-  var filtroV=(document.getElementById('filtro-vendedor-pol').value||'');
+  var fv=(document.getElementById('filtro-vpol').value||'');
   var list=[];
   DB.clients.forEach(function(c){
     if(c.polizas) c.polizas.forEach(function(p){
       var mQ=!q||c.nombre.toLowerCase().includes(q)||p.tipo.toLowerCase().includes(q)||p.compania.toLowerCase().includes(q);
-      var mV=!filtroV||(p.vendedor||'Yo')===filtroV;
+      var mV=!fv||(p.vendedor||'Yo')===fv;
       if(mQ&&mV) list.push({c:c,p:p});
     });
   });
@@ -1998,7 +1998,7 @@ function actualizarContacto(e,id){
     c.whatsapp=document.getElementById('cont-wa').value;
     c.mail=document.getElementById('cont-mail').value;
     c.fechaNacimiento=document.getElementById('cont-fnac').value||'';
-    c.traidoPor=document.getElementById('cont-traido').value;
+    c.traidoPor=document.getElementById('cont-traido')? document.getElementById('cont-traido').value : (c.traidoPor||'Yo');
     c.notes=document.getElementById('cont-notas').value;
     saveDB();closeModal();toast('Datos de contacto guardados');
     showDetail(id);
@@ -2208,27 +2208,27 @@ window.onload = function() {
   fbauth.onAuthStateChanged(function(user) {
     if (user) { loadDB(); }
     else {
-      document.getElementById('login-screen').style.display='flex';
-      document.getElementById('app').style.display='none';
+      document.getElementById('mob-login').style.display = 'flex';
+      document.getElementById('mob-app').style.display = 'none';
     }
   });
 };
 function doLogin() {
-  var email=document.getElementById('login-email').value.trim();
-  var pass=document.getElementById('login-pass').value;
-  var err=document.getElementById('login-error');
-  err.textContent='';
-  fbauth.signInWithEmailAndPassword(email,pass)
-    .catch(function(){ err.textContent='Email o contraseña incorrectos.'; });
+  var email = document.getElementById('mob-email').value.trim();
+  var pass  = document.getElementById('mob-pass').value;
+  var err   = document.getElementById('mob-err');
+  err.textContent = '';
+  fbauth.signInWithEmailAndPassword(email, pass)
+    .catch(function() { err.textContent = 'Email o contraseña incorrectos.'; });
 }
 function doLogout() { fbauth.signOut(); }
-function toggleSidebar() {
-  document.getElementById('sidebar').classList.toggle('mob-open');
-  document.getElementById('sidebar-overlay').classList.toggle('mob-open');
+function mobToggle() {
+  document.getElementById('mob-sidebar').classList.toggle('show');
+  document.getElementById('mob-overlay').classList.toggle('show');
 }
-function closeSidebar() {
-  document.getElementById('sidebar').classList.remove('mob-open');
-  document.getElementById('sidebar-overlay').classList.remove('mob-open');
+function mobClose() {
+  document.getElementById('mob-sidebar').classList.remove('show');
+  document.getElementById('mob-overlay').classList.remove('show');
 }
 </script>
 </div>
