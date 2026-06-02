@@ -275,6 +275,7 @@ textarea{resize:vertical;min-height:64px}
       <button class="btn btn-sm" onclick="exportarDatos()" style="justify-content: center;"><i class="ti ti-download"></i> Exportar Copia</button>
       <button class="btn btn-sm" onclick="document.getElementById('import-file').click()" style="justify-content: center;"><i class="ti ti-upload"></i> Importar Copia</button>
       <input type="file" id="import-file" accept=".json" onchange="importarDatos(event)" style="display:none">
+      <button class="btn btn-sm btn-danger" onclick="logout()" style="justify-content: center;"><i class="ti ti-logout"></i> Cerrar sesión</button>
     </div>
     <div class="sub">Productor Asesor de Seguros</div>
   </div>
@@ -818,6 +819,15 @@ function toast(msg) {
   var t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
   setTimeout(function(){t.classList.remove('show')},2500);
 }
+function logout() {
+  if(confirm('¿Cerrar sesión?')) {
+    fbauth.signOut().then(function() {
+      document.getElementById('app').style.display='none';
+      document.getElementById('login-screen').style.display='flex';
+    });
+  }
+}
+
 function updateBadges() {
   var sinOpen=DB.siniestros.filter(function(s){return s.estado!=='Cerrado'}).length;
   var pndOpen=DB.pendientes.filter(function(p){return !p.done}).length;
