@@ -943,9 +943,46 @@ function renderCalendario() {
     if(tieneTarea) titleParts.push('Tareas/Recontactos: ' + taskMap[d].join(', '));
     var title = titleParts.length ? ' title="'+escHtml(titleParts.join(' | '))+'"' : '';
     
-    html += '<div class="'+cls+'"'+title+'>'+d+dotHTML+'</div>';
+    var onclick = '';
+    if(tieneBday || tieneTarea) {
+      var dataKey = 'calday_'+anio+'_'+mes+'_'+d;
+      window._calDayData = window._calDayData || {};
+      window._calDayData[dataKey] = {bdays: tieneBday ? bdayMap[d] : [], tareas: tieneTarea ? taskMap[d] : []};
+      onclick = ' onclick="var x=window._calDayData[\''+dataKey+'\'];abrirDiaCalendario('+d+','+anio+','+mes+',x.bdays,x.tareas)"';
+    }
+    html += '<div class="'+cls+'"'+title+onclick+'>'+d+dotHTML+'</div>';
   }
   grid.innerHTML = html;
+}
+
+function abrirDiaCalendario(dia, anio, mes, bdays, tareas) {
+  var MESES_FULL = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  var titulo = dia + ' de ' + MESES_FULL[mes] + ' ' + anio;
+  var html = '<div style="font-size:15px;font-weight:600;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border)"><i class="ti ti-calendar-event" style="margin-right:6px;color:var(--blue)"></i>'+titulo+'</div>';
+  
+  if(bdays && bdays.length) {
+    html += '<div style="margin-bottom:14px"><div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">🎂 Cumpleaños</div>';
+    bdays.forEach(function(nombre){
+      html += '<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--purple-light);border-radius:var(--radius);margin-bottom:6px;color:var(--purple);font-weight:500">'+
+        '<i class="ti ti-cake"></i> '+escHtml(nombre)+'</div>';
+    });
+    html += '</div>';
+  }
+  
+  if(tareas && tareas.length) {
+    html += '<div><div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">📋 Tareas pendientes</div>';
+    tareas.forEach(function(tarea){
+      html += '<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--blue-light);border-radius:var(--radius);margin-bottom:6px;color:var(--blue);font-weight:500">'+
+        '<i class="ti ti-check"></i> '+escHtml(tarea)+'</div>';
+    });
+    html += '</div>';
+  }
+
+  html += '<div style="margin-top:18px;text-align:right"><button class="btn btn-primary" onclick="closeModal()">Cerrar</button></div>';
+
+  var b = document.getElementById('modal-body');
+  b.innerHTML = html;
+  document.getElementById('modal-backdrop').classList.add('open');
 }
 
 function renderBdays() {
