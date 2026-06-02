@@ -5,7 +5,38 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SegurosCRM - Damián Kogan</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js">
+function toggleSidebar() {
+  var sb = document.getElementById('sidebar');
+  var ov = document.getElementById('sidebar-overlay');
+  if(sb) sb.classList.toggle('open');
+  if(ov) ov.classList.toggle('open');
+}
+
+function closeSidebarOnMobile() {
+  if(window.innerWidth <= 768) {
+    var sb = document.getElementById('sidebar');
+    var ov = document.getElementById('sidebar-overlay');
+    if(sb) sb.classList.remove('open');
+    if(ov) ov.classList.remove('open');
+  }
+}
+
+window.addEventListener('resize', function() {
+  if(window.innerWidth > 768) {
+    document.getElementById('hamburger-btn').style.display = 'none';
+  } else {
+    document.getElementById('hamburger-btn').style.display = 'flex';
+  }
+});
+
+window.addEventListener('load', function() {
+  if(window.innerWidth <= 768) {
+    document.getElementById('hamburger-btn').style.display = 'flex';
+  }
+});
+
+</script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <style>
@@ -228,7 +259,9 @@ textarea{resize:vertical;min-height:64px}
 </head>
 <body>
  
-<div id="login-screen" style="display:none;position:fixed;inset:0;background:#f7f8fa;z-index:9999;align-items:center;justify-content:center;flex-direction:column">
+
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+<div id="login-screen" style="display:flex;position:fixed;inset:0;background:#f7f8fa;z-index:9999;align-items:center;justify-content:center;flex-direction:column">
   <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:40px 36px;width:100%;max-width:380px;box-shadow:0 4px 24px rgba(0,0,0,0.08)">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:28px">
       <div style="width:36px;height:36px;background:#185FA5;border-radius:8px;display:flex;align-items:center;justify-content:center"><i class="ti ti-shield" style="color:#fff;font-size:18px"></i></div>
@@ -269,13 +302,12 @@ textarea{resize:vertical;min-height:64px}
     <button class="nav-item" id="nav-reportes" onclick="showSection('reportes')"><i class="ti ti-chart-bar"></i> Reportes</button>
     <button class="nav-item" id="nav-links" onclick="showSection('links')"><i class="ti ti-external-link"></i> Links útiles</button>
   </nav>
-  <div class="sidebar-footer" style="display:flex;align-items:center;justify-content:space-between">
+  <div class="sidebar-footer">
     <div class="name" style="margin-bottom: 4px;">Damián Kogan</div>
     <div class="btn-group" style="flex-direction: column; align-items: stretch; gap: 4px; margin-bottom: 8px;">
       <button class="btn btn-sm" onclick="exportarDatos()" style="justify-content: center;"><i class="ti ti-download"></i> Exportar Copia</button>
       <button class="btn btn-sm" onclick="document.getElementById('import-file').click()" style="justify-content: center;"><i class="ti ti-upload"></i> Importar Copia</button>
       <input type="file" id="import-file" accept=".json" onchange="importarDatos(event)" style="display:none">
-      <button class="btn btn-sm btn-danger" onclick="logout()" style="justify-content: center;"><i class="ti ti-logout"></i> Cerrar sesión</button>
     </div>
     <div class="sub">Productor Asesor de Seguros</div>
   </div>
@@ -346,6 +378,7 @@ textarea{resize:vertical;min-height:64px}
  
 <div class="view" id="sec-clientes">
   <div class="topbar">
+    <button class="hamburger" id="hamburger-btn" onclick="toggleSidebar()" style="display:none"><i class="ti ti-menu-2" style="font-size:20px"></i></button>
     <div style="flex:1"><div class="topbar-title">Clientes</div></div>
     <div class="btn-group">
       <button class="btn btn-primary" onclick="openModal('nuevo-cliente')"><i class="ti ti-plus"></i> Nuevo cliente</button>
@@ -691,10 +724,8 @@ var MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','
 // ============================================================
 var DB = {clients:[], siniestros:[], pendientes:[], prospectos:[], facturacion:[]};
 var currentDetailClientId = null;
-
-// ============================================================
-// FIREBASE CONFIG
-// ============================================================
+ 
+// ── Firebase ──────────────────────────────────────────────────────────────
 var firebaseConfig = {
   apiKey: "AIzaSyCRSWClVtULGeWcBWnz-ba7Pj28oIVAOjE",
   authDomain: "mi-crm-96657.firebaseapp.com",
@@ -711,25 +742,25 @@ function loadDB() {
   fbdb.collection('crm').doc('data').get().then(function(doc) {
     if (doc.exists) {
       DB = doc.data();
-      var hoyMig = new Date().toISOString().split('T')[0];
-      if (!DB.clients) DB.clients = [];
-      DB.clients.forEach(function(c){
-        if(!c.interacciones) c.interacciones=[];
-        if(!c.fechaNacimiento) c.fechaNacimiento='';
-        if(!c.traidoPor) c.traidoPor='Yo';
-        if(c.polizas) c.polizas.forEach(function(p){ if(!p.fechaAlta) p.fechaAlta=hoyMig; });
-      });
-      if (!DB.prospectos) DB.prospectos = [];
-      if (!DB.facturacion) { seedFacturacion(); saveDB(); }
-      if (!DB.siniestros) DB.siniestros = [];
-      DB.siniestros.forEach(function(s){ if(!s.avances) s.avances=[]; });
     } else {
       seedData();
     }
+    var hoyMig = new Date().toISOString().split('T')[0];
+    if (!DB.clients) DB.clients = [];
+    DB.clients.forEach(function(c){
+      if(!c.interacciones) c.interacciones=[];
+      if(!c.fechaNacimiento) c.fechaNacimiento='';
+      if(!c.traidoPor) c.traidoPor='Yo';
+      if(c.polizas) c.polizas.forEach(function(p){ if(!p.fechaAlta) p.fechaAlta=hoyMig; });
+    });
+    if (!DB.prospectos) DB.prospectos = [];
+    if (!DB.facturacion) { seedFacturacion(); saveDB(); }
+    if (!DB.siniestros) DB.siniestros = [];
+    DB.siniestros.forEach(function(s){ if(!s.avances) s.avances=[]; });
     document.getElementById('login-screen').style.display='none';
     document.getElementById('app').style.display='flex';
     showSection('dashboard');
-  }).catch(function(e){ console.error(e); seedData(); showSection('dashboard'); });
+  }).catch(function(e){ console.error(e); });
 }
 
 function saveDB() {
@@ -819,15 +850,6 @@ function toast(msg) {
   var t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
   setTimeout(function(){t.classList.remove('show')},2500);
 }
-function logout() {
-  if(confirm('¿Cerrar sesión?')) {
-    fbauth.signOut().then(function() {
-      document.getElementById('app').style.display='none';
-      document.getElementById('login-screen').style.display='flex';
-    });
-  }
-}
-
 function updateBadges() {
   var sinOpen=DB.siniestros.filter(function(s){return s.estado!=='Cerrado'}).length;
   var pndOpen=DB.pendientes.filter(function(p){return !p.done}).length;
@@ -845,6 +867,7 @@ function updateBadges() {
 // NAVEGACIÓN
 // ============================================================
 function showSection(s) {
+  closeSidebarOnMobile();
   document.querySelectorAll('.view').forEach(function(v){v.classList.remove('active')});
   document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active')});
   var sec=document.getElementById('sec-'+s);
@@ -903,7 +926,7 @@ function renderCalendario() {
     if(parseInt(p[1])-1 === mes) {
       var dia = parseInt(p[2]);
       if(!bdayMap[dia]) bdayMap[dia]=[];
-      bdayMap[dia].push(c.nombre);
+      bdayMap[dia].push({nombre: c.nombre, id: c.id});
     }
   });
 
@@ -914,7 +937,7 @@ function renderCalendario() {
     if(parseInt(parts[0]) === anio && parseInt(parts[1])-1 === mes) {
       var dia = parseInt(parts[2]);
       if(!taskMap[dia]) taskMap[dia]=[];
-      taskMap[dia].push(p.tarea);
+      var cli=getClient(p.clienteId); taskMap[dia].push({tarea:p.tarea,clienteId:p.clienteId,clienteNombre:cli?cli.nombre:''});
     }
   });
 
@@ -949,49 +972,62 @@ function renderCalendario() {
     dotHTML += '</div>';
     
     var titleParts = [];
-    if(tieneBday) titleParts.push('Cumpleaños: ' + bdayMap[d].join(', '));
-    if(tieneTarea) titleParts.push('Tareas/Recontactos: ' + taskMap[d].join(', '));
+    if(tieneBday) titleParts.push('Cumpleaños: ' + bdayMap[d].map(function(x){return x.nombre}).join(', '));
+    if(tieneTarea) titleParts.push('Tareas: ' + taskMap[d].map(function(x){return x.tarea}).join(', '));
     var title = titleParts.length ? ' title="'+escHtml(titleParts.join(' | '))+'"' : '';
     
-    var onclick = '';
-    if(tieneBday || tieneTarea) {
-      var dataKey = 'calday_'+anio+'_'+mes+'_'+d;
-      window._calDayData = window._calDayData || {};
-      window._calDayData[dataKey] = {bdays: tieneBday ? bdayMap[d] : [], tareas: tieneTarea ? taskMap[d] : []};
-      onclick = ' onclick="var x=window._calDayData[\''+dataKey+'\'];abrirDiaCalendario('+d+','+anio+','+mes+',x.bdays,x.tareas)"';
+    var onclick='';
+    if(tieneBday||tieneTarea){
+      window._calData=window._calData||{};
+      var dk='d'+anio+'_'+mes+'_'+d;
+      window._calData[dk]={bdays:tieneBday?bdayMap[d]:[],tareas:tieneTarea?taskMap[d]:[]};
+      onclick=' onclick="var _d=window._calData[\''+dk+'\'];abrirDiaCalendario('+d+','+anio+','+mes+',_d.bdays,_d.tareas)"';
     }
     html += '<div class="'+cls+'"'+title+onclick+'>'+d+dotHTML+'</div>';
   }
   grid.innerHTML = html;
 }
 
-function abrirDiaCalendario(dia, anio, mes, bdays, tareas) {
-  var MESES_FULL = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-  var titulo = dia + ' de ' + MESES_FULL[mes] + ' ' + anio;
-  var html = '<div style="font-size:15px;font-weight:600;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border)"><i class="ti ti-calendar-event" style="margin-right:6px;color:var(--blue)"></i>'+titulo+'</div>';
-  
-  if(bdays && bdays.length) {
-    html += '<div style="margin-bottom:14px"><div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">🎂 Cumpleaños</div>';
-    bdays.forEach(function(nombre){
-      html += '<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--purple-light);border-radius:var(--radius);margin-bottom:6px;color:var(--purple);font-weight:500">'+
-        '<i class="ti ti-cake"></i> '+escHtml(nombre)+'</div>';
+function abrirDiaCalendario(dia,anio,mes,bdays,tareas){
+  window._calTaskData = window._calTaskData || {};
+  var MF=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  var html='<div style="font-size:15px;font-weight:600;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border)"><i class="ti ti-calendar-event" style="margin-right:6px;color:var(--blue)"></i>'+dia+' de '+MF[mes]+' '+anio+'</div>';
+  if(bdays&&bdays.length){
+    html+='<div style="margin-bottom:14px"><div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">🎂 Cumpleaños</div>';
+    bdays.forEach(function(item){
+      html+='<div onclick="closeModal();showDetail('+item.id+')" style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--purple-light);border-radius:var(--radius);margin-bottom:6px;color:var(--purple);font-weight:500;cursor:pointer"><i class="ti ti-cake"></i>'+escHtml(item.nombre)+'<i class="ti ti-chevron-right" style="margin-left:auto;font-size:12px"></i></div>';
     });
-    html += '</div>';
+    html+='</div>';
   }
-  
-  if(tareas && tareas.length) {
-    html += '<div><div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">📋 Tareas pendientes</div>';
-    tareas.forEach(function(tarea){
-      html += '<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--blue-light);border-radius:var(--radius);margin-bottom:6px;color:var(--blue);font-weight:500">'+
-        '<i class="ti ti-check"></i> '+escHtml(tarea)+'</div>';
+  if(tareas&&tareas.length){
+    html+='<div><div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">📋 Tareas pendientes</div>';
+    tareas.forEach(function(item,idx){
+      var taskKey = 'task_'+Date.now()+'_'+idx;
+      window._calTaskData[taskKey] = item;
+      html+='<div onclick="abrirDetallesTarea(\''+taskKey+'\')" style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--blue-light);border-radius:var(--radius);margin-bottom:6px;color:var(--blue);font-weight:500;cursor:pointer"><i class="ti ti-check"></i><div style="flex:1"><div>'+escHtml(item.tarea)+'</div>'+(item.clienteNombre?'<div style="font-size:11px;opacity:.7">'+escHtml(item.clienteNombre)+'</div>':'')+'</div><i class="ti ti-chevron-right" style="font-size:12px"></i></div>';
     });
-    html += '</div>';
+    html+='</div>';
   }
+  html+='<div style="margin-top:18px;text-align:right"><button class="btn btn-primary" onclick="closeModal()">Cerrar</button></div>';
+  document.getElementById('modal-body').innerHTML=html;
+  document.getElementById('modal-backdrop').classList.add('open');
+}
 
-  html += '<div style="margin-top:18px;text-align:right"><button class="btn btn-primary" onclick="closeModal()">Cerrar</button></div>';
-
-  var b = document.getElementById('modal-body');
-  b.innerHTML = html;
+function abrirDetallesTarea(taskKey){
+  var item = window._calTaskData[taskKey];
+  if(!item) return;
+  var cli = getClient(item.clienteId);
+  var html='<div style="font-size:15px;font-weight:600;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border)"><i class="ti ti-clipboard-check" style="margin-right:6px;color:var(--blue)"></i>Detalles de la Tarea</div>';
+  html+='<div style="margin-bottom:14px"><div style="font-size:12px;color:var(--text3);margin-bottom:4px">TAREA</div><div style="font-size:14px;font-weight:600">'+escHtml(item.tarea)+'</div></div>';
+  html+='<div style="margin-bottom:14px"><div style="font-size:12px;color:var(--text3);margin-bottom:4px">CLIENTE</div><div style="font-size:14px;font-weight:600">'+escHtml(cli?cli.nombre:'')+'</div></div>';
+  if(item.vto){
+    html+='<div style="margin-bottom:14px"><div style="font-size:12px;color:var(--text3);margin-bottom:4px">VENCIMIENTO</div><div style="font-size:13px">'+escHtml(item.vto)+'</div></div>';
+  }
+  html+='<div style="display:flex;gap:8px;margin-top:20px">';
+  html+='<button class="btn btn-secondary" onclick="closeModal();showDetail('+item.clienteId+')" style="flex:1">Ver Cliente</button>';
+  html+='<button class="btn btn-primary" onclick="document.getElementById(\'modal-body\').innerHTML=\'\';closeModal();abrirDiaCalendario(1,0,0,[],[])" style="flex:1">Atrás</button>';
+  html+='</div>';
+  document.getElementById('modal-body').innerHTML=html;
   document.getElementById('modal-backdrop').classList.add('open');
 }
 
@@ -1362,8 +1398,7 @@ function renderPolizas() {
     if(c.polizas) c.polizas.forEach(function(p){
       var matchQ=!q||c.nombre.toLowerCase().includes(q)||p.tipo.toLowerCase().includes(q)||p.compania.toLowerCase().includes(q);
       var matchVendedor=!filtroVendedor||(p.vendedor||'Yo')===filtroVendedor;
-      if(matchQ&&matchVendedor)
-        list.push({c:c,p:p});
+      if(matchQ&&matchVendedor) list.push({c:c,p:p});
     });
   });
   if(!list.length){b.innerHTML='<tr><td colspan="7"><div class="empty"><i class="ti ti-file"></i><p>Sin pólizas vigentes encontradas</p></div></td></tr>';return;}
@@ -1747,13 +1782,7 @@ function openModal(type, targetId) {
       '<div class="form-group full"><label>Nombre y Apellido Completo</label><input type="text" id="cont-nombre" value="'+escHtml(c.nombre)+'" required></div>'+
       '<div class="form-group"><label>WhatsApp (Sin espacios/guiones)</label><input type="text" id="cont-wa" value="'+escHtml(c.whatsapp||'')+'" required></div>'+
       '<div class="form-group"><label>Correo Electrónico</label><input type="email" id="cont-mail" value="'+escHtml(c.mail||'')+'" required></div>'+
-      '<div class="form-group"><label>Fecha de Nacimiento</label><input type="date" id="cont-fnac" value="'+escHtml(c.fechaNacimiento||'')+'"></div>'+
-      '<div class="form-group"><label>Traído por</label>'+
-        '<select id="cont-traido">'+
-          '<option value="Yo"'+((!c.traidoPor||c.traidoPor==='Yo')?' selected':'')+'>Yo</option>'+
-          '<option value="Leandro"'+(c.traidoPor==='Leandro'?' selected':'')+'>Leandro</option>'+
-        '</select>'+
-      '</div>'+
+      '<div class="form-group full"><label>Fecha de Nacimiento</label><input type="date" id="cont-fnac" value="'+escHtml(c.fechaNacimiento||'')+'"></div>'+
       '<div class="form-group full"><label>Notas / Direcciones / Riesgos Vinculados</label><textarea id="cont-notas">'+escHtml(c.notes||'')+'</textarea></div>'+
       '</div><div class="modal-actions"><button type="button" class="btn" onclick="closeModal()">Cancelar</button><button type="submit" class="btn btn-primary">Guardar Cambios</button></div></form>';
   }
@@ -2215,22 +2244,16 @@ window.onload = function() {
     }
   });
 };
-
 function doLogin() {
   var email = document.getElementById('login-email').value.trim();
-  var pass = document.getElementById('login-pass').value;
-  var errEl = document.getElementById('login-error');
-  errEl.textContent = '';
+  var pass  = document.getElementById('login-pass').value;
+  var err   = document.getElementById('login-error');
+  err.textContent = '';
   fbauth.signInWithEmailAndPassword(email, pass)
-    .then(function() { /* onAuthStateChanged handles it */ })
-    .catch(function(e) {
-      errEl.textContent = 'Email o contraseña incorrectos.';
-    });
+    .catch(function(){ err.textContent = 'Email o contraseña incorrectos.'; });
 }
-
-function doLogout() {
-  fbauth.signOut();
-}
+function doLogout() { fbauth.signOut(); }
 </script>
+</div>
 </body>
 </html>
