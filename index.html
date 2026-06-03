@@ -798,6 +798,7 @@ textarea{resize:vertical;min-height:64px}
       <p class="pdf-header-title">Cotización de Seguros – <span id="pdf-cot-riesgo"></span></p>
       <p class="pdf-header-sub">Vehículo: <span id="pdf-cot-vehiculo"></span></p>
       <p class="pdf-header-sub" id="pdf-cot-cliente-nombre"></p>
+      <p class="pdf-header-sub">Fecha de cotización: <span id="pdf-cot-fecha"></span></p>
     </div>
   </div>
   
@@ -820,6 +821,11 @@ textarea{resize:vertical;min-height:64px}
       <li>Criterio del 80% en caso de destrucción total</li>
       <li>Daños parciales al amparo de robo total: 10% de la suma asegurada (puede variar según la compañía)</li>
     </ul>
+  </div>
+
+  <div class="pdf-info-box" style="margin-top: 10px; border-top: 1px solid #eee; padding-top: 10px;">
+    <p><b>Notas sobre la cotización:</b></p>
+    <p style="color: #666; font-size: 11px; font-style: italic;">Las sumas aseguradas y costos están sujetos a las variaciones y políticas comerciales vigentes de cada compañía al momento de la contratacion formal.</p>
   </div>
 
   <div class="pdf-info-box">
@@ -2626,6 +2632,7 @@ function exportarCotizacionPDF() {
   if (!cliente) { alert('Por favor, ingrese el nombre del cliente.'); return; }
 
   document.getElementById('pdf-cot-cliente-nombre').textContent = cliente.toUpperCase();
+  document.getElementById('pdf-cot-fecha').textContent = new Date().toLocaleDateString();
   document.getElementById('pdf-cot-riesgo').textContent = 'Automotor';
   document.getElementById('pdf-cot-vehiculo').textContent = riesgoGeneral || '-';
   
