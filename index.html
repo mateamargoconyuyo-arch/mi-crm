@@ -8,6 +8,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -175,9 +176,51 @@ textarea{resize:vertical;min-height:64px}
 .back-btn:hover{color:var(--text)}
  
 .toast{position:fixed;bottom:24px;right:24px;background:var(--text);color:#fff;padding:10px 18px;border-radius:var(--radius);font-size:13px;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none}
-.toast.show{opacity:1}
- 
-::-webkit-scrollbar{width:5px;height:5px}
+	.toast.show{opacity:1}
+	
+	/* COTIZADOR STYLES */
+	.cotizador-form { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 20px; }
+	.cotizacion-row { display: grid; grid-template-columns: 1.2fr 1fr 1.2fr 0.8fr 60px 60px 40px; gap: 8px; margin-bottom: 10px; align-items: end; }
+	.cot-recom-check, .cot-lojack-check { width: 18px; height: 18px; cursor: pointer; }
+	.pdf-recom-row { background: #E6F1FB !important; font-weight: 600; }
+	.pdf-recom-tag { background: var(--blue); color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-left: 8px; text-transform: uppercase; }
+	.pdf-lojack-tag { color: var(--teal); font-size: 10px; font-weight: 600; display: block; margin-top: 2px; }
+	.cotizacion-row .form-group { margin-bottom: 0; }
+	.btn-icon { width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; padding: 0; }
+	
+	@media print {
+	  .sidebar, .topbar, .btn-group, .nav, .sidebar-footer, .back-btn, .btn-icon, .btn-primary, .no-print { display: none !important; }
+	  .main, .content { padding: 0 !important; margin: 0 !important; overflow: visible !important; }
+	  .cotizador-form { border: none; padding: 0; }
+	  body { background: #fff; }
+	}
+
+	.pdf-template { display: none; padding: 40px; font-family: 'Helvetica', 'Arial', sans-serif; color: #333; background: #fff; max-width: 800px; margin: auto; }
+	.pdf-header { display: flex; align-items: center; gap: 20px; margin-bottom: 20px; }
+	.pdf-header-img { width: 80px; height: 80px; border-radius: 12px; object-fit: cover; background: #eee; }
+	.pdf-header-info { flex: 1; }
+	.pdf-header-name { font-size: 22px; font-weight: 700; color: #1a3a5a; margin: 0; }
+	.pdf-header-sub { font-size: 14px; color: #666; margin: 2px 0; }
+	.pdf-header-title { font-size: 16px; font-weight: 600; color: #333; margin-top: 8px; }
+	.pdf-divider { height: 2px; background: #1a3a5a; margin: 20px 0; }
+	
+	.pdf-comp-section { margin-bottom: 30px; }
+	.pdf-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; table-layout: fixed; }
+	.pdf-table th { background: #f8f9fa; color: #1a3a5a; text-align: center; padding: 12px 8px; font-size: 12px; border: 1px solid #dee2e6; text-transform: uppercase; }
+	.pdf-table th:first-child { text-align: left; width: 180px; background: #fff; }
+	.pdf-table td { padding: 12px 8px; font-size: 12px; border: 1px solid #dee2e6; text-align: center; vertical-align: middle; }
+	.pdf-table td:first-child { text-align: left; font-weight: 600; background: #f8f9fa; }
+	.pdf-table .price-val { font-size: 14px; font-weight: 700; color: #1a3a5a; display: block; }
+	.pdf-table .suma-val { font-size: 10px; color: #666; display: block; margin-top: 4px; }
+	.pdf-table .recom-cell { background: #eef6ff !important; border: 2px solid #1a3a5a !important; position: relative; }
+	.pdf-table .recom-badge { background: #1a3a5a; color: #fff; font-size: 8px; padding: 2px 4px; border-radius: 3px; position: absolute; top: -8px; left: 50%; transform: translateX(-50%); }
+	.pdf-lojack-note { font-size: 11px; color: #888; font-style: italic; margin-top: 5px; }
+	
+	.pdf-info-box { background: #fff; padding: 15px 0; font-size: 13px; line-height: 1.5; }
+	.pdf-info-box b { color: #000; }
+	.pdf-footer { margin-top: 40px; font-size: 11px; color: #999; text-align: center; border-top: 1px solid #eee; padding-top: 20px; }
+	 
+	::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:10px}
 
@@ -267,6 +310,8 @@ textarea{resize:vertical;min-height:64px}
     <div class="nav-section">Administración</div>
     <button class="nav-item" id="nav-facturacion" onclick="showSection('facturacion')"><i class="ti ti-receipt-2"></i> Facturación</button>
     <button class="nav-item" id="nav-reportes" onclick="showSection('reportes')"><i class="ti ti-chart-bar"></i> Reportes</button>
+    <button class="nav-item" id="nav-cotizador" onclick="showSection('cotizador')"><i class="ti ti-file-invoice"></i> Cotizador</button>
+    <button class="nav-item" id="nav-historial-cot" onclick="showSection('historial-cot')"><i class="ti ti-history"></i> Historial Cotizaciones</button>
     <button class="nav-item" id="nav-links" onclick="showSection('links')"><i class="ti ti-external-link"></i> Links útiles</button>
   </nav>
   <div class="sidebar-footer" style="display:flex;align-items:center;justify-content:space-between">
@@ -534,9 +579,77 @@ textarea{resize:vertical;min-height:64px}
   </div>
 </div>
  
+<div class="view" id="sec-cotizador">
+  <div class="topbar">
+    <div style="flex:1"><div class="topbar-title">Cotizador</div><div class="topbar-subtitle">Generar presupuesto para cliente</div></div>
+    <div class="btn-group">
+      <button class="btn btn-success" onclick="guardarCotizacionActual()"><i class="ti ti-device-floppy"></i> Guardar Cotización</button>
+      <button class="btn btn-primary" onclick="exportarCotizacionPDF()"><i class="ti ti-download"></i> Exportar PDF</button>
+      <button class="btn btn-wa" onclick="enviarCotizacionWA()"><i class="ti ti-brand-whatsapp"></i> Enviar por WhatsApp</button>
+    </div>
+  </div>
+  <div class="content">
+    <div class="cotizador-form">
+      <div class="form-grid" style="margin-bottom: 24px;">
+        <div class="form-group">
+          <label>Nombre y Apellido del Cliente</label>
+          <input type="text" id="cot-cliente" placeholder="Ej: Juan Pérez">
+        </div>
+        <div class="form-group">
+          <label>Riesgo a Cotizar</label>
+          <input type="text" id="cot-riesgo-general" placeholder="Ej: Automotor / Integral de Comercio">
+        </div>
+        <div class="form-group">
+          <label>Vincular a Prospecto (Opcional)</label>
+          <select id="cot-vincular-pros">
+            <option value="">-- No vincular --</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="section-title">Opciones de Cobertura</div>
+      <div id="cotizacion-items">
+        <div class="cotizacion-row" style="grid-template-columns: 1.2fr 1fr 1.2fr 0.8fr 60px 60px 40px;">
+          <div class="form-group"><label>Compañía</label><input type="text" class="cot-compania" placeholder="Ej: Fed. Patronal"></div>
+          <div class="form-group"><label>Suma Asegurada</label><input type="text" class="cot-suma" placeholder="Ej: $15.000.000"></div>
+          <div class="form-group"><label>Cobertura</label><input type="text" class="cot-cobertura" placeholder="Ej: Terceros Completo"></div>
+          <div class="form-group"><label>Costo</label><input type="text" class="cot-costo" placeholder="Ej: $25.000"></div>
+          <div class="form-group" style="align-items: center;"><label>Recom.</label><input type="checkbox" class="cot-recom-check"></div>
+          <div class="form-group" style="align-items: center;"><label>LoJack</label><input type="checkbox" class="cot-lojack-check"></div>
+          <button class="btn btn-danger btn-icon" onclick="this.parentElement.remove()"><i class="ti ti-trash"></i></button>
+        </div>
+      </div>
+      
+      <button class="btn btn-sm" style="margin-top: 10px;" onclick="agregarFilaCotizacion()"><i class="ti ti-plus"></i> Agregar otra opción</button>
+    </div>
+  </div>
+</div>
+
+<div class="view" id="sec-historial-cot">
+  <div class="topbar">
+    <div style="flex:1"><div class="topbar-title">Historial de Cotizaciones</div><div class="topbar-subtitle">Consulta y edición de presupuestos guardados</div></div>
+  </div>
+  <div class="content">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Cliente</th>
+            <th>Riesgo</th>
+            <th>Opciones</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="historial-cot-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
 <div class="view" id="sec-links">
   <div class="topbar">
-    <div style="flex:1"><div class="topbar-title">Links — Portales de Compañías</div></div>
+    <div style="flex:1"><div class="topbar-title">Links útiles</div></div>
   </div>
   <div class="content">
     <p style="font-size:13px;color:var(--text2);margin-bottom:18px">Accesos directos a los portales de intermediarios. Se abren en una pestaña nueva.</p>
@@ -674,6 +787,59 @@ textarea{resize:vertical;min-height:64px}
 </div>
  
 <div class="toast" id="toast"></div>
+
+<!-- PDF TEMPLATE (HIDDEN) -->
+<div id="pdf-export-container" class="pdf-template">
+  <div class="pdf-header">
+    <!-- Imagen de perfil eliminada --> <img style="display:none" src="data:image/jpeg;base64,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" class="pdf-header-img" alt="Damian Kogan" id="pdf-perfil-img">
+    <div class="pdf-header-info">
+      <h1 class="pdf-header-name">Damian Kogan</h1>
+      <p class="pdf-header-sub">Productor de Seguros</p>
+      <p class="pdf-header-title">Cotización de Seguros – <span id="pdf-cot-riesgo"></span></p>
+      <p class="pdf-header-sub">Vehículo: <span id="pdf-cot-vehiculo"></span></p>
+      <p class="pdf-header-sub" id="pdf-cot-cliente-nombre"></p>
+    </div>
+  </div>
+  
+  <div class="pdf-divider"></div>
+  
+  <div id="pdf-companias-container">
+    <!-- Se llena dinámicamente agrupado por compañía -->
+  </div>
+  
+  <div class="pdf-info-box">
+    <p><b>¿Qué incluye la cobertura Terceros Completo?</b></p>
+    <p style="color: #666; font-size: 12px;">La siguiente descripción tiene carácter <b>orientativo y general</b>, y refleja los alcances habituales de la cobertura Terceros Completo en el mercado asegurador.</p>
+    <ul style="color: #666; font-size: 12px; padding-left: 20px;">
+      <li>Responsabilidad Civil</li>
+      <li>Robo total y parcial (excluye espejos, insignias entre otros)</li>
+      <li>Incendio total y parcial</li>
+      <li>Cristales y cerraduras sin límite</li>
+      <li>Granizo sin límite</li>
+      <li>Reposición de neumáticos sin desgaste (puede variar según la compañía)</li>
+      <li>Criterio del 80% en caso de destrucción total</li>
+      <li>Daños parciales al amparo de robo total: 10% de la suma asegurada (puede variar según la compañía)</li>
+    </ul>
+  </div>
+
+  <div class="pdf-info-box">
+    <p><b>¿Qué incluye la cobertura Todo Riesgo con franquicia?</b></p>
+    <p style="color: #666; font-size: 12px;">La siguiente descripción es de carácter <b>orientativo y general</b>, y representa los alcances habituales de la cobertura Todo Riesgo con franquicia en el mercado asegurador. Las condiciones específicas, franquicias y límites pueden variar según cada compañía y plan contratado, prevaleciendo siempre lo establecido en la póliza particular.</p>
+    <ul style="color: #666; font-size: 12px; padding-left: 20px;">
+      <li>Incluye todas las coberturas de Terceros Completo</li>
+      <li><b>Suma los daños parciales al vehículo con aplicación de franquicia. Se aplica por cada siniestro de daño parcial</b></li>
+    </ul>
+  </div>
+  
+  <div style="text-align: center; font-size: 11px; color: #888; margin-top: 20px;">
+    Cotización sujeta a condiciones de suscripción y actualización de valores.
+  </div>
+
+  <div class="pdf-footer">
+    <p><strong>Tu Productor Damián Kogan</strong></p>
+    <p>Celular: 11.5156.7041 | Web: www.tuproductordamiankogan.com</p>
+  </div>
+</div>
  
 <script>
 // ============================================================
@@ -689,7 +855,7 @@ var MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','
 // ============================================================
 // ESTADO
 // ============================================================
-var DB = {clients:[], siniestros:[], pendientes:[], prospectos:[], facturacion:[]};
+var DB = {clients:[], siniestros:[], pendientes:[], prospectos:[], facturacion:[], cotizaciones:[]};
 var currentDetailClientId = null;
 
 // ============================================================
@@ -859,6 +1025,8 @@ function showSection(s) {
   if(s==='polizas') renderPolizas();
   if(s==='facturacion'){initFiltrosFacturacion();renderFacturacion();}
   if(s==='reportes') renderReportes();
+  if(s==='cotizador') initCotizador();
+  if(s==='historial-cot') renderHistorialCotizaciones();
   updateBadges();
 }
  
@@ -1821,30 +1989,39 @@ function openModal(type, targetId) {
   else if(type==='ficha-prospecto'){
     var pros=getProspecto(targetId);
     if(!pros) return closeModal();
-    var tareasPros=(DB.pendientes||[]).filter(function(p){return p.prosId==pros.id && !p.done;});
-    var tareasHTML=tareasPros.length ? tareasPros.map(function(t){
-      var pr=t.prioridad==='Alta'?'tag-red':t.prioridad==='Media'?'tag-amber':'tag-gray';
-      return '<div class="detail-row"><span style="flex:1;margin-right:8px">'+escHtml(t.tarea)+'</span><span class="tag '+pr+'">'+escHtml(t.prioridad)+'</span><span style="font-size:12px;color:var(--text2);margin-left:8px">Vto: '+fmt(t.vto)+'</span></div>';
-    }).join('') : '<p style="font-size:13px;color:var(--text2)">Sin tareas pendientes asociadas.</p>';
-    b.innerHTML='<div class="modal-title">Ficha del Prospecto <button class="modal-close" onclick="closeModal()">&times;</button></div>'+ 
-      '<div class="section-card" style="margin-bottom:12px">'+
-        '<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">'+
-          '<div class="client-avatar">'+ini(pros.nombre)+'</div>'+ 
-          '<div><div style="font-size:16px;font-weight:700">'+escHtml(pros.nombre)+'</div><div style="font-size:12px;color:var(--text2)">Prospecto · '+escHtml(STAGES[pros.stage]||'Sin etapa')+'</div></div>'+ 
-        '</div>'+ 
-        '<div class="detail-row"><span class="detail-label"><i class="ti ti-phone"></i> Teléfono</span><span>'+escHtml(pros.telefono||'-')+'</span></div>'+ 
-        '<div class="detail-row"><span class="detail-label"><i class="ti ti-shield-plus"></i> Interés</span><span>'+escHtml(pros.interes||'-')+'</span></div>'+ 
-        '<div class="detail-row"><span class="detail-label"><i class="ti ti-user"></i> Responsable</span><span>'+escHtml(pros.responsable||'YO')+'</span></div>'+ 
-        '<div class="detail-row"><span class="detail-label"><i class="ti ti-calendar-check"></i> Emisión</span><span>'+(pros.fechaEmision?fmt(pros.fechaEmision):'-')+'</span></div>'+ 
-        '<div class="detail-row"><span class="detail-label"><i class="ti ti-clock"></i> Recontacto</span><span>'+(pros.fechaRecontacto?fmt(pros.fechaRecontacto):'-')+'</span></div>'+ 
-        (pros.notes?'<div style="margin-top:10px;font-size:13px;color:var(--text2);white-space:pre-line"><b>Notas:</b><br>'+escHtml(pros.notes)+'</div>':'')+
-      '</div>'+ 
-      '<div class="section-card"><div class="section-title">Tareas asociadas <span style="font-size:11px;font-weight:400;color:var(--text2)">('+tareasPros.length+')</span></div>'+tareasHTML+'</div>'+ 
-      '<div class="modal-actions">'+
-        '<button type="button" class="btn" onclick="openModal(\'editar-prospecto\','+pros.id+')"><i class="ti ti-edit"></i> Editar</button>'+ 
-        '<button type="button" class="btn" onclick="openModal(\'recontacto\','+pros.id+')"><i class="ti ti-calendar-plus"></i> Recontacto</button>'+ 
-        '<button type="button" class="btn btn-success" onclick="convertirProspectoACliente('+pros.id+')"><i class="ti ti-user-check"></i> Convertir</button>'+ 
-      '</div>';
+	    var tareasPros=(DB.pendientes||[]).filter(function(p){return p.prosId==pros.id && !p.done;});
+	    var tareasHTML=tareasPros.length ? tareasPros.map(function(t){
+	      var pr=t.prioridad==='Alta'?'tag-red':t.prioridad==='Media'?'tag-amber':'tag-gray';
+	      return '<div class="detail-row"><span style="flex:1;margin-right:8px">'+escHtml(t.tarea)+'</span><span class="tag '+pr+'">'+escHtml(t.prioridad)+'</span><span style="font-size:12px;color:var(--text2);margin-left:8px">Vto: '+fmt(t.vto)+'</span></div>';
+	    }).join('') : '<p style="font-size:13px;color:var(--text2)">Sin tareas pendientes asociadas.</p>';
+	    
+	    var cotsPros=(DB.cotizaciones||[]).filter(function(c){return c.prospectoId==pros.id;});
+	    var cotsHTML=cotsPros.length ? cotsPros.map(function(c){
+	      var f = new Date(c.fecha).toLocaleDateString();
+	      return '<div class="detail-row"><span style="flex:1"><b>'+f+'</b> - '+escHtml(c.riesgo||'Cotización')+'</span>'+
+	             '<button type="button" class="btn btn-sm" onclick="closeModal();editarCotizacion(\''+c.id+'\')"><i class="ti ti-edit"></i> Editar Cot.</button></div>';
+	    }).join('') : '<p style="font-size:13px;color:var(--text2)">No hay cotizaciones vinculadas.</p>';
+
+	    b.innerHTML='<div class="modal-title">Ficha del Prospecto <button class="modal-close" onclick="closeModal()">&times;</button></div>'+ 
+	      '<div class="section-card" style="margin-bottom:12px">'+
+	        '<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">'+
+	          '<div class="client-avatar">'+ini(pros.nombre)+'</div>'+ 
+	          '<div><div style="font-size:16px;font-weight:700">'+escHtml(pros.nombre)+'</div><div style="font-size:12px;color:var(--text2)">Prospecto · '+escHtml(STAGES[pros.stage]||'Sin etapa')+'</div></div>'+ 
+	        '</div>'+ 
+	        '<div class="detail-row"><span class="detail-label"><i class="ti ti-phone"></i> Teléfono</span><span>'+escHtml(pros.telefono||'-')+'</span></div>'+ 
+	        '<div class="detail-row"><span class="detail-label"><i class="ti ti-shield-plus"></i> Interés</span><span>'+escHtml(pros.interes||'-')+'</span></div>'+ 
+	        '<div class="detail-row"><span class="detail-label"><i class="ti ti-user"></i> Responsable</span><span>'+escHtml(pros.responsable||'YO')+'</span></div>'+ 
+	        '<div class="detail-row"><span class="detail-label"><i class="ti ti-calendar-check"></i> Emisión</span><span>'+(pros.fechaEmision?fmt(pros.fechaEmision):'-')+'</span></div>'+ 
+	        '<div class="detail-row"><span class="detail-label"><i class="ti ti-clock"></i> Recontacto</span><span>'+(pros.fechaRecontacto?fmt(pros.fechaRecontacto):'-')+'</span></div>'+ 
+	        (pros.notes?'<div style="margin-top:10px;font-size:13px;color:var(--text2);white-space:pre-line"><b>Notas:</b><br>'+escHtml(pros.notes)+'</div>':'')+
+	      '</div>'+ 
+	      '<div class="section-card"><div class="section-title">Cotizaciones Vinculadas <span style="font-size:11px;font-weight:400;color:var(--text2)">('+cotsPros.length+')</span></div>'+cotsHTML+'</div>'+ 
+	      '<div class="section-card"><div class="section-title">Tareas asociadas <span style="font-size:11px;font-weight:400;color:var(--text2)">('+tareasPros.length+')</span></div>'+tareasHTML+'</div>'+ 
+	      '<div class="modal-actions">'+
+	        '<button type="button" class="btn" onclick="openModal(\'editar-prospecto\','+pros.id+')"><i class="ti ti-edit"></i> Editar</button>'+ 
+	        '<button type="button" class="btn" onclick="openModal(\'recontacto\','+pros.id+')"><i class="ti ti-calendar-plus"></i> Recontacto</button>'+ 
+	        '<button type="button" class="btn btn-success" onclick="convertirProspectoACliente('+pros.id+')"><i class="ti ti-user-check"></i> Convertir</button>'+ 
+	      '</div>';
   }
  
   else if(type==='nuevo-cliente'){
@@ -2269,6 +2446,326 @@ function doLogin() {
 
 function doLogout() {
   fbauth.signOut();
+}
+
+// ============================================================
+// FUNCIONES DEL COTIZADOR
+// ============================================================
+var cotizandoId = null; 
+
+function initCotizador() {
+  var select = document.getElementById('cot-vincular-pros');
+  select.innerHTML = '<option value="">-- No vincular --</option>';
+  if(DB.prospectos) {
+    DB.prospectos.forEach(function(p) {
+      var opt = document.createElement('option');
+      opt.value = p.id;
+      opt.textContent = p.nombre;
+      select.appendChild(opt);
+    });
+  }
+  if (!cotizandoId) {
+    limpiarFormularioCotizacion();
+  }
+}
+
+function limpiarFormularioCotizacion() {
+  cotizandoId = null;
+  document.getElementById('cot-cliente').value = '';
+  document.getElementById('cot-riesgo-general').value = '';
+  document.getElementById('cot-vincular-pros').value = '';
+  var container = document.getElementById('cotizacion-items');
+  container.innerHTML = '';
+  agregarFilaCotizacion();
+  document.querySelector('.topbar-subtitle').textContent = 'Generar presupuesto para cliente';
+}
+
+function agregarFilaCotizacion() {
+  var container = document.getElementById('cotizacion-items');
+  var div = document.createElement('div');
+  div.className = 'cotizacion-row';
+  div.style.gridTemplateColumns = '1.2fr 1fr 1.2fr 0.8fr 60px 60px 40px';
+  div.innerHTML = `
+    <div class="form-group"><label>Compañía</label><input type="text" class="cot-compania" placeholder="Ej: Fed. Patronal"></div>
+    <div class="form-group"><label>Suma Asegurada</label><input type="text" class="cot-suma" placeholder="Ej: $15.000.000"></div>
+    <div class="form-group"><label>Cobertura</label><input type="text" class="cot-cobertura" placeholder="Ej: Terceros Completo"></div>
+    <div class="form-group"><label>Costo</label><input type="text" class="cot-costo" placeholder="Ej: $25.000"></div>
+    <div class="form-group" style="align-items: center;"><label>Recom.</label><input type="checkbox" class="cot-recom-check"></div>
+    <div class="form-group" style="align-items: center;"><label>LoJack</label><input type="checkbox" class="cot-lojack-check"></div>
+    <button class="btn btn-danger btn-icon" onclick="this.parentElement.remove()"><i class="ti ti-trash"></i></button>
+  `;
+  container.appendChild(div);
+}
+
+function guardarCotizacionActual() {
+  var cliente = document.getElementById('cot-cliente').value;
+  var riesgo = document.getElementById('cot-riesgo-general').value;
+  var prosId = document.getElementById('cot-vincular-pros').value;
+  
+  if(!cliente) { alert('Ingrese el nombre del cliente'); return; }
+  
+  var items = [];
+  document.querySelectorAll('.cotizacion-row').forEach(function(row) {
+    var comp = row.querySelector('.cot-compania').value;
+    if (comp) {
+      items.push({
+        compania: comp,
+        suma: row.querySelector('.cot-suma').value,
+        cobertura: row.querySelector('.cot-cobertura').value,
+        costo: row.querySelector('.cot-costo').value,
+        recom: row.querySelector('.cot-recom-check').checked,
+        lojack: row.querySelector('.cot-lojack-check').checked
+      });
+    }
+  });
+
+  if(!DB.cotizaciones) DB.cotizaciones = [];
+  
+  if (cotizandoId) {
+    var idx = DB.cotizaciones.findIndex(function(c){return c.id == cotizandoId});
+    if (idx !== -1) {
+      DB.cotizaciones[idx].cliente = cliente;
+      DB.cotizaciones[idx].riesgo = riesgo;
+      DB.cotizaciones[idx].items = items;
+      DB.cotizaciones[idx].prospectoId = prosId;
+      toast('Cotización actualizada');
+    }
+  } else {
+    var nuevaCot = {
+      id: uid(),
+      fecha: new Date().toISOString(),
+      cliente: cliente,
+      riesgo: riesgo,
+      items: items,
+      prospectoId: prosId
+    };
+    DB.cotizaciones.push(nuevaCot);
+    
+    if(prosId) {
+      var p = DB.prospectos.find(function(x){return x.id == prosId});
+      if(p) p.notes = (p.notes || '') + "\n[Cotización guardada el " + new Date().toLocaleDateString() + "]";
+    }
+    toast('Cotización guardada exitosamente');
+  }
+  
+  saveDB();
+  limpiarFormularioCotizacion();
+  showSection('historial-cot');
+}
+
+function renderHistorialCotizaciones() {
+  var tbody = document.getElementById('historial-cot-body');
+  tbody.innerHTML = '';
+  if(!DB.cotizaciones || DB.cotizaciones.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text2)">No hay cotizaciones guardadas</td></tr>';
+    return;
+  }
+  
+  DB.cotizaciones.slice().reverse().forEach(function(c) {
+    var tr = document.createElement('tr');
+    var fecha = new Date(c.fecha).toLocaleDateString() + ' ' + new Date(c.fecha).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    tr.innerHTML = `
+      <td>${fecha}</td>
+      <td><strong>${c.cliente}</strong></td>
+      <td>${c.riesgo || '-'}</td>
+      <td>${c.items.length} opciones</td>
+      <td>
+        <div class="btn-group">
+          <button class="btn btn-sm" onclick="editarCotizacion('${c.id}')"><i class="ti ti-edit"></i> Editar</button>
+          <button class="btn btn-sm btn-danger" onclick="eliminarCotizacion('${c.id}')"><i class="ti ti-trash"></i></button>
+        </div>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function editarCotizacion(id) {
+  var c = DB.cotizaciones.find(function(x){return x.id == id});
+  if(!c) return;
+  
+  cotizandoId = id;
+  showSection('cotizador');
+  
+  document.getElementById('cot-cliente').value = c.cliente;
+  document.getElementById('cot-riesgo-general').value = c.riesgo || '';
+  document.getElementById('cot-vincular-pros').value = c.prospectoId || '';
+  document.querySelector('.topbar-subtitle').textContent = 'Editando cotización de ' + c.cliente;
+  
+  var container = document.getElementById('cotizacion-items');
+  container.innerHTML = '';
+  
+  c.items.forEach(function(item) {
+    var div = document.createElement('div');
+    div.className = 'cotizacion-row';
+    div.style.gridTemplateColumns = '1.2fr 1fr 1.2fr 0.8fr 60px 60px 40px';
+    div.innerHTML = `
+      <div class="form-group"><label>Compañía</label><input type="text" class="cot-compania" value="${item.compania}"></div>
+      <div class="form-group"><label>Suma Asegurada</label><input type="text" class="cot-suma" value="${item.suma}"></div>
+      <div class="form-group"><label>Cobertura</label><input type="text" class="cot-cobertura" value="${item.cobertura}"></div>
+      <div class="form-group"><label>Costo</label><input type="text" class="cot-costo" value="${item.costo}"></div>
+      <div class="form-group" style="align-items: center;"><label>Recom.</label><input type="checkbox" class="cot-recom-check" ${item.recom ? 'checked' : ''}></div>
+      <div class="form-group" style="align-items: center;"><label>LoJack</label><input type="checkbox" class="cot-lojack-check" ${item.lojack ? 'checked' : ''}></div>
+      <button class="btn btn-danger btn-icon" onclick="this.parentElement.remove()"><i class="ti ti-trash"></i></button>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function eliminarCotizacion(id) {
+  if(!confirm('¿Eliminar esta cotización del historial?')) return;
+  DB.cotizaciones = DB.cotizaciones.filter(function(c){return c.id != id});
+  saveDB();
+  renderHistorialCotizaciones();
+  toast('Cotización eliminada');
+}
+
+function exportarCotizacionPDF() {
+  var cliente = document.getElementById('cot-cliente').value;
+  var riesgoGeneral = document.getElementById('cot-riesgo-general').value;
+  if (!cliente) { alert('Por favor, ingrese el nombre del cliente.'); return; }
+
+  document.getElementById('pdf-cot-cliente-nombre').textContent = cliente.toUpperCase();
+  document.getElementById('pdf-cot-riesgo').textContent = 'Automotor';
+  document.getElementById('pdf-cot-vehiculo').textContent = riesgoGeneral || '-';
+  
+  var rows = document.querySelectorAll('.cotizacion-row');
+  var container = document.getElementById('pdf-companias-container');
+  container.innerHTML = '';
+  
+  var data = {}; // { cobertura: { compania: { costo, suma, recom, lojack } } }
+  var companiasSet = new Set();
+  var coberturasSet = new Set();
+
+  rows.forEach(function(row) {
+    var comp = row.querySelector('.cot-compania').value.trim();
+    var cob = row.querySelector('.cot-cobertura').value.trim();
+    if (comp && cob) {
+      companiasSet.add(comp);
+      coberturasSet.add(cob);
+      if (!data[cob]) data[cob] = {};
+      data[cob][comp] = {
+        suma: row.querySelector('.cot-suma').value.trim(),
+        costo: row.querySelector('.cot-costo').value.trim(),
+        recom: row.querySelector('.cot-recom-check').checked,
+        lojack: row.querySelector('.cot-lojack-check').checked
+      };
+    }
+  });
+
+  var compNames = Array.from(companiasSet);
+  var cobNames = Array.from(coberturasSet).sort();
+
+  if (compNames.length === 0) { alert('Cargue al menos una opción completa.'); return; }
+
+  var table = document.createElement('table');
+  table.className = 'pdf-table';
+  
+  // Header: Compañías
+  var thead = '<thead><tr><th>Cobertura</th>';
+  compNames.forEach(function(c){ thead += `<th>${c}</th>`; });
+  thead += '</tr></thead>';
+  
+  // Body: Coberturas
+  var tbody = '<tbody>';
+  cobNames.forEach(function(cob) {
+    tbody += `<tr><td>${cob}</td>`;
+    compNames.forEach(function(comp) {
+      var cell = data[cob][comp];
+      if (cell) {
+        var cls = cell.recom ? 'recom-cell' : '';
+        var badge = cell.recom ? '<span class="recom-badge">RECOMENDADA</span>' : '';
+        var lj = cell.lojack ? '<div style="font-size:8px;color:#d9534f;margin-top:4px">Incluye LoJack</div>' : '';
+        tbody += `<td class="${cls}">${badge}<span class="price-val">${cell.costo}</span><span class="suma-val">Suma: ${cell.suma}</span>${lj}</td>`;
+      } else {
+        tbody += '<td>-</td>';
+      }
+    });
+    tbody += '</tr>';
+  });
+  tbody += '</tbody>';
+  
+  table.innerHTML = thead + tbody;
+  container.appendChild(table);
+
+  // Exportar usando html2pdf
+  var element = document.getElementById('pdf-export-container');
+  element.style.display = 'block'; 
+  
+  var opt = {
+    margin: 10,
+    filename: 'Cotizacion_' + cliente.replace(/\s+/g, '_') + '.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2 },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+
+  html2pdf().set(opt).from(element).save().then(function() {
+    element.style.display = 'none';
+    toast('Cotización exportada con éxito');
+    limpiarFormularioCotizacion();
+  });
+}
+
+function enviarCotizacionWA() {
+  var cliente = document.getElementById('cot-cliente').value;
+  var riesgo = document.getElementById('cot-riesgo-general').value || 'Seguro';
+  var prosId = document.getElementById('cot-vincular-pros').value;
+  var tel = '';
+
+  if (!cliente) { alert('Ingrese el nombre del cliente'); return; }
+
+  if (prosId) {
+    var p = DB.prospectos.find(function(x){return x.id == prosId});
+    if (p && p.telefono) tel = p.telefono.replace(/\D/g, '');
+  }
+
+  var mensaje = `*Presupuesto de ${riesgo}*\n`;
+  mensaje += `Hola *${cliente}*, te envío las opciones que coticé para vos:\n\n`;
+
+  var rows = document.querySelectorAll('.cotizacion-row');
+  var companiasMap = {};
+
+  rows.forEach(function(row) {
+    var comp = row.querySelector('.cot-compania').value;
+    if (comp) {
+      if (!companiasMap[comp]) companiasMap[comp] = [];
+      companiasMap[comp].push({
+        suma: row.querySelector('.cot-suma').value,
+        cob: row.querySelector('.cot-cobertura').value,
+        costo: row.querySelector('.cot-costo').value,
+        recom: row.querySelector('.cot-recom-check').checked,
+        lojack: row.querySelector('.cot-lojack-check').checked
+      });
+    }
+  });
+
+  var compNames = Object.keys(companiasMap);
+  if (compNames.length === 0) { alert('Cargue al menos una opción'); return; }
+
+    compNames.forEach(function(name) {
+    mensaje += `*🏢 Compañía: ${name}*\n`;
+    companiasMap[name].forEach(function(opt, i) {
+      mensaje += `*Opción ${i + 1}* ${opt.recom ? '⭐ _(Recomendada)_' : ''}\n`;
+      if (opt.cob) mensaje += `• *Cobertura:* ${opt.cob}\n`;
+      if (opt.suma) mensaje += `• *Suma:* ${opt.suma}\n`;
+      mensaje += `• *Costo Mensual:* ${opt.costo}\n`;
+      if (opt.lojack) mensaje += `• _Requiere LoJack a cargo de la compañía_\n`;
+      mensaje += `\n`;
+    });
+    mensaje += `--------------------------\n\n`;
+  });
+
+  // El chequeo de compNames.length ya cubre esto
+
+  mensaje += `*Notas:* Las sumas y costos están sujetos a variaciones de las compañías al momento de la emisión.\n\n`;
+  mensaje += `Quedo a tu disposición,\n*Damián Kogan*\n_Tu Productor de Seguros_`;
+
+  var url = "https://wa.me/" + (tel ? tel : "") + "?text=" + encodeURIComponent(mensaje);
+  window.open(url, '_blank');
+  
+  toast('Redirigiendo a WhatsApp...');
+  limpiarFormularioCotizacion();
 }
 </script>
 </body>
