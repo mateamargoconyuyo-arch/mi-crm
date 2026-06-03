@@ -680,7 +680,7 @@ textarea{resize:vertical;min-height:64px}
 // CONSTANTES
 // ============================================================
 var TIPOS = ['Auto','Hogar','Comercio','Vida','Accidentes Personales','Moto','Transporte','Embarcación','Responsabilidad Civil','Agrícola'];
-var COMPANIAS = ['Federación Patronal','Mercantil','San Cristóbal','Río Uruguay','Sancor','Allianz','Rivadavia','Banco del Sol','SMG','Prevención'];
+var COMPANIAS = ['Federación Patronal','Mercantil','San Cristóbal','Río Uruguay','Sancor','Allianz','Rivadavia','Banco del Sol','SMG','Prevención','Libra'];
 var STAGES = ['Primer contacto','En negociación','Propuesta enviada'];
 var TIPO_ICON = {Auto:'ti-car',Hogar:'ti-home',Vida:'ti-heart',Comercio:'ti-building-store',Moto:'ti-motorbike','Accidentes Personales':'ti-first-aid-kit',Transporte:'ti-truck','Embarcación':'ti-sailboat','Responsabilidad Civil':'ti-certificate','Agrícola':'ti-plant'};
 var TIPO_TAG = {Auto:'tag-blue',Hogar:'tag-teal',Vida:'tag-purple',Comercio:'tag-amber',Moto:'tag-blue','Accidentes Personales':'tag-red',Transporte:'tag-amber','Embarcación':'tag-teal','Responsabilidad Civil':'tag-gray','Agrícola':'tag-green'};
@@ -1477,7 +1477,7 @@ function renderFacturacion() {
       '<td style="font-weight:600">'+escHtml(f.compania)+'</td>'+
       '<td>$'+f.monto.toLocaleString('es-AR',{minimumFractionDigits:2})+'</td>'+
       '<td>'+celdaVariacion+'</td>'+
-      '<td><div class="btn-group"><button class="btn btn-sm btn-danger" onclick="borrarFactura('+f.id+')"><i class="ti ti-trash"></i></button></div></td>'+
+      '<td><div class="btn-group"><button class="btn btn-sm" onclick="openModal(\'editar-factura\','+f.id+')"><i class="ti ti-edit"></i></button><button class="btn btn-sm btn-danger" onclick="borrarFactura('+f.id+')"><i class="ti ti-trash"></i></button></div></td>'+
       '</tr>';
   }).join('');
   document.getElementById('fact-total-mes').textContent='$'+totalMesActual.toLocaleString('es-AR',{minimumFractionDigits:2});
@@ -1619,6 +1619,20 @@ function openModal(type, targetId) {
       '<div class="form-group full"><label>Compañía</label><select id="fact-comp">'+optComp+'</select></div>'+
       '<div class="form-group full"><label>Monto Total Facturado Neto ($)</label><input type="number" step="0.01" id="fact-monto" placeholder="0.00" required></div>'+
       '</div><div class="modal-actions"><button type="button" class="btn" onclick="closeModal()">Cancelar</button><button type="submit" class="btn btn-primary">Registrar Monto</button></div></form>';
+  }
+ 
+  else if(type==='editar-factura'){
+    var fact=DB.facturacion.find(function(f){return f.id==targetId});
+    if(!fact) return closeModal();
+    var optComp=COMPANIAS.map(function(c){return '<option value="'+c+'"'+(c==fact.compania?' selected':'')+'>'+c+'</option>'}).join('');
+    var optMes=MESES.map(function(m,i){return '<option value="'+i+'"'+(i==fact.mes?' selected':'')+'>'+m+'</option>'}).join('');
+    b.innerHTML='<div class="modal-title">Editar Registro de Facturación <button class="modal-close" onclick="closeModal()">&times;</button></div>'+
+      '<form onsubmit="actualizarFactura(event,'+fact.id+')"><div class="form-grid">'+
+      '<div class="form-group"><label>Año Comercial</label><input type="number" id="fact-anio" value="'+fact.anio+'" required></div>'+
+      '<div class="form-group"><label>Mes Liquidación</label><select id="fact-mes">'+optMes+'</select></div>'+
+      '<div class="form-group full"><label>Compañía</label><select id="fact-comp">'+optComp+'</select></div>'+
+      '<div class="form-group full"><label>Monto Total Facturado Neto ($)</label><input type="number" step="0.01" id="fact-monto" value="'+fact.monto+'" required></div>'+
+      '</div><div class="modal-actions"><button type="button" class="btn" onclick="closeModal()">Cancelar</button><button type="submit" class="btn btn-primary">Actualizar Registro</button></div></form>';
   }
  
   else if(type==='nuevo-siniestro'){
@@ -1910,6 +1924,22 @@ function guardarFactura(e){
   else{DB.facturacion.push({id:uid(),anio:anio,mes:mes,compania:compania,monto:monto});toast('Registro de producción consolidado');}
   saveDB();closeModal();initFiltrosFacturacion();
   document.getElementById('filtro-mes-fact').value=anio+'-'+mes;
+  renderFacturacion();
+}
+
+function actualizarFactura(e,id){
+  e.preventDefault();
+  var fact=DB.facturacion.find(function(f){return f.id==id});
+  if(!fact) return closeModal();
+  fact.anio=parseInt(document.getElementById('fact-anio').value);
+  fact.mes=parseInt(document.getElementById('fact-mes').value);
+  fact.compania=document.getElementById('fact-comp').value;
+  fact.monto=parseFloat(document.getElementById('fact-monto').value);
+  saveDB();
+  toast('Registro de facturación actualizado');
+  closeModal();
+  initFiltrosFacturacion();
+  document.getElementById('filtro-mes-fact').value=fact.anio+'-'+fact.mes;
   renderFacturacion();
 }
  
