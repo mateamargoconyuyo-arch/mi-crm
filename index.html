@@ -1160,7 +1160,7 @@ function showDetail(id) {
       '<div class="poliza-icon"><i class="ti '+ic+'"></i></div>'+
       '<div style="flex:1">'+
         '<div style="font-size:13px;font-weight:600">'+escHtml(p.tipo)+'</div>'+
-        '<div style="font-size:12px;color:var(--text2)">'+escHtml(p.compania)+' · Nro: '+escHtml(p.nro||'-')+escHtml(vendTag)+'</div>'+
+        '<div style="font-size:12px;color:var(--text2)">'+escHtml(p.compania)+' · Nro: '+escHtml(p.nro||'-')+(p.patente?(' · Patente: '+escHtml(p.patente)):'')+ escHtml(vendTag)+'</div>'+
         '<div style="font-size:11px;color:var(--text3);margin-top:1px">Alta: '+fmt(p.fechaAlta||'')+'</div>'+
       '</div>'+
       '<div style="font-size:12px;color:var(--text2);margin-right:8px">Vto: '+fmt(p.vto)+'</div>'+
@@ -1720,8 +1720,9 @@ function openModal(type, targetId) {
     var hoy=new Date().toISOString().split('T')[0];
     b.innerHTML='<div class="modal-title">Vincular Nueva Póliza Emitida <button class="modal-close" onclick="closeModal()">&times;</button></div>'+
       '<form onsubmit="guardarPoliza(event,'+targetId+')"><div class="form-grid">'+
-      '<div class="form-group"><label>Ramo de Cobertura</label><select id="pol-tipo">'+optTip+'</select></div>'+
+      '<div class="form-group"><label>Ramo de Cobertura</label><select id="pol-tipo" onchange="togglePatente(this.value)">'+optTip+'</select></div>'+
       '<div class="form-group"><label>Compañía Aseguradora</label><select id="pol-comp">'+optComp+'</select></div>'+
+      '<div class="form-group full" id="grupo-patente" style="display:none"><label>Patente del Vehículo</label><input type="text" id="pol-patente" placeholder="Ej: ABC 123" style="text-transform:uppercase"></div>'+
       '<div class="form-group"><label>Número de Póliza</label><input type="text" id="pol-nro" placeholder="Ej: 45-896541-0" required></div>'+
       '<div class="form-group"><label>Productor / Canal Ejecutivo</label><select id="pol-vendedor"><option value="Yo">Yo</option><option value="Leandro">Leandro</option></select></div>'+
       '<div class="form-group"><label>Fecha de Inicio Vigencia (Alta)</label><input type="date" id="pol-alta" value="'+hoy+'" required></div>'+
@@ -1739,8 +1740,9 @@ function openModal(type, targetId) {
     var optComp=COMPANIAS.map(function(comp){return '<option value="'+comp+'"'+(comp==p.compania?' selected':'')+'>'+comp+'</option>';}).join('');
     b.innerHTML='<div class="modal-title">Editar Datos de Póliza <button class="modal-close" onclick="closeModal()">&times;</button></div>'+
       '<form onsubmit="actualizarPoliza(event,'+cliId+','+polIdx+')"><div class="form-grid">'+
-      '<div class="form-group"><label>Ramo</label><select id="pol-tipo">'+optTip+'</select></div>'+
+      '<div class="form-group"><label>Ramo</label><select id="pol-tipo" onchange="togglePatente(this.value)">'+optTip+'</select></div>'+
       '<div class="form-group"><label>Compañía Aseguradora</label><select id="pol-comp">'+optComp+'</select></div>'+
+      '<div class="form-group full" id="grupo-patente" style="'+(p.tipo==="Auto"||p.tipo==="Moto"?'':'display:none')+'"><label>Patente del Vehículo</label><input type="text" id="pol-patente" value="'+escHtml(p.patente||'')+'" placeholder="Ej: ABC 123" style="text-transform:uppercase"></div>'+
       '<div class="form-group"><label>Número de Póliza</label><input type="text" id="pol-nro" value="'+escHtml(p.nro||'')+'" required></div>'+
       '<div class="form-group"><label>Productor Asignado</label>'+
         '<select id="pol-vendedor">'+
@@ -1907,6 +1909,11 @@ function openModal(type, targetId) {
   }
 }
  
+function togglePatente(tipo) {
+  var g = document.getElementById('grupo-patente');
+  if(g) g.style.display = (tipo==='Auto' || tipo==='Moto') ? '' : 'none';
+}
+
 function closeModal(){document.getElementById('modal-backdrop').classList.remove('open');}
 function closeModalOutside(e){if(e.target.id==='modal-backdrop') closeModal();}
  
@@ -2001,7 +2008,7 @@ function guardarPoliza(e,clienteId){
   var c=getClient(clienteId);
   if(c){
     if(!c.polizas) c.polizas=[];
-    c.polizas.push({tipo:document.getElementById('pol-tipo').value,compania:document.getElementById('pol-comp').value,nro:document.getElementById('pol-nro').value,vendedor:document.getElementById('pol-vendedor').value,vto:document.getElementById('pol-vto').value,fechaAlta:document.getElementById('pol-alta').value});
+    var patenteEl=document.getElementById('pol-patente');var patenteVal=patenteEl?patenteEl.value.toUpperCase():'';c.polizas.push({tipo:document.getElementById('pol-tipo').value,compania:document.getElementById('pol-comp').value,nro:document.getElementById('pol-nro').value,patente:patenteVal,vendedor:document.getElementById('pol-vendedor').value,vto:document.getElementById('pol-vto').value,fechaAlta:document.getElementById('pol-alta').value});
     saveDB();closeModal();toast('Nueva póliza vinculada al tomador');showDetail(clienteId);
   }
 }
@@ -2013,6 +2020,7 @@ function actualizarPoliza(e,clienteId,polIdx){
     c.polizas[polIdx].tipo=document.getElementById('pol-tipo').value;
     c.polizas[polIdx].compania=document.getElementById('pol-comp').value;
     c.polizas[polIdx].nro=document.getElementById('pol-nro').value;
+    var patenteEl2=document.getElementById('pol-patente');if(patenteEl2) c.polizas[polIdx].patente=patenteEl2.value.toUpperCase();
     c.polizas[polIdx].vendedor=document.getElementById('pol-vendedor').value;
     c.polizas[polIdx].vto=document.getElementById('pol-vto').value;
     c.polizas[polIdx].fechaAlta=document.getElementById('pol-alta').value;
@@ -2039,8 +2047,9 @@ function actualizarContacto(e,id){
  
 function guardarCliente(e){
   e.preventDefault();
-  DB.clients.push({id:uid(),nombre:document.getElementById('cli-nombre').value,whatsapp:document.getElementById('cli-wa').value,mail:document.getElementById('cli-mail').value,fechaNacimiento:document.getElementById('cli-fnac').value||'',traidoPor:document.getElementById('cli-traido').value,polizas:[],notas:document.getElementById('cli-notas').value,interacciones:[]});
-  saveDB();closeModal();toast('Cliente incorporado al CRM');showSection('clientes');
+  var nuevoId=uid();
+  DB.clients.push({id:nuevoId,nombre:document.getElementById('cli-nombre').value,whatsapp:document.getElementById('cli-wa').value,mail:document.getElementById('cli-mail').value,fechaNacimiento:document.getElementById('cli-fnac').value||'',traidoPor:document.getElementById('cli-traido').value,polizas:[],notas:document.getElementById('cli-notas').value,interacciones:[]});
+  saveDB();closeModal();toast('Cliente incorporado al CRM');showDetail(nuevoId);updateBadges();
 }
  
 function guardarProspecto(e){
