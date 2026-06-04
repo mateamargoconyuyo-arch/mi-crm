@@ -927,6 +927,19 @@ function loadDB() {
         if(c.polizas) c.polizas.forEach(function(p){ if(!p.fechaAlta) p.fechaAlta=hoyMig; });
       });
       if (!DB.prospectos) DB.prospectos = [];
+      
+      // Normalización de tareas antiguas para que aparezca el botón "Ver Prospecto"
+      if (DB.pendientes) {
+        DB.pendientes.forEach(function(p) {
+          if (!p.prosId && !p.clienteId) {
+            var matchingPros = DB.prospectos.find(function(pr) {
+              return p.tarea.toLowerCase().includes(pr.nombre.toLowerCase());
+            });
+            if (matchingPros) p.prosId = matchingPros.id;
+          }
+        });
+      }
+
       if (!DB.facturacion) { seedFacturacion(); saveDB(); }
       if (!DB.siniestros) DB.siniestros = [];
       DB.siniestros.forEach(function(s){ if(!s.avances) s.avances=[]; });
@@ -935,7 +948,17 @@ function loadDB() {
     }
     document.getElementById('login-screen').style.display='none';
     document.getElementById('app').style.display='flex';
-    showSection('dashboard');
+    
+    // Verificar si hay una cotización para editar desde el hash de la URL
+    var hash = window.location.hash;
+    if (hash && hash.startsWith('#editCot=')) {
+      var cotId = hash.split('=')[1];
+      setTimeout(function() {
+        editarCotizacion(cotId);
+      }, 500);
+    } else {
+      showSection('dashboard');
+    }
   }).catch(function(e){ console.error(e); seedData(); showSection('dashboard'); });
 }
 
@@ -1072,6 +1095,36 @@ function showSection(s) {
 }
  
 // ============================================================
+// CIERRE DE SESIÓN POR INACTIVIDAD (1 HORA)
+// ============================================================
+var lastActivityTime = Date.now();
+var INACTIVITY_LIMIT = 60 * 60 * 1000; // 1 hora en milisegundos
+
+function resetInactivityTimer() {
+  lastActivityTime = Date.now();
+}
+
+function checkInactivity() {
+  if (Date.now() - lastActivityTime > INACTIVITY_LIMIT) {
+    // Si la pantalla de login no está visible (usuario logueado), cerrar sesión
+    if (document.getElementById('login-screen').style.display === 'none') {
+      console.log("Inactividad detectada. Cerrando sesión...");
+      fbauth.signOut().then(function() {
+        location.reload(); // Recargar para volver al login
+      });
+    }
+  }
+}
+
+// Escuchar eventos de actividad del usuario
+['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(function(name) {
+  document.addEventListener(name, resetInactivityTimer, true);
+});
+
+// Verificar inactividad cada minuto
+setInterval(checkInactivity, 60000);
+
+// ============================================================
 // DASHBOARD & CALENDARIO
 // ============================================================
 var calViewDate = new Date();
@@ -1123,7 +1176,17 @@ function renderCalendario() {
     if(parseInt(parts[0]) === anio && parseInt(parts[1])-1 === mes) {
       var dia = parseInt(parts[2]);
       if(!taskMap[dia]) taskMap[dia]=[];
-      taskMap[dia].push(p.tarea);
+      
+      var tipo = 'general';
+      if(p.prosId) tipo = 'prospecto';
+      else if(p.clienteId && p.clienteId != 0) tipo = 'cliente';
+      
+      // Si la tarea menciona "siniestro" o "choque" o similares, o está vinculada a un cliente con siniestros (heurística)
+      if(p.tarea.toLowerCase().includes('siniestro') || p.tarea.toLowerCase().includes('choque') || p.tarea.toLowerCase().includes('denuncia')) {
+        tipo = 'siniestro';
+      }
+
+      taskMap[dia].push({tarea: p.tarea, tipo: tipo, id: p.id});
     }
   });
 
@@ -1153,13 +1216,18 @@ function renderCalendario() {
     if(tieneTarea && !tieneBday) cls += ' has-task';
     
     var dotHTML = '<div class="cal-dots-container">';
-    if(tieneBday) dotHTML += '<div class="cal-day-dot" style="background:var(--purple)"></div>';
-    if(tieneTarea) dotHTML += '<div class="cal-day-dot" style="background:var(--blue)"></div>';
+    if(tieneBday) dotHTML += '<div class="cal-day-dot" style="background:var(--purple)" title="Cumpleaños"></div>';
+    if(tieneTarea) {
+      var tiposEnDia = taskMap[d].map(function(t){return t.tipo});
+      if(tiposEnDia.includes('siniestro')) dotHTML += '<div class="cal-day-dot" style="background:var(--red)" title="Siniestro"></div>';
+      if(tiposEnDia.includes('prospecto')) dotHTML += '<div class="cal-day-dot" style="background:var(--purple)" title="Prospecto"></div>';
+      if(tiposEnDia.includes('cliente') || tiposEnDia.includes('general')) dotHTML += '<div class="cal-day-dot" style="background:var(--blue)" title="Tarea/Cliente"></div>';
+    }
     dotHTML += '</div>';
     
     var titleParts = [];
     if(tieneBday) titleParts.push('Cumpleaños: ' + bdayMap[d].join(', '));
-    if(tieneTarea) titleParts.push('Tareas/Recontactos: ' + taskMap[d].join(', '));
+    if(tieneTarea) titleParts.push('Tareas: ' + taskMap[d].map(function(t){return t.tarea}).join(', '));
     var title = titleParts.length ? ' title="'+escHtml(titleParts.join(' | '))+'"' : '';
     
     var onclick = '';
@@ -1190,9 +1258,20 @@ function abrirDiaCalendario(dia, anio, mes, bdays, tareas) {
   
   if(tareas && tareas.length) {
     html += '<div><div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">📋 Tareas pendientes</div>';
-    tareas.forEach(function(tarea){
-      html += '<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--blue-light);border-radius:var(--radius);margin-bottom:6px;color:var(--blue);font-weight:500">'+
-        '<i class="ti ti-check"></i> '+escHtml(tarea)+'</div>';
+    tareas.forEach(function(item){
+      var tareaTexto = typeof item === 'object' ? item.tarea : item;
+      var tipo = typeof item === 'object' ? item.tipo : 'general';
+      var id = typeof item === 'object' ? item.id : null;
+
+      var bg = 'var(--blue-light)', color = 'var(--blue)', label = 'Tarea';
+      if(tipo === 'siniestro') { bg = 'var(--red-light)'; color = 'var(--red)'; label = 'Siniestro'; }
+      else if(tipo === 'prospecto') { bg = 'var(--purple-light)'; color = 'var(--purple)'; label = 'Prospecto'; }
+      else if(tipo === 'cliente') { bg = 'var(--green-light)'; color = 'var(--green)'; label = 'Cliente'; }
+
+      var onClick = id ? 'onclick="closeModal(); openModal(\'editar-pendiente\','+id+')"' : '';
+      
+      html += '<div '+onClick+' style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:'+bg+';border-radius:var(--radius);margin-bottom:6px;color:'+color+';font-weight:500;cursor:pointer" title="'+label+': Click para ver detalle">'+
+        '<i class="ti ti-tag" style="font-size:11px;opacity:0.7"></i> '+escHtml(tareaTexto)+'</div>';
     });
     html += '</div>';
   }
@@ -1272,8 +1351,9 @@ function renderDashPendientes() {
     }
     
     var iconColor = p.prioridad==='Alta'?'var(--red)':p.prioridad==='Media'?'var(--amber)':'var(--text3)';
-    var clickAction = p.prosId ? 'abrirFichaProspecto('+p.prosId+')' : (c ? 'showDetail('+c.id+')' : 'showSection(\'pendientes\')');
-    return '<div class="dash-pend-item" onclick="'+clickAction+'" title="Abrir ficha relacionada">'+ 
+    // Modificado para que siempre abra el modal de edición y así se vea el botón "Ver Prospecto"
+    var clickAction = 'openModal(\'editar-pendiente\','+p.id+')';
+    return '<div class="dash-pend-item" onclick="'+clickAction+'" title="Ver detalle de tarea">'+ 
       '<i class="ti ti-clock" style="color:'+iconColor+';font-size:15px;flex-shrink:0"></i>'+
       '<div style="flex:1;min-width:0">'+
         '<div style="font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+escHtml(p.tarea)+'</div>'+
@@ -1910,6 +1990,13 @@ function openModal(type, targetId) {
     if(!pnd) return closeModal();
     var isFromDetail = (type === 'editar-pendiente-detalle');
     var optCl=DB.clients.map(function(c){return '<option value="'+c.id+'"'+(c.id==pnd.clienteId?' selected':'')+'>'+escHtml(c.nombre)+'</option>';}).join('');
+    var btnRelacionado = "";
+    if(pnd.prosId) {
+      btnRelacionado = '<button type="button" class="btn" style="background:var(--blue);color:#fff;border-color:var(--blue);font-weight:600" onclick="closeModal(); showSection(\'prospectos\'); abrirFichaProspecto('+pnd.prosId+')"><i class="ti ti-external-link"></i> IR AL PROSPECTO</button>';
+    } else if(pnd.clienteId && pnd.clienteId != 0) {
+      btnRelacionado = '<button type="button" class="btn" style="background:var(--green);color:#fff;border-color:var(--green);font-weight:600" onclick="closeModal(); showDetail('+pnd.clienteId+')"><i class="ti ti-user-check"></i> IR AL CLIENTE</button>';
+    }
+
     b.innerHTML='<div class="modal-title">Editar Tarea Pendiente <button class="modal-close" onclick="closeModal()">&times;</button></div>'+
       '<form onsubmit="actualizarPendiente(event,'+pnd.id+','+isFromDetail+')"><div class="form-grid">'+
       '<div class="form-group full"><label>Asunto / Tarea</label><input type="text" id="pnd-tarea" value="'+escHtml(pnd.tarea)+'" required></div>'+
@@ -1920,7 +2007,7 @@ function openModal(type, targetId) {
         '<option'+(pnd.prioridad==='Media'?' selected':'')+'>Media</option>'+
         '<option'+(pnd.prioridad==='Alta'?' selected':'')+'>Alta</option>'+
       '</select></div>'+
-      '</div><div class="modal-actions"><button type="button" class="btn" onclick="closeModal()">Cancelar</button><button type="submit" class="btn btn-primary">Actualizar Tarea</button></div></form>';
+      '</div><div class="modal-actions">'+btnRelacionado+'<button type="button" class="btn" onclick="closeModal()">Cancelar</button><button type="submit" class="btn btn-primary">Actualizar Tarea</button></div></form>';
   }
  
   else if(type==='nueva-poliza'){
@@ -2037,11 +2124,13 @@ function openModal(type, targetId) {
 	    }).join('') : '<p style="font-size:13px;color:var(--text2)">Sin tareas pendientes asociadas.</p>';
 	    
 	    var cotsPros=(DB.cotizaciones||[]).filter(function(c){return c.prospectoId==pros.id;});
-	    var cotsHTML=cotsPros.length ? cotsPros.map(function(c){
-	      var f = new Date(c.fecha).toLocaleDateString();
-	      return '<div class="detail-row"><span style="flex:1"><b>'+f+'</b> - '+escHtml(c.riesgo||'Cotización')+'</span>'+
-	             '<button type="button" class="btn btn-sm" onclick="closeModal();editarCotizacion(\''+c.id+'\')"><i class="ti ti-edit"></i> Editar Cot.</button></div>';
-	    }).join('') : '<p style="font-size:13px;color:var(--text2)">No hay cotizaciones vinculadas.</p>';
+		    var cotsHTML=cotsPros.length ? cotsPros.map(function(c){
+		      var f = new Date(c.fecha).toLocaleDateString();
+		      // Modificado para abrir en ventana nueva usando window.open con un parámetro de hash
+		      var url = window.location.origin + window.location.pathname + '#editCot=' + c.id;
+		      return '<div class="detail-row"><span style="flex:1"><b>'+f+'</b> - '+escHtml(c.riesgo||'Cotización')+'</span>'+
+		             '<button type="button" class="btn btn-sm" onclick="window.open(\''+url+'\', \'_blank\')"><i class="ti ti-external-link"></i> Editar en ventana nueva</button></div>';
+		    }).join('') : '<p style="font-size:13px;color:var(--text2)">No hay cotizaciones vinculadas.</p>';
 
 	    b.innerHTML='<div class="modal-title">Ficha del Prospecto <button class="modal-close" onclick="closeModal()">&times;</button></div>'+ 
 	      '<div class="section-card" style="margin-bottom:12px">'+
@@ -2327,18 +2416,29 @@ function guardarRecontacto(e, id) {
     
     pros.fechaRecontacto = fecha;
     
-    // Lo incorporamos nativamente a la tabla de pendientes generales para sincronizar calendario del dashboard
-    DB.pendientes.push({
-      id: uid(),
-      tarea: nota,
-      clienteId: 0,
-      prosId: id,
-      vto: fecha,
-      prioridad: 'Media',
-      done: false
+    // Buscamos si ya existe una tarea de recontacto pendiente para este prospecto
+    var tareaExistente = (DB.pendientes || []).find(function(p) {
+      return p.prosId == id && !p.done;
     });
+
+    if (tareaExistente) {
+      // Si existe, la actualizamos
+      tareaExistente.tarea = nota;
+      tareaExistente.vto = fecha;
+    } else {
+      // Si no existe, creamos una nueva
+      DB.pendientes.push({
+        id: uid(),
+        tarea: nota,
+        clienteId: 0,
+        prosId: id,
+        vto: fecha,
+        prioridad: 'Media',
+        done: false
+      });
+    }
     
-    saveDB();closeModal();toast('Recontacto agendado y cargado en Calendario');renderProspectos();updateBadges();
+    saveDB();closeModal();toast('Recontacto actualizado en Calendario');renderProspectos();updateBadges();
   }
 }
 
