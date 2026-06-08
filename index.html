@@ -324,6 +324,7 @@ textarea{resize:vertical;min-height:64px}
     <button class="nav-item" id="nav-facturacion" onclick="showSection('facturacion')"><i class="ti ti-receipt-2"></i> Facturación</button>
     <button class="nav-item" id="nav-reportes" onclick="showSection('reportes')"><i class="ti ti-chart-bar"></i> Reportes</button>
     <button class="nav-item" id="nav-cotizador" onclick="showSection('cotizador')"><i class="ti ti-file-invoice"></i> Cotizador</button>
+	    <button class="nav-item" id="nav-cotizador-hogar" onclick="showSection('cotizador-hogar')"><i class="ti ti-home-heart"></i> Cotizar Hogar</button>
     <button class="nav-item" id="nav-historial-cot" onclick="showSection('historial-cot')"><i class="ti ti-history"></i> Historial Cotizaciones</button>
     <button class="nav-item" id="nav-links" onclick="showSection('links')"><i class="ti ti-external-link"></i> Links útiles</button>
   </nav>
@@ -634,6 +635,12 @@ textarea{resize:vertical;min-height:64px}
             <option value="">-- No vincular --</option>
           </select>
         </div>
+        <div class="form-group">
+          <label>Vincular a Cliente (Opcional)</label>
+          <select id="cot-vincular-cliente">
+            <option value="">-- No vincular --</option>
+          </select>
+        </div>
       </div>
       
       <div class="section-title">Opciones de Cobertura</div>
@@ -655,7 +662,78 @@ textarea{resize:vertical;min-height:64px}
   </div>
 </div>
 
-<div class="view" id="sec-historial-cot">
+<div class="view" id="sec-cotizador-hogar">
+	  <div class="topbar">
+	    <div style="flex:1"><div class="topbar-title">Cotizador de Hogar</div><div class="topbar-subtitle">Generar presupuesto de hogar para cliente</div></div>
+	    <div class="btn-group">
+	      <button class="btn btn-success" onclick="guardarCotizacionHogar()"><i class="ti ti-device-floppy"></i> Guardar</button>
+	      <button class="btn btn-primary" onclick="exportarCotizacionHogarPDF()"><i class="ti ti-download"></i> Exportar PDF</button>
+	      <button class="btn btn-wa" onclick="enviarCotizacionHogarWA()"><i class="ti ti-brand-whatsapp"></i> WhatsApp</button>
+	    </div>
+	  </div>
+	  <div class="content">
+	    <div class="cotizador-form">
+	      <div class="form-grid" style="margin-bottom: 24px;">
+	        <div class="form-group">
+	          <label>Nombre y Apellido del Cliente</label>
+	          <input type="text" id="cot-h-cliente" placeholder="Ej: Juan Pérez">
+	        </div>
+	        <div class="form-group">
+	          <label>Compañía</label>
+	          <input type="text" id="cot-h-riesgo" placeholder="Ej: Federación Patronal">
+	        </div>
+	        <div class="form-group">
+	          <label>Vincular a Prospecto (Opcional)</label>
+	          <select id="cot-h-vincular-pros">
+	            <option value="">-- No vincular --</option>
+	          </select>
+	        </div>
+	      </div>
+	        <div class="form-group">
+	          <label>Vincular a Cliente (Opcional)</label>
+	          <select id="cot-h-vincular-cliente">
+	            <option value="">-- No vincular --</option>
+	          </select>
+	        </div>
+	      
+	      <div class="table-wrap">
+	        <table id="tabla-cot-hogar">
+	          <thead>
+	            <tr>
+	              <th style="width: 250px;">Cobertura</th>
+	              <th>Plan Base</th>
+	              <th>Plan Mediana</th>
+	              <th>Plan Full</th>
+	            </tr>
+	          </thead>
+	          <tbody id="body-cot-hogar">
+	            <tr><td>Incendio Edificio</td><td><input type="text" class="cot-h-val" data-item="Incendio Edificio" data-plan="base"></td><td><input type="text" class="cot-h-val" data-item="Incendio Edificio" data-plan="mediana"></td><td><input type="text" class="cot-h-val" data-item="Incendio Edificio" data-plan="full"></td></tr>
+	            <tr><td>Incendio Contenido</td><td><input type="text" class="cot-h-val" data-item="Incendio Contenido" data-plan="base"></td><td><input type="text" class="cot-h-val" data-item="Incendio Contenido" data-plan="mediana"></td><td><input type="text" class="cot-h-val" data-item="Incendio Contenido" data-plan="full"></td></tr>
+	            <tr><td>Robo</td><td><input type="text" class="cot-h-val" data-item="Robo" data-plan="base"></td><td><input type="text" class="cot-h-val" data-item="Robo" data-plan="mediana"></td><td><input type="text" class="cot-h-val" data-item="Robo" data-plan="full"></td></tr>
+	            <tr><td>Electrodomesticos</td><td><input type="text" class="cot-h-val" data-item="Electrodomesticos" data-plan="base"></td><td><input type="text" class="cot-h-val" data-item="Electrodomesticos" data-plan="mediana"></td><td><input type="text" class="cot-h-val" data-item="Electrodomesticos" data-plan="full"></td></tr>
+	            <tr><td>Resp. Civil Linderos</td><td><input type="text" class="cot-h-val" data-item="Resp. Civil Linderos" data-plan="base"></td><td><input type="text" class="cot-h-val" data-item="Resp. Civil Linderos" data-plan="mediana"></td><td><input type="text" class="cot-h-val" data-item="Resp. Civil Linderos" data-plan="full"></td></tr>
+	            <tr><td>Cristales</td><td><input type="text" class="cot-h-val" data-item="Cristales" data-plan="base"></td><td><input type="text" class="cot-h-val" data-item="Cristales" data-plan="mediana"></td><td><input type="text" class="cot-h-val" data-item="Cristales" data-plan="full"></td></tr>
+	            <tr><td>Daños por Agua</td><td><input type="text" class="cot-h-val" data-item="Daños por Agua" data-plan="base"></td><td><input type="text" class="cot-h-val" data-item="Daños por Agua" data-plan="mediana"></td><td><input type="text" class="cot-h-val" data-item="Daños por Agua" data-plan="full"></td></tr>
+	            <tr><td>Resp. Civil Privada</td><td><input type="text" class="cot-h-val" data-item="Resp. Civil Privada" data-plan="base"></td><td><input type="text" class="cot-h-val" data-item="Resp. Civil Privada" data-plan="mediana"></td><td><input type="text" class="cot-h-val" data-item="Resp. Civil Privada" data-plan="full"></td></tr>
+	            <tr style="background: var(--bg3); font-weight: bold;">
+	              <td>COSTO MENSUAL</td>
+	              <td><input type="text" id="cot-h-costo-base" placeholder="$"></td>
+	              <td><input type="text" id="cot-h-costo-mediana" placeholder="$"></td>
+	              <td><input type="text" id="cot-h-costo-full" placeholder="$"></td>
+	            </tr>
+	          </tbody>
+	        </table>
+	      </div>
+	      
+	      <div style="background: #E6F1FB; border-left: 4px solid #185FA5; padding: 16px; border-radius: 8px; margin-top: 20px; font-size: 13px; line-height: 1.7;">
+	        <strong style="display: block; margin-bottom: 10px; color: #185FA5;">⚠️ Cobertura de Servicios de Emergencias</strong>
+	        <p style="margin: 0; color: #1a1d23;">La propuesta incluye servicios de emergencias en Plomería, Gasista, Electricista y Cerrajería. La cobertura opera exclusivamente ante eventos de urgencia, con un límite máximo de servicios anuales y topes de costos por evento según las condiciones de la póliza.</p>
+	      </div>
+	    </div>
+	  </div>
+	</div>
+
+	<div class="view" id="sec-historial-cot">
   <div class="topbar">
     <div style="flex:1"><div class="topbar-title">Historial de Cotizaciones</div><div class="topbar-subtitle">Consulta y edición de presupuestos guardados</div></div>
   </div>
@@ -826,7 +904,7 @@ textarea{resize:vertical;min-height:64px}
       <h1 class="pdf-header-name">Damian Kogan</h1>
       <p class="pdf-header-sub">Productor de Seguros</p>
       <p class="pdf-header-title">Cotización de Seguros – <span id="pdf-cot-riesgo"></span></p>
-      <p class="pdf-header-sub">Vehículo: <span id="pdf-cot-vehiculo"></span></p>
+      <p class="pdf-header-sub" id="pdf-cot-vehiculo-label">Vehículo: <span id="pdf-cot-vehiculo"></span></p>
       <p class="pdf-header-sub" id="pdf-cot-cliente-nombre"></p>
       <p class="pdf-header-sub">Fecha de cotización: <span id="pdf-cot-fecha"></span></p>
     </div>
@@ -839,14 +917,14 @@ textarea{resize:vertical;min-height:64px}
   </div>
   
   
-  <hr style="border: none; border-top: 2px solid #1a3a5a; margin: 24px 0 16px 0;">
+  <hr id="pdf-hr-coberturas" style="border: none; border-top: 2px solid #1a3a5a; margin: 24px 0 16px 0;">
 
-  <div class="pdf-info-box">
+  <div class="pdf-info-box" id="pdf-box-detalle-titulo">
     <p style="font-size: 16px; font-weight: 700; color: #1a3a5a; margin-bottom: 4px;">Detalle de coberturas</p>
     <p style="font-size: 11px; color: #666;">Orientativo y general, las condiciones exactas están sujetas a la póliza particular</p>
   </div>
 
-  <div class="pdf-info-box">
+  <div class="pdf-info-box" id="pdf-box-terceros-base">
     <p><b>¿Qué incluye la cobertura Terceros Completo Base?</b></p>
     <p style="color: #666; font-size: 12px;">La siguiente descripción tiene carácter <b>orientativo y general</b>, y refleja los alcances habituales de la cobertura Terceros Completo Base en el mercado asegurador.</p>
     <ul style="color: #666; font-size: 12px; padding-left: 20px;">
@@ -860,7 +938,7 @@ textarea{resize:vertical;min-height:64px}
     </ul>
   </div>
 
-  <div class="pdf-info-box">
+  <div class="pdf-info-box" id="pdf-box-terceros-full">
     <p><b>¿Qué incluye la cobertura Terceros Completo Full?</b></p>
     <p style="color: #666; font-size: 12px;">La siguiente descripción tiene carácter <b>orientativo y general</b>, y refleja los alcances habituales de la cobertura Terceros Completo Full en el mercado asegurador.</p>
     <ul style="color: #666; font-size: 12px; padding-left: 20px;">
@@ -875,7 +953,7 @@ textarea{resize:vertical;min-height:64px}
     </ul>
   </div>
 
-  <div class="pdf-info-box">
+  <div class="pdf-info-box" id="pdf-box-todo-riesgo">
     <p><b>¿Qué incluye la cobertura Todo Riesgo con franquicia?</b></p>
     <p style="color: #666; font-size: 12px;">La siguiente descripción es de carácter <b>orientativo y general</b>, y representa los alcances habituales de la cobertura Todo Riesgo con franquicia en el mercado asegurador. Las condiciones específicas, franquicias y límites pueden variar según cada compañía y plan contratado, prevaleciendo siempre lo establecido en la póliza particular.</p>
     <ul style="color: #666; font-size: 12px; padding-left: 20px;">
@@ -884,6 +962,11 @@ textarea{resize:vertical;min-height:64px}
     </ul>
   </div>
   
+  <div class="pdf-info-box" id="pdf-hogar-leyenda" style="margin-top: 20px; display: none; background: #E6F1FB; border-left: 4px solid #185FA5; padding: 14px; border-radius: 4px;">
+    <p style="margin: 0 0 8px 0; font-weight: bold; color: #185FA5;">⚠️ Cobertura de Servicios de Emergencias</p>
+    <p style="color: #1a1d23; font-size: 11px; margin: 0; line-height: 1.6;">La propuesta incluye servicios de emergencias en Plomería, Gasista, Electricista y Cerrajería. La cobertura opera exclusivamente ante eventos de urgencia, con un límite máximo de servicios anuales y topes de costos por evento según las condiciones de la póliza.</p>
+  </div>
+
   <div class="pdf-info-box" style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 10px;">
     <p><b>Notas sobre la cotización:</b></p>
     <p style="color: #666; font-size: 11px; font-style: italic;">Presupuesto enviado con fecha <span class="pdf-fecha-dinamica"></span>. Las sumas aseguradas y costos están sujetos a las condiciones de suscripción y actualización de valores y pueden sufrir variaciones al momento de la contratacion formal.</p>
@@ -1057,7 +1140,14 @@ function fmt(d) { if(!d) return '-'; var p=d.split('-'); return p[2]+'/'+p[1]+'/
 function getClient(id) { return DB.clients.find(function(c){return c.id==id}); }
 function getProspecto(id) { return DB.prospectos.find(function(p){return p.id==id}); }
 function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function abrirFichaProspecto(id) { openModal('ficha-prospecto', id); }
+function abrirFichaProspecto(id) { 
+  openModal('ficha-prospecto', id);
+  // Hacer el modal más ancho para mostrar cotizaciones
+  setTimeout(function(){
+    var modal = document.querySelector('.modal');
+    if(modal) modal.style.width = '720px';
+  }, 10);
+}
 function abrirFichaSiniestro(id) { openModal('ficha-siniestro', id); }
 function getSiniestro(id) { return DB.siniestros.find(function(s){return s.id==id}); }
 function abrirWA(num) { if(num) window.open('https://wa.me/'+num.replace(/\D/g,''),'_blank'); }
@@ -1105,8 +1195,9 @@ function showSection(s) {
   if(s==='polizas') renderPolizas();
   if(s==='facturacion'){initFiltrosFacturacion();renderFacturacion();}
   if(s==='reportes') renderReportes();
-  if(s==='cotizador') initCotizador();
-  if(s==='historial-cot') renderHistorialCotizaciones();
+if(s==='cotizador') initCotizador();
+	  if(s==='cotizador-hogar') initCotizadorHogar();
+	  if(s==='historial-cot') renderHistorialCotizaciones();
   updateBadges();
 }
  
@@ -1516,6 +1607,22 @@ function showDetail(id) {
     '</div>';
   }).join('') : '<p style="font-size:13px;color:var(--text2)">Sin interacciones registradas.</p>';
 
+  var cotsCli = (DB.cotizaciones||[]).filter(function(cot){return cot.clienteId == c.id;});
+  var cotsCliHTML = cotsCli.length ? cotsCli.map(function(cot){
+    var f = new Date(cot.fecha).toLocaleDateString();
+    var tipoTag = cot.tipo === 'hogar'
+      ? '<span class="tag tag-teal" style="font-size:10px">Hogar</span>'
+      : '<span class="tag tag-blue" style="font-size:10px">Auto / General</span>';
+    return '<div class="detail-row">' +
+      '<div style="display:flex;align-items:center;gap:8px;flex:1">' +
+        tipoTag +
+        '<span style="font-size:13px;font-weight:600">'+escHtml(cot.riesgo||'Cotización')+'</span>' +
+        '<span style="font-size:11px;color:var(--text3)">'+f+'</span>' +
+      '</div>' +
+      '<button class="btn btn-sm" style="padding:3px 8px;font-size:11px" onclick="editarCotizacion(\''+cot.id+'\')"><i class="ti ti-edit"></i> Editar</button>' +
+    '</div>';
+  }).join('') : '<p style="font-size:13px;color:var(--text2)">Sin cotizaciones vinculadas.</p>';
+
   document.getElementById('det-body').innerHTML=
     '<div class="detail-grid">'+
     '<div>'+
@@ -1533,6 +1640,7 @@ function showDetail(id) {
       '</div>'+intHTML+'</div>'+
     '</div>'+
     '<div>'+
+      '<div class="section-card"><div class="section-title">Cotizaciones vinculadas <span style="font-size:11px;font-weight:400;color:var(--text2)">('+cotsCli.length+')</span></div>'+cotsCliHTML+'</div>'+
       '<div class="section-card"><div class="section-title">Siniestros Tramitados</div>'+sinHTML+'</div>'+
       '<div class="section-card"><div class="section-title">Tareas y Alertas Pendientes <span style="font-size:11px;font-weight:400;color:var(--text2)">('+pendClient.length+')</span></div>'+pendHTML+'</div>'+
       (c.notas?'<div class="section-card"><div class="section-title">Notas Generales</div><p style="font-size:13px;color:var(--text2);white-space:pre-line">'+escHtml(c.notas)+'</p></div>':'')+
@@ -2164,13 +2272,20 @@ function openModal(type, targetId) {
 	    }).join('') : '<p style="font-size:13px;color:var(--text2)">Sin tareas pendientes asociadas.</p>';
 	    
 	    var cotsPros=(DB.cotizaciones||[]).filter(function(c){return c.prospectoId==pros.id;});
-		    var cotsHTML=cotsPros.length ? cotsPros.map(function(c){
-		      var f = new Date(c.fecha).toLocaleDateString();
-		      // Modificado para abrir en ventana nueva usando window.open con un parámetro de hash
-		      var url = window.location.origin + window.location.pathname + '#editCot=' + c.id;
-		      return '<div class="detail-row"><span style="flex:1"><b>'+f+'</b> - '+escHtml(c.riesgo||'Cotización')+'</span>'+
-		             '<button type="button" class="btn btn-sm" onclick="window.open(\''+url+'\', \'_blank\')"><i class="ti ti-external-link"></i> Editar en ventana nueva</button></div>';
-		    }).join('') : '<p style="font-size:13px;color:var(--text2)">No hay cotizaciones vinculadas.</p>';
+    var cotsHTML = cotsPros.length ? cotsPros.map(function(c){
+      var f = new Date(c.fecha).toLocaleDateString();
+      var tipoTag = c.tipo === 'hogar'
+        ? '<span class="tag tag-teal" style="font-size:10px">Hogar</span>'
+        : '<span class="tag tag-blue" style="font-size:10px">Auto / General</span>';
+      return '<div class="detail-row">' +
+        '<div style="display:flex;align-items:center;gap:8px;flex:1">' +
+          tipoTag +
+          '<span style="font-size:13px;font-weight:600">'+escHtml(c.riesgo||'Cotización')+'</span>' +
+          '<span style="font-size:11px;color:var(--text3)">'+f+'</span>' +
+        '</div>' +
+        '<button type="button" class="btn btn-sm" style="padding:3px 8px;font-size:11px" onclick="closeModal();editarCotizacion(\''+c.id+'\')"><i class="ti ti-edit"></i> Editar</button>' +
+      '</div>';
+    }).join('') : '<p style="font-size:13px;color:var(--text2)">No hay cotizaciones vinculadas a este prospecto.</p>';
 
 	    b.innerHTML='<div class="modal-title">Ficha del Prospecto <button class="modal-close" onclick="closeModal()">&times;</button></div>'+ 
 	      '<div class="section-card" style="margin-bottom:12px">'+
@@ -2632,7 +2747,47 @@ function doLogout() {
 // ============================================================
 // FUNCIONES DEL COTIZADOR
 // ============================================================
-var cotizandoId = null; 
+var cotizandoId = null;
+var cotizandoHogarId = null; // Track para edición de cotización hogar
+
+function initCotizadorHogar() {
+  cotizandoHogarId = null;
+  document.getElementById('cot-h-cliente').value = '';
+  document.getElementById('cot-h-riesgo').value = '';
+  document.getElementById('cot-h-vincular-pros').value = '';
+  var selClH = document.getElementById('cot-h-vincular-cliente');
+  if(selClH) selClH.value = '';
+  document.querySelectorAll('.cot-h-val').forEach(function(i) { i.value = ''; });
+  document.getElementById('cot-h-costo-base').value = '';
+  document.getElementById('cot-h-costo-mediana').value = '';
+  document.getElementById('cot-h-costo-full').value = '';
+  
+  // Poblar select de prospectos
+  var select = document.getElementById('cot-h-vincular-pros');
+  select.innerHTML = '<option value="">-- No vincular --</option>';
+  if(DB.prospectos) {
+    DB.prospectos.forEach(function(p) {
+      var opt = document.createElement('option');
+      opt.value = p.id;
+      opt.textContent = p.nombre;
+      select.appendChild(opt);
+    });
+  }
+  
+  // Poblar select de clientes
+  var selCl = document.getElementById('cot-h-vincular-cliente');
+  if(selCl) {
+    selCl.innerHTML = '<option value="">-- No vincular --</option>';
+    if(DB.clients) {
+      DB.clients.forEach(function(c) {
+        var opt = document.createElement('option');
+        opt.value = c.id;
+        opt.textContent = c.nombre;
+        selCl.appendChild(opt);
+      });
+    }
+  }
+}
 
 function initCotizador() {
   var select = document.getElementById('cot-vincular-pros');
@@ -2645,6 +2800,21 @@ function initCotizador() {
       select.appendChild(opt);
     });
   }
+  
+  // Poblar select de clientes
+  var selCl = document.getElementById('cot-vincular-cliente');
+  if(selCl) {
+    selCl.innerHTML = '<option value="">-- No vincular --</option>';
+    if(DB.clients) {
+      DB.clients.forEach(function(c) {
+        var opt = document.createElement('option');
+        opt.value = c.id;
+        opt.textContent = c.nombre;
+        selCl.appendChild(opt);
+      });
+    }
+  }
+  
   if (!cotizandoId) {
     limpiarFormularioCotizacion();
   }
@@ -2683,6 +2853,7 @@ function autoGuardarCotizacion() {
   var cliente = document.getElementById('cot-cliente').value;
   var riesgo = document.getElementById('cot-riesgo-general').value;
   var prosId = document.getElementById('cot-vincular-pros').value;
+  var clienteVinculadoId = (document.getElementById('cot-vincular-cliente') || {}).value || '';
   if (!cliente) return;
 
   var items = [];
@@ -2710,6 +2881,7 @@ function autoGuardarCotizacion() {
       DB.cotizaciones[idx].riesgo = riesgo;
       DB.cotizaciones[idx].items = items;
       DB.cotizaciones[idx].prospectoId = prosId;
+      DB.cotizaciones[idx].clienteId = clienteVinculadoId;
     }
   } else {
     var nuevaCot = {
@@ -2718,7 +2890,8 @@ function autoGuardarCotizacion() {
       cliente: cliente,
       riesgo: riesgo,
       items: items,
-      prospectoId: prosId
+      prospectoId: prosId,
+      clienteId: clienteVinculadoId
     };
     DB.cotizaciones.push(nuevaCot);
     if (prosId) {
@@ -2733,6 +2906,7 @@ function guardarCotizacionActual() {
   var cliente = document.getElementById('cot-cliente').value;
   var riesgo = document.getElementById('cot-riesgo-general').value;
   var prosId = document.getElementById('cot-vincular-pros').value;
+  var clienteVinculadoId = (document.getElementById('cot-vincular-cliente') || {}).value || '';
   
   if(!cliente) { alert('Ingrese el nombre del cliente'); return; }
   
@@ -2761,6 +2935,7 @@ function guardarCotizacionActual() {
       DB.cotizaciones[idx].riesgo = riesgo;
       DB.cotizaciones[idx].items = items;
       DB.cotizaciones[idx].prospectoId = prosId;
+      DB.cotizaciones[idx].clienteId = clienteVinculadoId;
       toast('Cotización actualizada');
     }
   } else {
@@ -2770,7 +2945,8 @@ function guardarCotizacionActual() {
       cliente: cliente,
       riesgo: riesgo,
       items: items,
-      prospectoId: prosId
+      prospectoId: prosId,
+      clienteId: clienteVinculadoId
     };
     DB.cotizaciones.push(nuevaCot);
     
@@ -2797,15 +2973,34 @@ function renderHistorialCotizaciones() {
   DB.cotizaciones.slice().reverse().forEach(function(c) {
     var tr = document.createElement('tr');
     var fecha = new Date(c.fecha).toLocaleDateString() + ' ' + new Date(c.fecha).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    var sub = c.tipo === 'hogar' ? 'Hogar (3 Planes)' : (c.items ? c.items.length + ' opciones' : '-');
+    
+    // Mostrar vínculos
+    var vinculos = '';
+    if(c.prospectoId) {
+      var pros = DB.prospectos && DB.prospectos.find(function(p){return p.id == c.prospectoId});
+      if(pros) vinculos += '<span class="tag tag-blue" style="font-size:10px"><i class="ti ti-user-plus" style="font-size:10px"></i> ' + escHtml(pros.nombre) + '</span> ';
+    }
+    if(c.clienteId) {
+      var cli = DB.clients && DB.clients.find(function(x){return x.id == c.clienteId});
+      if(cli) vinculos += '<span class="tag tag-green" style="font-size:10px"><i class="ti ti-user-check" style="font-size:10px"></i> ' + escHtml(cli.nombre) + '</span>';
+    }
+    
+    var botones = `
+      <button class="btn btn-sm" onclick="editarCotizacion('${c.id}')"><i class="ti ti-edit"></i> Editar</button>
+      <button class="btn btn-sm btn-success" onclick="convertirCotizacionEnProspecto('${c.id}')"><i class="ti ti-user-plus"></i> Conv. a Prospecto</button>
+      <button class="btn btn-sm" style="background:var(--green-light);color:var(--green);border-color:#b6d98a" onclick="vincularCotizacionACliente('${c.id}')"><i class="ti ti-link"></i> Vincular Cliente</button>
+      <button class="btn btn-sm btn-danger" onclick="eliminarCotizacion('${c.id}')"><i class="ti ti-trash"></i></button>
+    `;
+    
     tr.innerHTML = `
       <td>${fecha}</td>
-      <td><strong>${c.cliente}</strong></td>
+      <td><strong>${c.cliente}</strong>${vinculos ? '<br><div style="margin-top:4px">' + vinculos + '</div>' : ''}</td>
       <td>${c.riesgo || '-'}</td>
-      <td>${c.items.length} opciones</td>
+      <td>${sub}</td>
       <td>
         <div class="btn-group">
-          <button class="btn btn-sm" onclick="editarCotizacion('${c.id}')"><i class="ti ti-edit"></i> Editar</button>
-          <button class="btn btn-sm btn-danger" onclick="eliminarCotizacion('${c.id}')"><i class="ti ti-trash"></i></button>
+          ${botones}
         </div>
       </td>
     `;
@@ -2817,12 +3012,35 @@ function editarCotizacion(id) {
   var c = DB.cotizaciones.find(function(x){return x.id == id});
   if(!c) return;
   
+  if (c.tipo === 'hogar') {
+    cotizandoHogarId = id;
+    showSection('cotizador-hogar');
+    document.getElementById('cot-h-cliente').value = c.cliente;
+    document.getElementById('cot-h-riesgo').value = c.riesgo || '';
+    document.getElementById('cot-h-vincular-pros').value = c.prospectoId || '';
+    var selHCl = document.getElementById('cot-h-vincular-cliente');
+    if(selHCl) selHCl.value = c.clienteId || '';
+    
+    for (var item in c.itemsHogar) {
+      for (var plan in c.itemsHogar[item]) {
+        var input = document.querySelector(`.cot-h-val[data-item="${item}"][data-plan="${plan}"]`);
+        if (input) input.value = c.itemsHogar[item][plan];
+      }
+    }
+    document.getElementById('cot-h-costo-base').value = c.costosHogar.base;
+    document.getElementById('cot-h-costo-mediana').value = c.costosHogar.mediana;
+    document.getElementById('cot-h-costo-full').value = c.costosHogar.full;
+    return;
+  }
+
   cotizandoId = id;
   showSection('cotizador');
   
   document.getElementById('cot-cliente').value = c.cliente;
   document.getElementById('cot-riesgo-general').value = c.riesgo || '';
   document.getElementById('cot-vincular-pros').value = c.prospectoId || '';
+  var selCl = document.getElementById('cot-vincular-cliente');
+  if(selCl) selCl.value = c.clienteId || '';
   document.querySelector('.topbar-subtitle').textContent = 'Editando cotización de ' + c.cliente;
   
   var container = document.getElementById('cotizacion-items');
@@ -2967,6 +3185,253 @@ function exportarCotizacionPDF() {
   });
 }
 
+function guardarCotizacionHogar() {
+  var cliente = document.getElementById('cot-h-cliente').value;
+  var riesgo = document.getElementById('cot-h-riesgo').value;
+  if(!cliente) { alert('Ingrese el nombre del cliente'); return; }
+
+  var items = {};
+  document.querySelectorAll('.cot-h-val').forEach(function(input) {
+    var item = input.getAttribute('data-item');
+    var plan = input.getAttribute('data-plan');
+    if (!items[item]) items[item] = {};
+    items[item][plan] = input.value;
+  });
+
+  var costos = {
+    base: document.getElementById('cot-h-costo-base').value,
+    mediana: document.getElementById('cot-h-costo-mediana').value,
+    full: document.getElementById('cot-h-costo-full').value
+  };
+
+  if(!DB.cotizaciones) DB.cotizaciones = [];
+  
+  // Si estamos editando, actualizar la cotización existente
+  if (cotizandoHogarId) {
+    var cot = DB.cotizaciones.find(function(x){return x.id == cotizandoHogarId});
+    if (cot) {
+      cot.cliente = cliente;
+      cot.riesgo = riesgo;
+      cot.itemsHogar = items;
+      cot.costosHogar = costos;
+      cot.prospectoId = document.getElementById('cot-h-vincular-pros').value || '';
+      cot.clienteId = (document.getElementById('cot-h-vincular-cliente') || {}).value || '';
+      cot.fecha = new Date().toISOString();
+      saveDB();
+      toast('Cotización de hogar actualizada');
+      cotizandoHogarId = null;
+      showSection('historial-cot');
+      return;
+    }
+  }
+  
+  // Si no estamos editando, crear nueva cotización
+  var nuevaCot = {
+    id: uid(),
+    fecha: new Date().toISOString(),
+    cliente: cliente,
+    riesgo: riesgo,
+    tipo: 'hogar',
+    itemsHogar: items,
+    costosHogar: costos,
+    prospectoId: document.getElementById('cot-h-vincular-pros').value || '',
+    clienteId: (document.getElementById('cot-h-vincular-cliente') || {}).value || ''
+  };
+  
+  DB.cotizaciones.push(nuevaCot);
+  saveDB();
+  toast('Cotización de hogar guardada');
+  showSection('historial-cot');
+}
+
+function exportarCotizacionHogarPDF() {
+  var cliente = document.getElementById('cot-h-cliente').value;
+  var riesgo = document.getElementById('cot-h-riesgo').value;
+  if (!cliente) { alert('Ingrese el nombre del cliente'); return; }
+
+  var element = document.getElementById('pdf-export-container');
+  var originalContent = element.innerHTML;
+
+  // Preparar el template para Hogar
+  document.getElementById('pdf-cot-cliente-nombre').textContent = cliente.toUpperCase();
+  document.getElementById('pdf-cot-fecha').textContent = new Date().toLocaleDateString();
+  document.getElementById('pdf-cot-riesgo').textContent = 'Seguro de Hogar';
+  // Mostrar "Compañía" en lugar de "Vehículo"
+  var vehiculoLabel = document.getElementById('pdf-cot-vehiculo-label');
+  if (vehiculoLabel) vehiculoLabel.innerHTML = 'Compañía: <span id="pdf-cot-vehiculo">' + (riesgo || '-') + '</span>';
+  else document.getElementById('pdf-cot-vehiculo').textContent = riesgo || '-';
+
+  // Ocultar secciones de detalle de cobertura (solo para hogar)
+  var idsOcultar = ['pdf-hr-coberturas','pdf-box-detalle-titulo','pdf-box-terceros-base','pdf-box-terceros-full','pdf-box-todo-riesgo'];
+  idsOcultar.forEach(function(id){ var el = document.getElementById(id); if(el) el.style.display = 'none'; });
+  
+  // Mostrar leyenda de emergencias para hogar
+  var leyendaHogar = document.getElementById('pdf-hogar-leyenda');
+  if (leyendaHogar) leyendaHogar.style.display = 'block';
+
+  var container = document.getElementById('pdf-companias-container');
+  container.innerHTML = '';
+
+  var table = document.createElement('table');
+  table.className = 'pdf-table';
+  
+  var items = [
+    'Incendio Edificio', 'Incendio Contenido', 'Robo', 'Electrodomesticos', 
+    'Resp. Civil Linderos', 'Cristales', 'Daños por Agua', 'Resp. Civil Privada'
+  ];
+  
+  // Detectar cuáles planes tienen datos
+  var planesActivos = [];
+  var planesLabels = { 'base': 'Plan Base', 'mediana': 'Plan Mediana', 'full': 'Plan Full' };
+  
+  ['base', 'mediana', 'full'].forEach(function(p) {
+    var tieneDatos = false;
+    
+    // Verificar si tiene costo
+    var costo = document.getElementById(`cot-h-costo-${p}`).value;
+    if (costo && costo.trim() !== '') {
+      tieneDatos = true;
+    }
+    
+    // Si tiene datos, agregarlo a planesActivos
+    if (tieneDatos) {
+      planesActivos.push(p);
+    }
+  });
+  
+  // Si no hay planes activos, mostrar mensaje
+  if (planesActivos.length === 0) {
+    container.innerHTML = '<p style="padding: 20px; text-align: center; color: #999;">No hay planes cargados</p>';
+    element.style.display = 'block';
+    html2pdf().set({
+      margin: 10,
+      filename: 'Cotizacion_Hogar_' + cliente.replace(/\s+/g, '_') + '.pdf',
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    }).from(element).save().then(function() {
+      element.style.display = 'none';
+      toast('PDF de Hogar generado');
+    });
+    return;
+  }
+  
+  var html = `<thead><tr><th>Cobertura</th>`;
+  planesActivos.forEach(function(p) {
+    html += `<th>${planesLabels[p]}</th>`;
+  });
+  html += `</tr></thead><tbody>`;
+
+  items.forEach(function(item) {
+    html += `<tr><td>${item}</td>`;
+    planesActivos.forEach(function(p) {
+      var val = document.querySelector(`.cot-h-val[data-item="${item}"][data-plan="${p}"]`).value || '-';
+      html += `<td>${val}</td>`;
+    });
+    html += `</tr>`;
+  });
+
+  html += `<tr style="background: #f1f5f9; font-weight: bold;"><td>COSTO MENSUAL</td>`;
+  planesActivos.forEach(function(p) {
+    var costo = document.getElementById(`cot-h-costo-${p}`).value || '-';
+    html += `<td class="recom-cell"><span class="price-val">${costo}</span></td>`;
+  });
+  html += `</tr></tbody>`;
+  
+  table.innerHTML = html;
+  container.appendChild(table);
+
+  element.style.display = 'block';
+  
+  var opt = {
+    margin: 10,
+    filename: 'Cotizacion_Hogar_' + cliente.replace(/\s+/g, '_') + '.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2 },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+
+  html2pdf().set(opt).from(element).save().then(function() {
+    element.style.display = 'none';
+    // Restaurar secciones ocultas
+    var idsOcultar = ['pdf-hr-coberturas','pdf-box-detalle-titulo','pdf-box-terceros-base','pdf-box-terceros-full','pdf-box-todo-riesgo'];
+    idsOcultar.forEach(function(id){ var el = document.getElementById(id); if(el) el.style.display = ''; });
+    // Ocultar leyenda de hogar
+    var leyendaHogar = document.getElementById('pdf-hogar-leyenda');
+    if (leyendaHogar) leyendaHogar.style.display = 'none';
+    // Restaurar label de vehículo
+    var vehiculoLabel = document.getElementById('pdf-cot-vehiculo-label');
+    if (vehiculoLabel) vehiculoLabel.innerHTML = 'Vehículo: <span id="pdf-cot-vehiculo"></span>';
+    element.innerHTML = originalContent; // Restaurar
+    toast('PDF de Hogar generado');
+  });
+}
+
+function enviarCotizacionHogarWA() {
+  var cliente = document.getElementById('cot-h-cliente').value.trim();
+  var riesgo = document.getElementById('cot-h-riesgo').value.trim() || 'Seguro de Hogar';
+  var prosId = '';
+  var tel = '';
+
+  if (!cliente) { alert('Ingrese el nombre del cliente'); return; }
+
+  // Detectar cuáles planes tienen datos
+  var planesActivos = [];
+  var planesLabels = { 'base': 'Plan Base', 'mediana': 'Plan Mediana', 'full': 'Plan Full' };
+  
+  ['base', 'mediana', 'full'].forEach(function(p) {
+    var costo = document.getElementById(`cot-h-costo-${p}`).value.trim();
+    if (costo && costo !== '') {
+      planesActivos.push(p);
+    }
+  });
+
+  if (planesActivos.length === 0) { 
+    alert('Cargue al menos un plan de hogar'); 
+    return; 
+  }
+
+  var mensaje = `*Presupuesto de ${riesgo}*\n`;
+  mensaje += `\n`;
+
+  // Armar tabla con solo los planes activos
+  var items = [
+    'Incendio Edificio', 'Incendio Contenido', 'Robo', 'Electrodomesticos', 
+    'Resp. Civil Linderos', 'Cristales', 'Daños por Agua', 'Resp. Civil Privada'
+  ];
+
+  mensaje += `*Coberturas:*\n`;
+  items.forEach(function(item) {
+    mensaje += `${item}: `;
+    var valores = [];
+    planesActivos.forEach(function(p) {
+      var val = document.querySelector(`.cot-h-val[data-item="${item}"][data-plan="${p}"]`).value || '-';
+      // Si hay múltiples planes, incluir el nombre del plan
+      if (planesActivos.length > 1) {
+        valores.push(`${planesLabels[p]}: ${val}`);
+      } else {
+        valores.push(val);
+      }
+    });
+    mensaje += valores.join(', ');
+    mensaje += `\n`;
+  });
+
+  mensaje += `\n*Costos Mensuales:*\n`;
+  planesActivos.forEach(function(p) {
+    var costo = document.getElementById(`cot-h-costo-${p}`).value;
+    mensaje += `- ${planesLabels[p]}: ${costo}\n`;
+  });
+
+  var fechaHoy = new Date().toLocaleDateString();
+  mensaje += `\nPresupuesto enviado con fecha ${fechaHoy}. Las sumas aseguradas y costos están sujetos a las condiciones de suscripción y actualización de valores y pueden sufrir variaciones al momento de la contratacion formal.`;
+
+  var url = "https://wa.me/" + (tel ? tel : "") + "?text=" + encodeURIComponent(mensaje).replace(/%2A/g, '*').replace(/%5F/g, '_').replace(/%0A/g, '%0A');
+  window.open(url, '_blank');
+  
+  toast('Redirigiendo a WhatsApp...');
+}
+
 function enviarCotizacionWA() {
   var cliente = document.getElementById('cot-cliente').value;
   var riesgo = document.getElementById('cot-riesgo-general').value || 'Seguro';
@@ -3039,6 +3504,238 @@ function enviarCotizacionWA() {
   autoGuardarCotizacion();
   toast('Redirigiendo a WhatsApp y guardando en historial...');
   limpiarFormularioCotizacion();
+}
+
+// Funciones para exportar desde el historial
+function exportarPdfDesdeHistorial(id) {
+  var c = DB.cotizaciones.find(function(x){return x.id == id});
+  if(!c) return;
+
+  if (c.tipo === 'hogar') {
+    exportarPdfHogarDesdeHistorial(c);
+  }
+}
+
+function exportarPdfHogarDesdeHistorial(c) {
+  var element = document.getElementById('pdf-export-container');
+  var originalContent = element.innerHTML;
+
+  document.getElementById('pdf-cot-cliente-nombre').textContent = c.cliente.toUpperCase();
+  document.getElementById('pdf-cot-fecha').textContent = new Date(c.fecha).toLocaleDateString();
+  document.getElementById('pdf-cot-riesgo').textContent = 'Seguro de Hogar';
+  
+  var vehiculoLabel = document.getElementById('pdf-cot-vehiculo-label');
+  if (vehiculoLabel) vehiculoLabel.innerHTML = 'Compañía: <span id="pdf-cot-vehiculo">' + (c.riesgo || '-') + '</span>';
+  else document.getElementById('pdf-cot-vehiculo').textContent = c.riesgo || '-';
+
+  var idsOcultar = ['pdf-hr-coberturas','pdf-box-detalle-titulo','pdf-box-terceros-base','pdf-box-terceros-full','pdf-box-todo-riesgo'];
+  idsOcultar.forEach(function(id){ var el = document.getElementById(id); if(el) el.style.display = 'none'; });
+
+  var container = document.getElementById('pdf-companias-container');
+  container.innerHTML = '';
+
+  var items = [
+    'Incendio Edificio', 'Incendio Contenido', 'Robo', 'Electrodomesticos', 
+    'Resp. Civil Linderos', 'Cristales', 'Daños por Agua', 'Resp. Civil Privada'
+  ];
+  
+  var planesActivos = [];
+  ['base', 'mediana', 'full'].forEach(function(p) {
+    if (c.costosHogar[p] && c.costosHogar[p].trim() !== '') {
+      planesActivos.push(p);
+    }
+  });
+  
+  var planesLabels = { 'base': 'Plan Base', 'mediana': 'Plan Mediana', 'full': 'Plan Full' };
+  var html = `<thead><tr><th>Cobertura</th>`;
+  planesActivos.forEach(function(p) {
+    html += `<th>${planesLabels[p]}</th>`;
+  });
+  html += `</tr></thead><tbody>`;
+
+  items.forEach(function(item) {
+    html += `<tr><td>${item}</td>`;
+    planesActivos.forEach(function(p) {
+      var val = (c.itemsHogar[item] && c.itemsHogar[item][p]) ? c.itemsHogar[item][p] : '-';
+      html += `<td>${val}</td>`;
+    });
+    html += `</tr>`;
+  });
+
+  html += `<tr style="background: #f1f5f9; font-weight: bold;"><td>COSTO MENSUAL</td>`;
+  planesActivos.forEach(function(p) {
+    html += `<td class="recom-cell"><span class="price-val">${c.costosHogar[p]}</span></td>`;
+  });
+  html += `</tr></tbody>`;
+  
+  var table = document.createElement('table');
+  table.className = 'pdf-table';
+  table.innerHTML = html;
+  container.appendChild(table);
+
+  element.style.display = 'block';
+  
+  var opt = {
+    margin: 10,
+    filename: 'Cotizacion_Hogar_' + c.cliente.replace(/\s+/g, '_') + '.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2 },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+
+  html2pdf().set(opt).from(element).save().then(function() {
+    element.style.display = 'none';
+    idsOcultar.forEach(function(id){ var el = document.getElementById(id); if(el) el.style.display = ''; });
+    element.innerHTML = originalContent;
+    toast('PDF de Hogar generado');
+  });
+}
+
+function enviarWaDesdeHistorial(id) {
+  var c = DB.cotizaciones.find(function(x){return x.id == id});
+  if(!c) return;
+
+  if (c.tipo === 'hogar') {
+    enviarWaHogarDesdeHistorial(c);
+  }
+}
+
+function enviarWaHogarDesdeHistorial(c) {
+  var planesActivos = [];
+  var planesLabels = { 'base': 'Plan Base', 'mediana': 'Plan Mediana', 'full': 'Plan Full' };
+  
+  ['base', 'mediana', 'full'].forEach(function(p) {
+    if (c.costosHogar[p] && c.costosHogar[p].trim() !== '') {
+      planesActivos.push(p);
+    }
+  });
+
+  if (planesActivos.length === 0) { 
+    alert('No hay planes cargados en esta cotización'); 
+    return; 
+  }
+
+  var mensaje = `*Presupuesto de Seguro de Hogar*\n`;
+  mensaje += `*Cliente:* ${c.cliente}\n`;
+  if(c.riesgo) mensaje += `*Compañía:* ${c.riesgo}\n`;
+  mensaje += `\n`;
+
+  var items = [
+    'Incendio Edificio', 'Incendio Contenido', 'Robo', 'Electrodomesticos', 
+    'Resp. Civil Linderos', 'Cristales', 'Daños por Agua', 'Resp. Civil Privada'
+  ];
+
+  mensaje += `*Coberturas:*\n`;
+  items.forEach(function(item) {
+    mensaje += `${item}: `;
+    var valores = [];
+    planesActivos.forEach(function(p) {
+      var val = (c.itemsHogar[item] && c.itemsHogar[item][p]) ? c.itemsHogar[item][p] : '-';
+      // Si hay múltiples planes, incluir el nombre del plan
+      if (planesActivos.length > 1) {
+        valores.push(`${planesLabels[p]}: ${val}`);
+      } else {
+        valores.push(val);
+      }
+    });
+    mensaje += valores.join(', ');
+    mensaje += `\n`;
+  });
+
+  mensaje += `\n*Costos Mensuales:*\n`;
+  planesActivos.forEach(function(p) {
+    mensaje += `- ${planesLabels[p]}: ${c.costosHogar[p]}\n`;
+  });
+
+  var fechaHoy = new Date(c.fecha).toLocaleDateString();
+  mensaje += `\nPresupuesto enviado con fecha ${fechaHoy}. Las sumas aseguradas y costos están sujetos a las condiciones de suscripción y actualización de valores.`;
+
+  var url = "https://wa.me/?text=" + encodeURIComponent(mensaje).replace(/%2A/g, '*').replace(/%5F/g, '_').replace(/%0A/g, '%0A');
+  window.open(url, '_blank');
+  toast('Abriendo WhatsApp...');
+}
+
+function convertirCotizacionEnProspecto(id) {
+  var cot = DB.cotizaciones.find(function(x){return x.id == id});
+  if(!cot) return;
+  
+  // Verificar si ya existe un prospecto con ese nombre
+  var prospectoExistente = DB.prospectos.find(function(x){return x.nombre.toLowerCase() === cot.cliente.toLowerCase()});
+  if(prospectoExistente) {
+    alert('Ya existe un prospecto con ese nombre: ' + cot.cliente);
+    return;
+  }
+  
+  // Crear nuevo prospecto en la primera etapa (Primer contacto)
+  var nuevoProspecto = {
+    id: uid(),
+    nombre: cot.cliente,
+    telefono: '',
+    interes: cot.riesgo || (cot.tipo === 'hogar' ? 'Hogar' : 'Cotización'),
+    stage: 0,
+    responsable: 'YO',
+    notes: 'Creado desde cotización de ' + (cot.tipo || 'general') + (cot.riesgo ? ' - ' + cot.riesgo : ''),
+    fechaEmision: '',
+    fechaRecontacto: ''
+  };
+  
+  if(!DB.prospectos) DB.prospectos = [];
+  DB.prospectos.push(nuevoProspecto);
+  
+  // Vincular la cotización al nuevo prospecto
+  cot.prospectoId = nuevoProspecto.id;
+  
+  saveDB();
+  renderHistorialCotizaciones();
+  renderProspectos();
+  toast('Prospecto creado: ' + nuevoProspecto.nombre + ' — aparece en el Kanban de Prospectos');
+  updateBadges();
+}
+
+function vincularCotizacionACliente(id) {
+  var cot = DB.cotizaciones.find(function(x){return x.id == id});
+  if(!cot) return;
+  
+  if(!DB.clients || DB.clients.length === 0) {
+    alert('No hay clientes en el sistema. Primero agrega un cliente desde la sección Clientes.');
+    return;
+  }
+  
+  // Construir lista de clientes para seleccionar
+  var opciones = DB.clients.map(function(c){
+    return '<option value="' + c.id + '">' + c.nombre + '</option>';
+  }).join('');
+  
+  // Modal simple usando un select en un confirm
+  var modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:2000';
+  modal.innerHTML = '<div style="background:#fff;border-radius:12px;padding:24px;width:420px;max-width:95vw;box-shadow:0 8px 40px rgba(0,0,0,.18)">' +
+    '<div style="font-size:16px;font-weight:600;margin-bottom:16px">Vincular cotización a cliente</div>' +
+    '<div style="font-size:13px;color:#6b7280;margin-bottom:12px">Cotización de: <strong>' + cot.cliente + '</strong></div>' +
+    '<select id="modal-select-cliente" style="width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;margin-bottom:20px"><option value="">-- Seleccionar cliente --</option>' + opciones + '</select>' +
+    '<div style="display:flex;justify-content:flex-end;gap:8px">' +
+      '<button id="modal-cancel-vink" style="padding:7px 14px;border-radius:8px;border:1px solid #d1d5db;background:#fff;cursor:pointer;font-size:13px">Cancelar</button>' +
+      '<button id="modal-ok-vink" style="padding:7px 14px;border-radius:8px;border:none;background:#185FA5;color:#fff;cursor:pointer;font-size:13px;font-weight:500">Vincular</button>' +
+    '</div>' +
+  '</div>';
+  
+  document.body.appendChild(modal);
+  document.getElementById('modal-cancel-vink').onclick = function(){ document.body.removeChild(modal); };
+  document.getElementById('modal-ok-vink').onclick = function(){
+    var sel = document.getElementById('modal-select-cliente').value;
+    if(!sel){ alert('Seleccioná un cliente'); return; }
+    cot.clienteId = sel;
+    saveDB();
+    renderHistorialCotizaciones();
+    document.body.removeChild(modal);
+    var clienteNombre = (DB.clients.find(function(c){return c.id == sel}) || {}).nombre || '';
+    toast('Cotización vinculada a: ' + clienteNombre);
+  };
+}
+
+// DEPRECATED - kept for backward compatibility
+function convertirCotizacionEnCliente(id) {
+  convertirCotizacionEnProspecto(id);
 }
 </script>
 </body>
