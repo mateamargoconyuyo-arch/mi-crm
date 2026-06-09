@@ -733,9 +733,13 @@ textarea{resize:vertical;min-height:64px}
 	  </div>
 	</div>
 
-	<div class="view" id="sec-historial-cot">
+<div class="view" id="sec-historial-cot">
   <div class="topbar">
     <div style="flex:1"><div class="topbar-title">Historial de Cotizaciones</div><div class="topbar-subtitle">Consulta y edición de presupuestos guardados</div></div>
+    <div class="search-wrap" style="max-width:300px">
+      <i class="ti ti-search"></i>
+      <input type="text" id="search-historial-cot" placeholder="Buscar cliente o riesgo..." oninput="renderHistorialCotizaciones()">
+    </div>
   </div>
   <div class="content">
     <div class="table-wrap">
@@ -1409,10 +1413,10 @@ function renderBdays() {
   });
 
   lista.sort(function(a,b){return a.diff - b.diff;});
-  lista = lista.slice(0,8);
+  lista = lista.slice(0,4);
 
   var bdayCount = document.getElementById('dash-bday-count');
-  if(bdayCount) bdayCount.textContent = lista.length ? '(próximos 8)' : '';
+  if(bdayCount) bdayCount.textContent = lista.length ? '(próximos 4)' : '';
 
   var bdayList = document.getElementById('dash-bday-list');
   if(!bdayList) return;
@@ -2238,6 +2242,7 @@ function openModal(type, targetId) {
              '<div style="font-weight:600;font-size:12px">'+fmt(av.fecha)+'</div><div style="font-size:13px;color:var(--text2)">'+escHtml(av.nota)+'</div></div></div>';
     }).join('') || '<p style="font-size:13px;color:var(--text2)">No hay avances registrados aún.</p>';
     
+    var hoyStr=new Date().toISOString().split('T')[0];
     b.innerHTML='<div class="modal-title">Seguimiento de Siniestro <button class="modal-close" onclick="closeModal()">&times;</button></div>'+
       '<div class="section-card" style="margin-bottom:12px">'+
         '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">'+
@@ -2250,9 +2255,12 @@ function openModal(type, targetId) {
         '<div style="margin-top:10px;font-size:13px;color:var(--text2);background:var(--bg3);padding:8px;border-radius:var(--radius)">'+escHtml(s.notes||'Sin descripción inicial.')+'</div>'+
       '</div>'+
       '<div class="section-card"><div class="section-title">Bitácora de Avances</div>'+
-        '<form onsubmit="guardarAvanceSiniestro(event,'+s.id+')" style="margin-bottom:15px;display:flex;gap:8px">'+
-          '<input type="text" id="av-nota" placeholder="Describa el nuevo avance..." style="flex:1" required>'+
-          '<button type="submit" class="btn btn-primary btn-sm">Agregar</button>'+
+        '<form onsubmit="guardarAvanceSiniestro(event,'+s.id+')" style="margin-bottom:15px;display:flex;flex-direction:column;gap:8px">'+
+          '<div style="display:flex;gap:8px">'+
+            '<input type="date" id="av-fecha" value="'+hoyStr+'" style="width:140px" required>'+
+            '<input type="text" id="av-nota" placeholder="Describa el nuevo avance..." style="flex:1" required>'+
+          '</div>'+
+          '<button type="submit" class="btn btn-primary btn-sm" style="align-self:flex-end">Agregar Avance</button>'+
         '</form>'+
         '<div style="max-height:200px;overflow-y:auto">'+avancesHTML+'</div>'+
       '</div>'+
@@ -2654,9 +2662,10 @@ function guardarAvanceSiniestro(e, sinId) {
   var s = getSiniestro(sinId);
   if(!s) return;
   if(!s.avances) s.avances = [];
+  var fecha = document.getElementById('av-fecha').value;
   var nota = document.getElementById('av-nota').value;
   s.avances.push({
-    fecha: new Date().toISOString().split('T')[0],
+    fecha: fecha,
     nota: nota
   });
   saveDB();
@@ -2751,40 +2760,42 @@ var cotizandoId = null;
 var cotizandoHogarId = null; // Track para edición de cotización hogar
 
 function initCotizadorHogar() {
-  cotizandoHogarId = null;
-  document.getElementById('cot-h-cliente').value = '';
-  document.getElementById('cot-h-riesgo').value = '';
-  document.getElementById('cot-h-vincular-pros').value = '';
-  var selClH = document.getElementById('cot-h-vincular-cliente');
-  if(selClH) selClH.value = '';
-  document.querySelectorAll('.cot-h-val').forEach(function(i) { i.value = ''; });
-  document.getElementById('cot-h-costo-base').value = '';
-  document.getElementById('cot-h-costo-mediana').value = '';
-  document.getElementById('cot-h-costo-full').value = '';
-  
-  // Poblar select de prospectos
-  var select = document.getElementById('cot-h-vincular-pros');
-  select.innerHTML = '<option value="">-- No vincular --</option>';
-  if(DB.prospectos) {
-    DB.prospectos.forEach(function(p) {
-      var opt = document.createElement('option');
-      opt.value = p.id;
-      opt.textContent = p.nombre;
-      select.appendChild(opt);
-    });
-  }
-  
-  // Poblar select de clientes
-  var selCl = document.getElementById('cot-h-vincular-cliente');
-  if(selCl) {
-    selCl.innerHTML = '<option value="">-- No vincular --</option>';
-    if(DB.clients) {
-      DB.clients.forEach(function(c) {
+  // Solo limpiar si no estamos editando una cotización existente
+  if (!cotizandoHogarId) {
+    document.getElementById('cot-h-cliente').value = '';
+    document.getElementById('cot-h-riesgo').value = '';
+    document.getElementById('cot-h-vincular-pros').value = '';
+    var selClH = document.getElementById('cot-h-vincular-cliente');
+    if(selClH) selClH.value = '';
+    document.querySelectorAll('.cot-h-val').forEach(function(i) { i.value = ''; });
+    document.getElementById('cot-h-costo-base').value = '';
+    document.getElementById('cot-h-costo-mediana').value = '';
+    document.getElementById('cot-h-costo-full').value = '';
+    
+    // Poblar select de prospectos
+    var select = document.getElementById('cot-h-vincular-pros');
+    select.innerHTML = '<option value="">-- No vincular --</option>';
+    if(DB.prospectos) {
+      DB.prospectos.forEach(function(p) {
         var opt = document.createElement('option');
-        opt.value = c.id;
-        opt.textContent = c.nombre;
-        selCl.appendChild(opt);
+        opt.value = p.id;
+        opt.textContent = p.nombre;
+        select.appendChild(opt);
       });
+    }
+    
+    // Poblar select de clientes
+    var selCl = document.getElementById('cot-h-vincular-cliente');
+    if(selCl) {
+      selCl.innerHTML = '<option value="">-- No vincular --</option>';
+      if(DB.clients) {
+        DB.clients.forEach(function(c) {
+          var opt = document.createElement('option');
+          opt.value = c.id;
+          opt.textContent = c.nombre;
+          selCl.appendChild(opt);
+        });
+      }
     }
   }
 }
@@ -2884,8 +2895,9 @@ function autoGuardarCotizacion() {
       DB.cotizaciones[idx].clienteId = clienteVinculadoId;
     }
   } else {
+    var nuevaId = uid();
     var nuevaCot = {
-      id: uid(),
+      id: nuevaId,
       fecha: new Date().toISOString(),
       cliente: cliente,
       riesgo: riesgo,
@@ -2894,6 +2906,9 @@ function autoGuardarCotizacion() {
       clienteId: clienteVinculadoId
     };
     DB.cotizaciones.push(nuevaCot);
+    // Establecemos el ID para que no se duplique en la siguiente acción (como exportar PDF)
+    cotizandoId = nuevaId;
+    
     if (prosId) {
       var p = DB.prospectos.find(function(x){return x.id == prosId});
       if (p) p.notes = (p.notes || '') + "\n[Cotización guardada el " + new Date().toLocaleDateString() + "]";
@@ -2964,13 +2979,26 @@ function guardarCotizacionActual() {
 
 function renderHistorialCotizaciones() {
   var tbody = document.getElementById('historial-cot-body');
+  var search = (document.getElementById('search-historial-cot')?.value || '').toLowerCase();
   tbody.innerHTML = '';
   if(!DB.cotizaciones || DB.cotizaciones.length === 0) {
     tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text2)">No hay cotizaciones guardadas</td></tr>';
     return;
   }
   
-  DB.cotizaciones.slice().reverse().forEach(function(c) {
+  var filtradas = DB.cotizaciones.slice().reverse();
+  if(search) {
+    filtradas = filtradas.filter(function(c) {
+      return (c.cliente || '').toLowerCase().includes(search) || (c.riesgo || '').toLowerCase().includes(search);
+    });
+  }
+
+  if(filtradas.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text2)">No se encontraron resultados para "' + search + '"</td></tr>';
+    return;
+  }
+
+  filtradas.forEach(function(c) {
     var tr = document.createElement('tr');
     var fecha = new Date(c.fecha).toLocaleDateString() + ' ' + new Date(c.fecha).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
     var sub = c.tipo === 'hogar' ? 'Hogar (3 Planes)' : (c.items ? c.items.length + ' opciones' : '-');
@@ -3185,10 +3213,10 @@ function exportarCotizacionPDF() {
   });
 }
 
-function guardarCotizacionHogar() {
+function guardarCotizacionHogar(isAutoSave) {
   var cliente = document.getElementById('cot-h-cliente').value;
   var riesgo = document.getElementById('cot-h-riesgo').value;
-  if(!cliente) { alert('Ingrese el nombre del cliente'); return; }
+  if(!cliente) { if(!isAutoSave) alert('Ingrese el nombre del cliente'); return; }
 
   var items = {};
   document.querySelectorAll('.cot-h-val').forEach(function(input) {
@@ -3218,16 +3246,19 @@ function guardarCotizacionHogar() {
       cot.clienteId = (document.getElementById('cot-h-vincular-cliente') || {}).value || '';
       cot.fecha = new Date().toISOString();
       saveDB();
-      toast('Cotización de hogar actualizada');
-      cotizandoHogarId = null;
-      showSection('historial-cot');
+      if(!isAutoSave) {
+        toast('Cotización de hogar actualizada');
+        cotizandoHogarId = null;
+        showSection('historial-cot');
+      }
       return;
     }
   }
   
   // Si no estamos editando, crear nueva cotización
+  var nuevaId = uid();
   var nuevaCot = {
-    id: uid(),
+    id: nuevaId,
     fecha: new Date().toISOString(),
     cliente: cliente,
     riesgo: riesgo,
@@ -3240,14 +3271,25 @@ function guardarCotizacionHogar() {
   
   DB.cotizaciones.push(nuevaCot);
   saveDB();
-  toast('Cotización de hogar guardada');
-  showSection('historial-cot');
+  
+  if(!isAutoSave) {
+    toast('Cotización de hogar guardada');
+    cotizandoHogarId = null;
+    showSection('historial-cot');
+  } else {
+    // Si es auto-guardado, establecemos el ID para que las siguientes ediciones/exportaciones 
+    // sobre esta misma sesión de cotización no generen duplicados
+    cotizandoHogarId = nuevaId;
+  }
 }
 
 function exportarCotizacionHogarPDF() {
   var cliente = document.getElementById('cot-h-cliente').value;
   var riesgo = document.getElementById('cot-h-riesgo').value;
   if (!cliente) { alert('Ingrese el nombre del cliente'); return; }
+
+  // Guardar automáticamente antes de exportar
+  guardarCotizacionHogar(true);
 
   var element = document.getElementById('pdf-export-container');
   var originalContent = element.innerHTML;
