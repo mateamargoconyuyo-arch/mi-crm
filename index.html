@@ -9,281 +9,10 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg:#f7f8fa;--bg2:#fff;--bg3:#f1f3f7;
-  --text:#1a1d23;--text2:#6b7280;--text3:#9ca3af;
-  --border:#e5e7eb;--border2:#d1d5db;
-  --blue:#185FA5;--blue-light:#E6F1FB;--blue-dark:#0C447C;
-  --green:#3B6D11;--green-light:#EAF3DE;
-  --amber:#854F0B;--amber-light:#FAEEDA;
-  --red:#A32D2D;--red-light:#FCEBEB;
-  --purple:#534AB7;--purple-light:#EEEDFE;
-  --gray-tag:#5F5E5A;--gray-light:#F1EFE8;
-  --teal:#0F6E56;--teal-light:#E1F5EE;
-  --radius:8px;--radius-lg:12px;
-}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5}
-.app{display:flex;height:100vh;overflow:hidden}
- 
-.sidebar{width:230px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
-.logo{padding:18px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
-.logo-icon{width:32px;height:32px;background:var(--blue);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.logo-icon i{color:#fff;font-size:16px}
-.logo-title{font-size:15px;font-weight:600;color:var(--text)}
-.logo-sub{font-size:11px;color:var(--text2)}
-.nav{padding:10px 8px;flex:1;overflow-y:auto}
-.nav-section{font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;padding:8px 10px 4px}
-.nav-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:var(--radius);cursor:pointer;font-size:13px;color:var(--text2);transition:all .15s;margin-bottom:1px;border:none;background:none;width:100%;text-align:left}
-.nav-item:hover{background:var(--bg3);color:var(--text)}
-.nav-item.active{background:var(--blue-light);color:var(--blue);font-weight:500}
-.nav-item i{font-size:17px;flex-shrink:0}
-.nav-badge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;padding:1px 6px;border-radius:10px;font-weight:600;min-width:18px;text-align:center}
-.sidebar-footer{padding:14px 16px;border-top:1px solid var(--border)}
-.sidebar-footer .name{font-size:13px;font-weight:500}
-.sidebar-footer .sub{font-size:11px;color:var(--text2)}
- 
-.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
-.topbar{padding:14px 24px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0}
-.topbar-title{font-size:17px;font-weight:600;flex:1}
-.topbar-subtitle{font-size:13px;color:var(--text2);margin-top:1px}
- 
-.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:var(--radius);border:1px solid var(--border2);background:var(--bg2);cursor:pointer;font-size:13px;color:var(--text);transition:all .15s;font-family:inherit;white-space:nowrap}
-.btn:hover{background:var(--bg3);border-color:var(--border2)}
-.btn:active{transform:scale(.98)}
-.btn-primary{background:var(--blue);color:#fff;border-color:var(--blue)}
-.btn-primary:hover{background:var(--blue-dark);border-color:var(--blue-dark)}
-.btn-sm{padding:5px 10px;font-size:12px}
-.btn-danger{color:var(--red);border-color:#F09595}
-.btn-danger:hover{background:var(--red-light)}
-.btn-wa{background:var(--teal);color:#fff;border-color:var(--teal)}
-.btn-wa:hover{background:#085041}
-.btn-success{background:var(--green);color:#fff;border-color:var(--green)}
-.btn-success:hover{background:#27500A}
-.btn-group{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
- 
-.content{flex:1;overflow-y:auto;padding:20px 24px}
-.view{display:none;flex-direction:column;height:100%;overflow:hidden}
-.view.active{display:flex}
- 
-.controls-row{display:flex;gap:12px;margin-bottom:16px;align-items:center;flex-wrap:wrap}
-.search-wrap{display:flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:7px 12px;flex:1;min-width:200px}
-.search-wrap i{color:var(--text3);font-size:16px;flex-shrink:0}
-.search-wrap input{background:none;border:none;outline:none;font-size:13px;flex:1;color:var(--text);font-family:inherit}
-.sort-wrap{display:flex;align-items:center;gap:6px}
- 
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
-.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px}
-.stat-label{font-size:11px;color:var(--text2);margin-bottom:5px;font-weight:500}
-.stat-val{font-size:26px;font-weight:700;line-height:1}
-.stat-blue{color:var(--blue)}
-.stat-green{color:var(--green)}
-.stat-amber{color:var(--amber)}
-.stat-red{color:var(--red)}
- 
-.client-list{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;display:flex;flex-direction:column}
-.client-list-item{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s}
-.client-list-item:last-child{border-bottom:none}
-.client-list-item:hover{background:var(--bg3)}
-.client-info-block{display:flex;align-items:center;gap:12px;flex:2;min-width:0}
-.client-avatar{width:36px;height:36px;border-radius:50%;background:var(--blue-light);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--blue);flex-shrink:0}
-.client-name{font-size:14px;font-weight:600;color:var(--text)}
-.client-contact-block{flex:1.5;font-size:13px;color:var(--text2);display:flex;flex-direction:column;gap:2px}
-.client-tags-block{flex:1.5;display:flex;flex-wrap:wrap;gap:4px}
-.client-actions-block{display:flex;gap:6px;align-items:center}
- 
-.tags{display:flex;flex-wrap:wrap;gap:4px}
-.tag{font-size:11px;padding:2px 8px;border-radius:10px;font-weight:500}
-.tag-blue{background:var(--blue-light);color:var(--blue)}
-.tag-green{background:var(--green-light);color:var(--green)}
-.tag-amber{background:var(--amber-light);color:var(--amber)}
-.tag-red{background:var(--red-light);color:var(--red)}
-.tag-purple{background:var(--purple-light);color:var(--purple)}
-.tag-gray{background:var(--gray-light);color:var(--gray-tag)}
-.tag-teal{background:var(--teal-light);color:var(--teal)}
- 
-.table-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
-table{width:100%;border-collapse:collapse;font-size:13px}
-th{text-align:left;padding:9px 14px;font-size:11px;font-weight:600;color:var(--text2);border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:.05em;background:var(--bg3)}
-td{padding:11px 14px;border-bottom:1px solid var(--border)}
-tr:last-child td{border-bottom:none}
-tbody tr:hover td{background:var(--bg3)}
- 
-.detail-grid{display:grid;grid-template-columns:3fr 2fr;gap:14px}
-.section-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:12px}
-.section-title{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;padding-left:12px;border-left:4px solid var(--blue);}
-.detail-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px}
-.detail-row:last-child{border-bottom:none}
-.detail-label{color:var(--text2);display:flex;align-items:center;gap:5px}
-.poliza-item{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;margin-bottom:7px;display:flex;align-items:center;gap:10px}
-.poliza-icon{width:34px;height:34px;border-radius:var(--radius);background:var(--blue-light);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.poliza-icon i{color:var(--blue);font-size:16px}
- 
-.report-bar-row{margin-bottom:12px}
-.report-bar-label{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;font-weight:500}
-.report-bar-bg{width:100%;height:8px;background:var(--bg3);border-radius:4px;overflow:hidden}
-.report-bar-fill{height:100%;background:var(--blue);border-radius:4px}
-
-.interaccion-item{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px}
-.interaccion-item:last-child{border-bottom:none}
-.interaccion-icon{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px}
-.int-llamada{background:#EAF3DE;color:var(--green)}
-.int-whatsapp{background:var(--teal-light);color:var(--teal)}
-.int-reunion{background:var(--blue-light);color:var(--blue)}
-.int-email{background:var(--purple-light);color:var(--purple)}
-.int-otro{background:var(--gray-light);color:var(--gray-tag)}
-.evol-bar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
-.evol-bar-label{width:90px;font-size:12px;color:var(--text2);text-align:right;flex-shrink:0}
-.evol-bar-track{flex:1;height:22px;background:var(--bg3);border-radius:4px;overflow:hidden;position:relative}
-.evol-bar-fill{height:100%;border-radius:4px;display:flex;align-items:center;padding-left:8px;font-size:11px;font-weight:600;color:#fff;transition:width .4s}
-.evol-bar-val{margin-left:8px;font-size:12px;font-weight:600;color:var(--text);white-space:nowrap}
-.evol-delta{font-size:11px;font-weight:500;margin-left:4px}
- 
-.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:1000}
-.modal-backdrop.open{display:flex}
-.modal{background:var(--bg2);border-radius:var(--radius-lg);padding:24px;width:560px;max-width:95vw;max-height:90vh;overflow-y:auto;position:relative;box-shadow:0 8px 40px rgba(0,0,0,.18)}
-.modal-title{font-size:16px;font-weight:600;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between}
-.modal-close{background:none;border:none;cursor:pointer;color:var(--text2);font-size:20px;padding:2px;line-height:1}
-.modal-close:hover{color:var(--text)}
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.full{grid-column:1/-1}
-.form-group{display:flex;flex-direction:column;gap:4px}
-label{font-size:12px;font-weight:500;color:var(--text2)}
-input,select,textarea{padding:8px 10px;border:1px solid var(--border2);border-radius:var(--radius);font-size:13px;background:var(--bg2);color:var(--text);outline:none;font-family:inherit;transition:border-color .15s}
-input:focus,select:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,95,165,.1)}
-textarea{resize:vertical;min-height:64px}
-.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
- 
-.kanban{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;align-items:start}
-.kanban-col{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px}
-.kanban-col-header{font-size:12px;font-weight:600;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;padding-bottom:8px;border-bottom:1px solid var(--border)}
-.kanban-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin-bottom:8px;cursor:default;transition:border-color .15s;position:relative}
-.kanban-card:hover{border-color:var(--border2)}
-.kanban-actions{display:flex;justify-content:flex-end;margin-top:8px;gap:4px}
- 
-.status-dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:5px}
-.dot-green{background:var(--green)}
-.dot-amber{background:#EF9F27}
-.dot-red{background:var(--red)}
-.dot-blue{background:var(--blue)}
- 
-.empty{text-align:center;padding:48px 20px;color:var(--text2)}
-.empty i{font-size:36px;display:block;margin-bottom:10px;opacity:.4}
-.empty p{font-size:13px}
- 
-.back-btn{display:inline-flex;align-items:center;gap:5px;font-size:13px;color:var(--text2);cursor:pointer;background:none;border:none;font-family:inherit;padding:4px 0}
-.back-btn:hover{color:var(--text)}
- 
-.toast{position:fixed;bottom:24px;right:24px;background:var(--text);color:#fff;padding:10px 18px;border-radius:var(--radius);font-size:13px;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none}
-	.toast.show{opacity:1}
-	
-	/* COTIZADOR STYLES */
-	.cotizador-form { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 20px; }
-	.cotizacion-row { display: grid; grid-template-columns: 1.2fr 1fr 1.2fr 0.8fr 60px 60px 70px 40px; gap: 8px; margin-bottom: 10px; align-items: end; }
-	.cot-recom-check, .cot-lojack-check { width: 18px; height: 18px; cursor: pointer; }
-	.pdf-recom-row { background: #E6F1FB !important; font-weight: 600; }
-	.pdf-recom-tag { background: var(--blue); color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-left: 8px; text-transform: uppercase; }
-	.pdf-lojack-tag { color: var(--teal); font-size: 10px; font-weight: 600; display: block; margin-top: 2px; }
-	.cotizacion-row .form-group { margin-bottom: 0; }
-	.btn-icon { width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; padding: 0; }
-	
-	@media print {
-	  .sidebar, .topbar, .btn-group, .nav, .sidebar-footer, .back-btn, .btn-icon, .btn-primary, .no-print { display: none !important; }
-	  .main, .content { padding: 0 !important; margin: 0 !important; overflow: visible !important; }
-	  .cotizador-form { border: none; padding: 0; }
-	  body { background: #fff; }
-	}
-
-.pdf-template { display: none; padding: 0; font-family: 'Segoe UI', 'Helvetica', 'Arial', sans-serif; color: #334155; background: #fff; max-width: 850px; margin: auto; border: 1px solid #e2e8f0; }
-		.pdf-header { display: flex; align-items: center; gap: 30px; padding: 40px; background: linear-gradient(135deg, #185FA5 0%, #0C447C 100%); color: #fff; }
-		.pdf-header-img { width: 80px; height: 80px; border-radius: 16px; object-fit: cover; background: #fff; padding: 5px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-		.pdf-header-info { flex: 1; }
-		.pdf-header-name { font-size: 26px; font-weight: 800; color: #fff; margin: 0; letter-spacing: -0.02em; }
-		.pdf-header-sub { font-size: 14px; color: rgba(255,255,255,0.8); margin: 4px 0; font-weight: 500; }
-		.pdf-header-title { font-size: 18px; font-weight: 600; color: #fff; margin-top: 12px; display: flex; align-items: center; gap: 8px; }
-		.pdf-header-title i { font-size: 20px; opacity: 0.9; }
-		
-		.pdf-body-content { padding: 30px 40px; }
-		.pdf-client-box { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid #f1f5f9; }
-		.pdf-client-info div { font-size: 13px; color: #64748b; margin-bottom: 4px; text-transform: uppercase; font-weight: 600; letter-spacing: 0.05em; }
-		.pdf-client-info h2 { font-size: 20px; color: #1e293b; margin: 0; font-weight: 700; }
-		.pdf-date-info { text-align: right; font-size: 13px; color: #64748b; }
-
-		.pdf-table { width: 100%; border-collapse: separate; border-spacing: 0; margin-bottom: 25px; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
-		.pdf-table th { background: #f8fafc; color: #475569; text-align: center; padding: 16px 10px; font-size: 12px; font-weight: 700; border-bottom: 2px solid #e2e8f0; text-transform: uppercase; letter-spacing: 0.03em; }
-		.pdf-table th:first-child { text-align: left; padding-left: 20px; width: 200px; }
-		.pdf-table td { padding: 16px 10px; font-size: 13px; border-bottom: 1px solid #f1f5f9; text-align: center; vertical-align: middle; color: #334155; }
-		.pdf-table td:first-child { text-align: left; padding-left: 20px; font-weight: 600; color: #1e293b; background: #f8fafc; border-right: 1px solid #f1f5f9; }
-		.pdf-table tr:last-child td { border-bottom: none; }
-		.pdf-table tr:nth-child(even) td:not(:first-child) { background: #fcfdfe; }
-		
-		.pdf-table .price-val { font-size: 18px; font-weight: 800; color: #185FA5; display: block; line-height: 1.2; margin: 0; }
-		.pdf-table .recom-cell { background: #f0f7ff !important; position: relative; box-shadow: inset 0 0 0 2px #185FA5; }
-		.pdf-table .recom-badge { background: #185FA5; color: #fff; font-size: 9px; font-weight: 800; padding: 3px 8px; border-radius: 20px; position: absolute; top: -12px; left: 50%; transform: translateX(-50%); white-space: nowrap; box-shadow: 0 2px 4px rgba(24,95,165,0.2); }
-		.pdf-table .mejor-cell { background: #f0fdf4 !important; position: relative; box-shadow: inset 0 0 0 2px #16a34a; }
-		.pdf-table .mejor-badge { background: #16a34a; color: #fff; font-size: 9px; font-weight: 800; padding: 3px 8px; border-radius: 20px; position: absolute; top: -12px; left: 50%; transform: translateX(-50%); white-space: nowrap; box-shadow: 0 2px 4px rgba(22,163,74,0.2); }
-		
-		.pdf-info-box { background: #f8fafc; border-radius: 12px; padding: 20px; font-size: 13px; line-height: 1.6; color: #475569; border: 1px solid #e2e8f0; margin-top: 20px; }
-		.pdf-info-box b { color: #1e293b; }
-		
-		.pdf-footer { margin-top: 40px; padding: 30px 40px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: center; align-items: center; }
-		.pdf-footer-contact { display: flex; gap: 20px; }
-		.pdf-footer-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #64748b; font-weight: 500; }
-		.pdf-footer-item i { color: #185FA5; font-size: 14px; }
-		.pdf-footer-brand { font-size: 12px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; }
-	 
-	::-webkit-scrollbar{width:5px;height:5px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:var(--border2);border-radius:10px}
-
-/* DASHBOARD & CALENDAR DOTS */
-.dash-stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;cursor:pointer;transition:all .18s;display:flex;flex-direction:column;gap:6px}
-.dash-stat-card:hover{border-color:var(--blue);box-shadow:0 2px 12px rgba(24,95,165,.1);transform:translateY(-1px)}
-.dash-stat-card .stat-label{font-size:11px;color:var(--text2);font-weight:500;text-transform:uppercase;letter-spacing:.05em}
-.dash-stat-card .stat-val{font-size:32px;font-weight:700;line-height:1}
-.dash-stat-card .stat-link{font-size:11px;color:var(--blue);margin-top:2px;display:flex;align-items:center;gap:3px}
-.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
-.cal-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px}
-.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-.cal-title{font-size:14px;font-weight:600}
-.cal-nav{background:none;border:none;cursor:pointer;color:var(--text2);font-size:18px;padding:2px 6px;border-radius:var(--radius);line-height:1}
-.cal-nav:hover{background:var(--bg3);color:var(--text)}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
-.cal-dow{text-align:center;font-size:10px;font-weight:600;color:var(--text3);padding:4px 0;text-transform:uppercase}
-.cal-day{text-align:center;padding:5px 2px;border-radius:var(--radius);font-size:12px;cursor:default;min-height:34px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px}
-.cal-day.other{color:var(--text3)}
-.cal-day.today{background:var(--blue);color:#fff;font-weight:700}
-.cal-day.has-bday{background:var(--purple-light);color:var(--purple);font-weight:600;cursor:pointer}
-.cal-day.has-bday.today{background:var(--purple);color:#fff}
-.cal-day.has-task{background:var(--blue-light);color:var(--blue);font-weight:600;cursor:pointer}
-.cal-day.has-task.today{background:var(--blue-dark);color:#fff}
-
-.cal-dots-container{display:flex;gap:2px;justify-content:center;align-items:center}
-.cal-day-dot{width:4px;height:4px;border-radius:50%;flex-shrink:0}
-.cal-day.today .cal-day-dot{background:#fff !important}
-
-.bday-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
-.bday-item:last-child{border-bottom:none}
-.bday-avatar{width:30px;height:30px;border-radius:50%;background:var(--purple-light);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--purple);flex-shrink:0}
-.bday-dias{margin-left:auto;font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px;white-space:nowrap}
-.bday-hoy{background:var(--purple-light);color:var(--purple)}
-.bday-pronto{background:var(--amber-light);color:var(--amber)}
-.bday-proximo{background:var(--bg3);color:var(--text2)}
-.dash-pend-item{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px;cursor:pointer}
-.dash-pend-item:hover{color:var(--blue)}
-.dash-pend-item:last-child{border-bottom:none}
-
-/* LINKS */
-.links-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-.link-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 20px;display:flex;flex-direction:column;gap:10px;transition:all .18s;height:100%}
-.link-card:hover{border-color:var(--blue);box-shadow:0 2px 12px rgba(24,95,165,.1);transform:translateY(-1px)}
-.link-card-name{font-size:15px;font-weight:600}
-.link-card-desc{font-size:12px;color:var(--text2);flex:1;margin-bottom:8px}
-</style>
+<style>*{box-sizing:border-box;margin:0;padding:0}:root{--bg:#f7f8fa;--bg2:#fff;--bg3:#f1f3f7;--text:#1a1d23;--text2:#6b7280;--text3:#9ca3af;--border:#e5e7eb;--border2:#d1d5db;--blue:#185FA5;--blue-light:#E6F1FB;--blue-dark:#0C447C;--green:#3B6D11;--green-light:#EAF3DE;--amber:#854F0B;--amber-light:#FAEEDA;--red:#A32D2D;--red-light:#FCEBEB;--purple:#534AB7;--purple-light:#EEEDFE;--gray-tag:#5F5E5A;--gray-light:#F1EFE8;--teal:#0F6E56;--teal-light:#E1F5EE;--radius:8px;--radius-lg:12px}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5}.app{display:flex;height:100vh;overflow:hidden}.sidebar{width:230px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}.logo{padding:18px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}.logo-icon{width:32px;height:32px;background:var(--blue);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}.logo-icon i{color:#fff;font-size:16px}.logo-title{font-size:15px;font-weight:600;color:var(--text)}.logo-sub{font-size:11px;color:var(--text2)}.nav{padding:10px 8px;flex:1;overflow-y:auto}.nav-section{font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;padding:8px 10px 4px}.nav-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:var(--radius);cursor:pointer;font-size:13px;color:var(--text2);transition:all .15s;margin-bottom:1px;border:none;background:none;width:100%;text-align:left}.nav-item:hover{background:var(--bg3);color:var(--text)}.nav-item.active{background:var(--blue-light);color:var(--blue);font-weight:500}.nav-item i{font-size:17px;flex-shrink:0}.nav-badge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;padding:1px 6px;border-radius:10px;font-weight:600;min-width:18px;text-align:center}.sidebar-footer{padding:14px 16px;border-top:1px solid var(--border)}.sidebar-footer .name{font-size:13px;font-weight:500}.sidebar-footer .sub{font-size:11px;color:var(--text2)}.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}.topbar{padding:14px 24px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0}.topbar-title{font-size:17px;font-weight:600;flex:1}.topbar-subtitle{font-size:13px;color:var(--text2);margin-top:1px}.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:var(--radius);border:1px solid var(--border2);background:var(--bg2);cursor:pointer;font-size:13px;color:var(--text);transition:all .15s;font-family:inherit;white-space:nowrap}.btn:hover{background:var(--bg3);border-color:var(--border2)}.btn:active{transform:scale(.98)}.btn-primary{background:var(--blue);color:#fff;border-color:var(--blue)}.btn-primary:hover{background:var(--blue-dark);border-color:var(--blue-dark)}.btn-sm{padding:5px 10px;font-size:12px}.btn-danger{color:var(--red);border-color:#F09595}.btn-danger:hover{background:var(--red-light)}.btn-wa{background:var(--teal);color:#fff;border-color:var(--teal)}.btn-wa:hover{background:#085041}.btn-success{background:var(--green);color:#fff;border-color:var(--green)}.btn-success:hover{background:#27500A}.btn-group{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.content{flex:1;overflow-y:auto;padding:20px 24px}.view{display:none;flex-direction:column;height:100%;overflow:hidden}.view.active{display:flex}.controls-row{display:flex;gap:12px;margin-bottom:16px;align-items:center;flex-wrap:wrap}.search-wrap{display:flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:7px 12px;flex:1;min-width:200px}.search-wrap i{color:var(--text3);font-size:16px;flex-shrink:0}.search-wrap input{background:none;border:none;outline:none;font-size:13px;flex:1;color:var(--text);font-family:inherit}.sort-wrap{display:flex;align-items:center;gap:6px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px}.stat-label{font-size:11px;color:var(--text2);margin-bottom:5px;font-weight:500}.stat-val{font-size:26px;font-weight:700;line-height:1}.stat-blue{color:var(--blue)}.stat-green{color:var(--green)}.stat-amber{color:var(--amber)}.stat-red{color:var(--red)}.client-list{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;display:flex;flex-direction:column}.client-list-item{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s}.client-list-item:last-child{border-bottom:none}.client-list-item:hover{background:var(--bg3)}.client-info-block{display:flex;align-items:center;gap:12px;flex:2;min-width:0}.client-avatar{width:36px;height:36px;border-radius:50%;background:var(--blue-light);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--blue);flex-shrink:0}.client-name{font-size:14px;font-weight:600;color:var(--text)}.client-contact-block{flex:1.5;font-size:13px;color:var(--text2);display:flex;flex-direction:column;gap:2px}.client-tags-block{flex:1.5;display:flex;flex-wrap:wrap;gap:4px}.client-actions-block{display:flex;gap:6px;align-items:center}.tags{display:flex;flex-wrap:wrap;gap:4px}.tag{font-size:11px;padding:2px 8px;border-radius:10px;font-weight:500}.tag-blue{background:var(--blue-light);color:var(--blue)}.tag-green{background:var(--green-light);color:var(--green)}.tag-amber{background:var(--amber-light);color:var(--amber)}.tag-red{background:var(--red-light);color:var(--red)}.tag-purple{background:var(--purple-light);color:var(--purple)}.tag-gray{background:var(--gray-light);color:var(--gray-tag)}.tag-teal{background:var(--teal-light);color:var(--teal)}.table-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}table{width:100%;border-collapse:collapse;font-size:13px}th{text-align:left;padding:9px 14px;font-size:11px;font-weight:600;color:var(--text2);border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:.05em;background:var(--bg3)}td{padding:11px 14px;border-bottom:1px solid var(--border)}tr:last-child td{border-bottom:none}tbody tr:hover td{background:var(--bg3)}.detail-grid{display:grid;grid-template-columns:3fr 2fr;gap:14px}.section-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:12px}.section-title{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;padding-left:12px;border-left:4px solid var(--blue)}.detail-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px}.detail-row:last-child{border-bottom:none}.detail-label{color:var(--text2);display:flex;align-items:center;gap:5px}.poliza-item{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;margin-bottom:7px;display:flex;align-items:center;gap:10px}.poliza-icon{width:34px;height:34px;border-radius:var(--radius);background:var(--blue-light);display:flex;align-items:center;justify-content:center;flex-shrink:0}.poliza-icon i{color:var(--blue);font-size:16px}.report-bar-row{margin-bottom:12px}.report-bar-label{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;font-weight:500}.report-bar-bg{width:100%;height:8px;background:var(--bg3);border-radius:4px;overflow:hidden}.report-bar-fill{height:100%;background:var(--blue);border-radius:4px}.interaccion-item{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px}.interaccion-item:last-child{border-bottom:none}.interaccion-icon{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px}.int-llamada{background:#EAF3DE;color:var(--green)}.int-whatsapp{background:var(--teal-light);color:var(--teal)}.int-reunion{background:var(--blue-light);color:var(--blue)}.int-email{background:var(--purple-light);color:var(--purple)}.int-otro{background:var(--gray-light);color:var(--gray-tag)}.evol-bar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}.evol-bar-label{width:90px;font-size:12px;color:var(--text2);text-align:right;flex-shrink:0}.evol-bar-track{flex:1;height:22px;background:var(--bg3);border-radius:4px;overflow:hidden;position:relative}.evol-bar-fill{height:100%;border-radius:4px;display:flex;align-items:center;padding-left:8px;font-size:11px;font-weight:600;color:#fff;transition:width .4s}.evol-bar-val{margin-left:8px;font-size:12px;font-weight:600;color:var(--text);white-space:nowrap}.evol-delta{font-size:11px;font-weight:500;margin-left:4px}.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:1000}.modal-backdrop.open{display:flex}.modal{background:var(--bg2);border-radius:var(--radius-lg);padding:24px;width:560px;max-width:95vw;max-height:90vh;overflow-y:auto;position:relative;box-shadow:0 8px 40px rgba(0,0,0,.18)}.modal-title{font-size:16px;font-weight:600;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between}.modal-close{background:none;border:none;cursor:pointer;color:var(--text2);font-size:20px;padding:2px;line-height:1}.modal-close:hover{color:var(--text)}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.full{grid-column:1/-1}.form-group{display:flex;flex-direction:column;gap:4px}label{font-size:12px;font-weight:500;color:var(--text2)}input,select,textarea{padding:8px 10px;border:1px solid var(--border2);border-radius:var(--radius);font-size:13px;background:var(--bg2);color:var(--text);outline:none;font-family:inherit;transition:border-color .15s}input:focus,select:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,95,165,.1)}textarea{resize:vertical;min-height:64px}.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}.kanban{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;align-items:start}.kanban-col{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px}.kanban-col-header{font-size:12px;font-weight:600;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;padding-bottom:8px;border-bottom:1px solid var(--border)}.kanban-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin-bottom:8px;cursor:default;transition:border-color .15s;position:relative}.kanban-card:hover{border-color:var(--border2)}.kanban-actions{display:flex;justify-content:flex-end;margin-top:8px;gap:4px}.status-dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:5px}.dot-green{background:var(--green)}.dot-amber{background:#EF9F27}.dot-red{background:var(--red)}.dot-blue{background:var(--blue)}.empty{text-align:center;padding:48px 20px;color:var(--text2)}.empty i{font-size:36px;display:block;margin-bottom:10px;opacity:.4}.empty p{font-size:13px}.back-btn{display:inline-flex;align-items:center;gap:5px;font-size:13px;color:var(--text2);cursor:pointer;background:none;border:none;font-family:inherit;padding:4px 0}.back-btn:hover{color:var(--text)}.toast{position:fixed;bottom:24px;right:24px;background:var(--text);color:#fff;padding:10px 18px;border-radius:var(--radius);font-size:13px;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none}.toast.show{opacity:1}.cotizador-form{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;margin-bottom:20px}.cotizacion-row{display:grid;grid-template-columns:1.2fr 1fr 1.2fr 0.8fr 50px 50px 60px 50px 40px;gap:8px;margin-bottom:10px;align-items:end}.cot-recom-check,.cot-lojack-check,.cot-actual-check{width:18px;height:18px;cursor:pointer}.cotizacion-row.is-actual{background:#fff7ed;border-radius:var(--radius);border:1px solid #ea580c;padding:6px}.cotizacion-row.is-actual label{color:#ea580c;font-weight:600}.pdf-recom-tag{background:var(--blue);color:#fff;font-size:10px;padding:2px 6px;border-radius:4px;margin-left:8px;text-transform:uppercase}.pdf-lojack-tag{color:var(--teal);font-size:10px;font-weight:600;display:block;margin-top:2px}.cotizacion-row .form-group{margin-bottom:0}.btn-icon{width:34px;height:34px;display:flex;align-items:center;justify-content:center;padding:0}@media print{.sidebar,.topbar,.btn-group,.nav,.sidebar-footer,.back-btn,.btn-icon,.btn-primary,.no-print{display:none !important}.main,.content{padding:0 !important;margin:0 !important;overflow:visible !important}.cotizador-form{border:none;padding:0}body{background:#fff}}.pdf-template{display:none;padding:0;font-family:'Segoe UI','Helvetica','Arial',sans-serif;color:#334155;background:#fff;max-width:850px;margin:auto;border:1px solid #e2e8f0}.pdf-header{display:flex;align-items:center;gap:30px;padding:40px;background:linear-gradient(135deg,#185FA5 0%,#0C447C 100%);color:#fff}.pdf-header-img{width:80px;height:80px;border-radius:16px;object-fit:cover;background:#fff;padding:5px;box-shadow:0 4px 12px rgba(0,0,0,0.1)}.pdf-header-info{flex:1}.pdf-header-name{font-size:26px;font-weight:800;color:#fff;margin:0;letter-spacing:-0.02em}.pdf-header-sub{font-size:14px;color:rgba(255,255,255,0.8);margin:4px 0;font-weight:500}.pdf-header-title{font-size:18px;font-weight:600;color:#fff;margin-top:12px;display:flex;align-items:center;gap:8px}.pdf-header-title i{font-size:20px;opacity:0.9}.pdf-body-content{padding:30px 40px}.pdf-client-box{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:25px;padding-bottom:15px;border-bottom:2px solid #f1f5f9}.pdf-client-info div{font-size:13px;color:#64748b;margin-bottom:4px;text-transform:uppercase;font-weight:600;letter-spacing:0.05em}.pdf-client-info h2{font-size:20px;color:#1e293b;margin:0;font-weight:700}.pdf-date-info{text-align:right;font-size:13px;color:#64748b}.pdf-table{width:100%;border-collapse:separate;border-spacing:0;margin-bottom:25px;border-radius:12px;overflow:hidden;border:1px solid #e2e8f0}.pdf-table th{background:#f8fafc;color:#475569;text-align:center;padding:16px 10px;font-size:12px;font-weight:700;border-bottom:2px solid #e2e8f0;text-transform:uppercase;letter-spacing:0.03em}.pdf-table th:first-child{text-align:left;padding-left:20px;width:200px}.pdf-table td{padding:16px 10px;font-size:13px;border-bottom:1px solid #f1f5f9;text-align:center;vertical-align:middle;color:#334155}.pdf-table td:first-child{text-align:left;padding-left:20px;font-weight:600;color:#1e293b;background:#f8fafc;border-right:1px solid #f1f5f9}.pdf-table tr:last-child td{border-bottom:none}.pdf-table tr:nth-child(even) td:not(:first-child){background:#fcfdfe}.pdf-table .price-val{font-size:18px;font-weight:800;color:#185FA5;display:block;line-height:1.2;margin:0}.pdf-table .recom-cell{background:#f0f7ff !important;position:relative;box-shadow:inset 0 0 0 2px #185FA5}.pdf-table .recom-badge{background:#185FA5;color:#fff;font-size:9px;font-weight:800;padding:3px 8px;border-radius:20px;position:absolute;top:-12px;left:50%;transform:translateX(-50%);white-space:nowrap;box-shadow:0 2px 4px rgba(24,95,165,0.2)}.pdf-table .mejor-cell{background:#f0fdf4 !important;position:relative;box-shadow:inset 0 0 0 2px #16a34a}.pdf-table .mejor-badge{background:#16a34a;color:#fff;font-size:9px;font-weight:800;padding:3px 8px;border-radius:20px;position:absolute;top:-12px;left:50%;transform:translateX(-50%);white-space:nowrap;box-shadow:0 2px 4px rgba(22,163,74,0.2)}.pdf-table .actual-cell{background:#fff7ed !important;position:relative;box-shadow:inset 0 0 0 2px #ea580c}.pdf-table .actual-badge{background:#ea580c;color:#fff;font-size:9px;font-weight:800;padding:3px 8px;border-radius:20px;position:absolute;top:-12px;left:50%;transform:translateX(-50%);white-space:nowrap;box-shadow:0 2px 4px rgba(234,88,12,0.2)}.pdf-info-box{background:#f8fafc;border-radius:12px;padding:20px;font-size:13px;line-height:1.6;color:#475569;border:1px solid #e2e8f0;margin-top:20px}.pdf-info-box b{color:#1e293b}.pdf-footer{margin-top:40px;padding:30px 40px;background:#f8fafc;border-top:1px solid #e2e8f0;display:flex;justify-content:center;align-items:center}.pdf-footer-contact{display:flex;gap:20px}.pdf-footer-item{display:flex;align-items:center;gap:6px;font-size:12px;color:#64748b;font-weight:500}.pdf-footer-item i{color:#185FA5;font-size:14px}.pdf-footer-brand{font-size:12px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.05em}::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:10px}.dash-stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;cursor:pointer;transition:all .18s;display:flex;flex-direction:column;gap:6px}.dash-stat-card:hover{border-color:var(--blue);box-shadow:0 2px 12px rgba(24,95,165,.1);transform:translateY(-1px)}.dash-stat-card .stat-label{font-size:11px;color:var(--text2);font-weight:500;text-transform:uppercase;letter-spacing:.05em}.dash-stat-card .stat-val{font-size:32px;font-weight:700;line-height:1}.dash-stat-card .stat-link{font-size:11px;color:var(--blue);margin-top:2px;display:flex;align-items:center;gap:3px}.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}.cal-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px}.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}.cal-title{font-size:14px;font-weight:600}.cal-nav{background:none;border:none;cursor:pointer;color:var(--text2);font-size:18px;padding:2px 6px;border-radius:var(--radius);line-height:1}.cal-nav:hover{background:var(--bg3);color:var(--text)}.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}.cal-dow{text-align:center;font-size:10px;font-weight:600;color:var(--text3);padding:4px 0;text-transform:uppercase}.cal-day{text-align:center;padding:5px 2px;border-radius:var(--radius);font-size:12px;cursor:default;min-height:34px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px}.cal-day.other{color:var(--text3)}.cal-day.today{background:var(--blue);color:#fff;font-weight:700}.cal-day.has-bday{background:var(--purple-light);color:var(--purple);font-weight:600;cursor:pointer}.cal-day.has-bday.today{background:var(--purple);color:#fff}.cal-day.has-task{background:var(--blue-light);color:var(--blue);font-weight:600;cursor:pointer}.cal-day.has-task.today{background:var(--blue-dark);color:#fff}.cal-dots-container{display:flex;gap:2px;justify-content:center;align-items:center}.cal-day-dot{width:4px;height:4px;border-radius:50%;flex-shrink:0}.cal-day.today .cal-day-dot{background:#fff !important}.bday-panel{background:linear-gradient(135deg,#faf5ff 0%,#fdf4ff 100%);border:1.5px solid #e9d5ff !important;border-radius:var(--radius-lg);overflow:hidden}.bday-panel .section-title{border-left-color:#7c3aed !important;color:#7c3aed}.bday-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid #f3e8ff;font-size:13px;border-radius:8px;margin:4px 0;transition:background .15s}.bday-item:last-child{border-bottom:none;margin-bottom:0}.bday-item:hover{background:rgba(124,58,237,.06)}.bday-item.bday-item-hoy{background:linear-gradient(135deg,#f3e8ff,#fce7f3);border:1px solid #e9d5ff;animation:bdayPulse 2.5s ease-in-out infinite}@keyframes bdayPulse{0%,100%{box-shadow:0 0 0 0 rgba(124,58,237,.15)}50%{box-shadow:0 0 0 6px rgba(124,58,237,0)}}.bday-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#a855f7);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;box-shadow:0 2px 6px rgba(124,58,237,.3)}.bday-dias{font-size:11px;font-weight:700;padding:3px 10px;border-radius:10px;white-space:nowrap}.bday-hoy{background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;box-shadow:0 2px 8px rgba(124,58,237,.35)}.bday-pronto{background:var(--amber-light);color:var(--amber)}.bday-proximo{background:var(--bg3);color:var(--text2)}.dash-card-blue{background:linear-gradient(135deg,#EBF4FF 0%,#DBEAFE 100%) !important;border-color:#BFDBFE !important}.dash-card-blue:hover{border-color:#93C5FD !important;box-shadow:0 2px 12px rgba(59,130,246,.12) !important}.dash-card-blue .stat-link{color:#2563EB}.dash-card-green{background:linear-gradient(135deg,#F0FDF4 0%,#DCFCE7 100%) !important;border-color:#BBF7D0 !important}.dash-card-green:hover{border-color:#86EFAC !important;box-shadow:0 2px 12px rgba(34,197,94,.12) !important}.dash-card-green .stat-link{color:#16A34A}.dash-card-amber{background:linear-gradient(135deg,#FFFBEB 0%,#FEF3C7 100%) !important;border-color:#FDE68A !important}.dash-card-amber:hover{border-color:#FCD34D !important;box-shadow:0 2px 12px rgba(245,158,11,.12) !important}.dash-card-amber .stat-link{color:#D97706}.dash-card-red{background:linear-gradient(135deg,#FFF5F5 0%,#FEE2E2 100%) !important;border-color:#FECACA !important}.dash-card-red:hover{border-color:#FCA5A5 !important;box-shadow:0 2px 12px rgba(239,68,68,.12) !important}.dash-card-red .stat-link{color:#DC2626}.dash-cal-wrap{background:linear-gradient(135deg,#F0F9FF 0%,#E0F2FE 100%) !important;border-color:#BAE6FD !important}.dash-cal-wrap .cal-title{color:#0369A1}.dash-card-tasks{background:linear-gradient(135deg,#F5F3FF 0%,#EDE9FE 100%) !important;border-color:#DDD6FE !important}.dash-card-tasks .section-title{border-left-color:#7C3AED !important;color:#6D28D9}.dash-card-siniestros{background:linear-gradient(135deg,#FFF7ED 0%,#FFEDD5 100%) !important;border-color:#FED7AA !important}.dash-card-siniestros .section-title{border-left-color:#EA580C !important;color:#C2410C}.bday-modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:2000;animation:fadeInBD .25s ease}@keyframes fadeInBD{from{opacity:0}to{opacity:1}}.bday-modal{background:#fff;border-radius:16px;padding:0;width:480px;max-width:95vw;box-shadow:0 12px 50px rgba(0,0,0,.22);overflow:hidden;animation:popInBD .3s cubic-bezier(.34,1.56,.64,1)}@keyframes popInBD{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}.bday-modal-header{background:linear-gradient(135deg,#7c3aed 0%,#a855f7 100%);padding:28px 28px 20px;color:#fff;text-align:center;position:relative}.bday-modal-emoji{font-size:52px;display:block;margin-bottom:8px;filter:drop-shadow(0 2px 6px rgba(0,0,0,.2))}.bday-modal-title{font-size:20px;font-weight:700;margin:0}.bday-modal-sub{font-size:13px;opacity:.85;margin-top:4px}.bday-modal-body{padding:20px 24px 24px}.bday-modal-card{display:flex;align-items:center;gap:12px;padding:12px 14px;background:#faf5ff;border:1px solid #e9d5ff;border-radius:10px;margin-bottom:10px}.bday-modal-card:last-of-type{margin-bottom:0}.bday-modal-av{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#a855f7);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0}.bday-modal-name{font-size:14px;font-weight:600;color:#1a1d23}.bday-modal-info{font-size:12px;color:#6b7280;margin-top:2px}.bday-modal-footer{display:flex;gap:8px;justify-content:flex-end;padding:16px 24px;border-top:1px solid #f3e8ff;background:#fdfbff}.dash-pend-item{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px;cursor:pointer}.dash-pend-item:hover{color:var(--blue)}.dash-pend-item:last-child{border-bottom:none}.links-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.link-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 20px;display:flex;flex-direction:column;gap:10px;transition:all .18s;height:100%}.link-card:hover{border-color:var(--blue);box-shadow:0 2px 12px rgba(24,95,165,.1);transform:translateY(-1px)}.link-card-name{font-size:15px;font-weight:600}.link-card-desc{font-size:12px;color:var(--text2);flex:1;margin-bottom:8px}</style>
 </head>
 <body>
- 
+
 <div id="login-screen" style="display:none;position:fixed;inset:0;background:#f7f8fa;z-index:9999;align-items:center;justify-content:center;flex-direction:column">
   <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:40px 36px;width:100%;max-width:380px;box-shadow:0 4px 24px rgba(0,0,0,0.08)">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:28px">
@@ -339,9 +68,9 @@ textarea{resize:vertical;min-height:64px}
     <div class="sub">Productor Asesor de Seguros</div>
   </div>
 </div>
- 
+
 <div class="main" id="main">
- 
+
 <div class="view active" id="sec-dashboard">
   <div class="topbar">
     <div style="flex:1">
@@ -351,22 +80,22 @@ textarea{resize:vertical;min-height:64px}
   </div>
   <div class="content">
     <div class="stats" style="grid-template-columns:repeat(4,1fr)">
-      <div class="dash-stat-card" onclick="showSection('clientes')">
+      <div class="dash-stat-card dash-card-blue" onclick="showSection('clientes')">
         <div class="stat-label">Total clientes</div>
         <div class="stat-val stat-blue" id="dash-total">0</div>
         <div class="stat-link"><i class="ti ti-arrow-right" style="font-size:10px"></i> Ver clientes</div>
       </div>
-      <div class="dash-stat-card" onclick="showSection('polizas')">
+      <div class="dash-stat-card dash-card-green" onclick="showSection('polizas')">
         <div class="stat-label">Pólizas activas</div>
         <div class="stat-val stat-green" id="dash-polizas">0</div>
         <div class="stat-link"><i class="ti ti-arrow-right" style="font-size:10px"></i> Ver pólizas</div>
       </div>
-      <div class="dash-stat-card" onclick="showSection('siniestros')">
+      <div class="dash-stat-card dash-card-amber" onclick="showSection('siniestros')">
         <div class="stat-label">Siniestros abiertos</div>
         <div class="stat-val stat-amber" id="dash-sinopen">0</div>
         <div class="stat-link"><i class="ti ti-arrow-right" style="font-size:10px"></i> Ver siniestros</div>
       </div>
-      <div class="dash-stat-card" onclick="showSection('pendientes')">
+      <div class="dash-stat-card dash-card-red" onclick="showSection('pendientes')">
         <div class="stat-label">Pendientes activos</div>
         <div class="stat-val stat-red" id="dash-pend">0</div>
         <div class="stat-link"><i class="ti ti-arrow-right" style="font-size:10px"></i> Ver pendientes</div>
@@ -374,7 +103,7 @@ textarea{resize:vertical;min-height:64px}
     </div>
     <div class="dash-grid">
       <div>
-        <div class="cal-wrap">
+        <div class="cal-wrap dash-cal-wrap">
           <div class="cal-header">
             <button class="cal-nav" onclick="calCambiarMes(-1)">&#8249;</button>
             <div class="cal-title" id="cal-titulo"></div>
@@ -384,25 +113,25 @@ textarea{resize:vertical;min-height:64px}
         </div>
       </div>
       <div>
-        <div class="section-card" style="margin-bottom:0">
+        <div class="section-card bday-panel" style="margin-bottom:0">
           <div class="section-title">🎂 Próximos cumpleaños <span id="dash-bday-count" style="font-size:11px;font-weight:400;color:var(--text2);text-transform:none;letter-spacing:0"></span></div>
           <div id="dash-bday-list"><p style="font-size:13px;color:var(--text2)">Ningún cumpleaños próximo.</p></div>
         </div>
       </div>
     </div>
     <div class="dash-grid" style="margin-top:14px">
-      <div class="section-card" style="margin-bottom:0">
+      <div class="section-card dash-card-tasks" style="margin-bottom:0">
         <div class="section-title">Tareas pendientes <span style="font-size:11px;font-weight:400;text-transform:none;letter-spacing:0;color:var(--text2)"></span></div>
         <div id="dash-tareas-urgentes"></div>
       </div>
-      <div class="section-card" style="margin-bottom:0">
+      <div class="section-card dash-card-siniestros" style="margin-bottom:0">
         <div class="section-title">Siniestros en trámite</div>
         <div id="dash-siniestros-abiertos"></div>
       </div>
     </div>
   </div>
 </div>
- 
+
 <div class="view" id="sec-clientes">
   <div class="topbar">
     <div style="flex:1"><div class="topbar-title">Clientes</div></div>
@@ -435,7 +164,7 @@ textarea{resize:vertical;min-height:64px}
     <div class="client-list" id="list-clientes"></div>
   </div>
 </div>
- 
+
 <div class="view" id="sec-detalle">
   <div class="topbar">
     <button class="back-btn" onclick="showSection('clientes')"><i class="ti ti-arrow-left"></i> Clientes</button>
@@ -446,7 +175,7 @@ textarea{resize:vertical;min-height:64px}
   </div>
   <div class="content" id="det-body"></div>
 </div>
- 
+
 <div class="view" id="sec-prospectos">
   <div class="topbar">
     <div style="flex:1"><div class="topbar-title">Prospectos</div></div>
@@ -454,7 +183,7 @@ textarea{resize:vertical;min-height:64px}
   </div>
   <div class="content">
     <div class="kanban" id="kanban"></div>
-    
+
     <div class="section-card" style="margin-top: 24px;">
       <div class="section-title">Prospectos Convertidos en Clientes</div>
       <div class="table-wrap">
@@ -472,7 +201,7 @@ textarea{resize:vertical;min-height:64px}
     </div>
   </div>
 </div>
- 
+
 <div class="view" id="sec-siniestros">
   <div class="topbar">
     <div style="flex:1"><div class="topbar-title">Siniestros</div></div>
@@ -504,7 +233,7 @@ textarea{resize:vertical;min-height:64px}
     </div>
   </div>
 </div>
- 
+
 <div class="view" id="sec-pendientes">
   <div class="topbar">
     <div style="flex:1"><div class="topbar-title">Pendientes</div></div>
@@ -526,7 +255,7 @@ textarea{resize:vertical;min-height:64px}
     </div>
   </div>
 </div>
- 
+
 <div class="view" id="sec-polizas">
   <div class="topbar">
     <div style="flex:1"><div class="topbar-title">Pólizas</div></div>
@@ -552,7 +281,7 @@ textarea{resize:vertical;min-height:64px}
     </div>
   </div>
 </div>
- 
+
 <div class="view" id="sec-facturacion">
   <div class="topbar">
     <div style="flex:1"><div class="topbar-title">Control de Facturación Mensual</div></div>
@@ -582,7 +311,7 @@ textarea{resize:vertical;min-height:64px}
     </div>
   </div>
 </div>
- 
+
 <div class="view" id="sec-reportes">
   <div class="topbar"><div class="topbar-title">Reportes de Cartera</div></div>
   <div class="content">
@@ -608,7 +337,7 @@ textarea{resize:vertical;min-height:64px}
     </div>
   </div>
 </div>
- 
+
 <div class="view" id="sec-cotizador">
   <div class="topbar">
     <div style="flex:1"><div class="topbar-title">Cotizador</div><div class="topbar-subtitle">Generar presupuesto para cliente</div></div>
@@ -642,21 +371,22 @@ textarea{resize:vertical;min-height:64px}
           </select>
         </div>
       </div>
-      
+
       <div class="section-title">Opciones de Cobertura</div>
       <div id="cotizacion-items">
-        <div class="cotizacion-row" style="grid-template-columns: 1.2fr 1fr 1.2fr 0.8fr 60px 60px 70px 40px;">
+        <div class="cotizacion-row" style="grid-template-columns: 1.2fr 1fr 1.2fr 0.8fr 50px 50px 60px 50px 40px;">
           <div class="form-group"><label>Compañía</label><input type="text" class="cot-compania" placeholder="Ej: Fed. Patronal"></div>
           <div class="form-group"><label>Suma Asegurada</label><input type="text" class="cot-suma" placeholder="Ej: $15.000.000"></div>
           <div class="form-group"><label>Cobertura</label><input type="text" class="cot-cobertura" placeholder="Ej: Terceros Completo"></div>
           <div class="form-group"><label>Costo</label><input type="text" class="cot-costo" placeholder="Ej: $25.000"></div>
           <div class="form-group" style="align-items: center;"><label>Recom.</label><input type="checkbox" class="cot-recom-check"></div>
           <div class="form-group" style="align-items: center;"><label>LoJack</label><input type="checkbox" class="cot-lojack-check"></div>
-          <div class="form-group" style="align-items: center;"><label>Mej. precio</label><input type="checkbox" class="cot-mejor-check"></div>
+          <div class="form-group" style="align-items: center;"><label>Mejor</label><input type="checkbox" class="cot-mejor-check"></div>
+          <div class="form-group" style="align-items: center;"><label>Actual</label><input type="checkbox" class="cot-actual-check" onchange="toggleActualRow(this)"></div>
           <button class="btn btn-danger btn-icon" onclick="this.parentElement.remove()"><i class="ti ti-trash"></i></button>
         </div>
       </div>
-      
+
       <button class="btn btn-sm" style="margin-top: 10px;" onclick="agregarFilaCotizacion()"><i class="ti ti-plus"></i> Agregar otra opción</button>
     </div>
   </div>
@@ -695,7 +425,7 @@ textarea{resize:vertical;min-height:64px}
 	            <option value="">-- No vincular --</option>
 	          </select>
 	        </div>
-	      
+
 	      <div class="table-wrap">
 	        <table id="tabla-cot-hogar">
 	          <thead>
@@ -724,7 +454,7 @@ textarea{resize:vertical;min-height:64px}
 	          </tbody>
 	        </table>
 	      </div>
-	      
+
 	      <div style="background: #E6F1FB; border-left: 4px solid #185FA5; padding: 16px; border-radius: 8px; margin-top: 20px; font-size: 13px; line-height: 1.7;">
 	        <strong style="display: block; margin-bottom: 10px; color: #185FA5;">⚠️ Cobertura de Servicios de Emergencias</strong>
 	        <p style="margin: 0; color: #1a1d23;">La propuesta incluye servicios de emergencias en Plomería, Gasista, Electricista y Cerrajería. La cobertura opera exclusivamente ante eventos de urgencia, con un límite máximo de servicios anuales y topes de costos por evento según las condiciones de la póliza.</p>
@@ -897,7 +627,7 @@ textarea{resize:vertical;min-height:64px}
 <div class="modal-backdrop" id="modal-backdrop" onclick="closeModalOutside(event)">
   <div class="modal" id="modal-body"></div>
 </div>
- 
+
 <div class="toast" id="toast"></div>
 
 <!-- PDF TEMPLATE (HIDDEN) -->
@@ -913,14 +643,14 @@ textarea{resize:vertical;min-height:64px}
       <p class="pdf-header-sub">Fecha de cotización: <span id="pdf-cot-fecha"></span></p>
     </div>
   </div>
-  
+
   <div class="pdf-divider"></div>
-  
+
   <div id="pdf-companias-container">
     <!-- Se llena dinámicamente agrupado por compañía -->
   </div>
-  
-  
+
+
   <hr id="pdf-hr-coberturas" style="border: none; border-top: 2px solid #1a3a5a; margin: 24px 0 16px 0;">
 
   <div class="pdf-info-box" id="pdf-box-detalle-titulo">
@@ -965,7 +695,7 @@ textarea{resize:vertical;min-height:64px}
       <li><b>Suma los daños parciales al vehículo con aplicación de franquicia. Se aplica por cada siniestro de daño parcial</b></li>
     </ul>
   </div>
-  
+
   <div class="pdf-info-box" id="pdf-hogar-leyenda" style="margin-top: 20px; display: none; background: #E6F1FB; border-left: 4px solid #185FA5; padding: 14px; border-radius: 4px;">
     <p style="margin: 0 0 8px 0; font-weight: bold; color: #185FA5;">⚠️ Cobertura de Servicios de Emergencias</p>
     <p style="color: #1a1d23; font-size: 11px; margin: 0; line-height: 1.6;">La propuesta incluye servicios de emergencias en Plomería, Gasista, Electricista y Cerrajería. La cobertura opera exclusivamente ante eventos de urgencia, con un límite máximo de servicios anuales y topes de costos por evento según las condiciones de la póliza.</p>
@@ -984,27 +714,18 @@ textarea{resize:vertical;min-height:64px}
     </div>
   </div>
 </div>
- 
+
 <script>
-// ============================================================
-// CONSTANTES
-// ============================================================
 var TIPOS = ['Auto','Hogar','Comercio','Vida','Accidentes Personales','Moto','Transporte','Embarcación','Responsabilidad Civil','Agrícola','Incendio'];
 var COMPANIAS = ['Federación Patronal','Mercantil','San Cristóbal','Río Uruguay','Sancor','Allianz','Rivadavia','Banco del Sol','SMG','Prevención','Libra'];
 var STAGES = ['Primer contacto','En negociación','Propuesta enviada'];
 var TIPO_ICON = {Auto:'ti-car',Hogar:'ti-home',Vida:'ti-heart',Comercio:'ti-building-store',Moto:'ti-motorbike','Accidentes Personales':'ti-first-aid-kit',Transporte:'ti-truck','Embarcación':'ti-sailboat','Responsabilidad Civil':'ti-certificate','Agrícola':'ti-plant'};
 var TIPO_TAG = {Auto:'tag-blue',Hogar:'tag-teal',Vida:'tag-purple',Comercio:'tag-amber',Moto:'tag-blue','Accidentes Personales':'tag-red',Transporte:'tag-amber','Embarcación':'tag-teal','Responsabilidad Civil':'tag-gray','Agrícola':'tag-green'};
 var MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
- 
-// ============================================================
-// ESTADO
-// ============================================================
+
 var DB = {clients:[], siniestros:[], pendientes:[], prospectos:[], facturacion:[], cotizaciones:[]};
 var currentDetailClientId = null;
 
-// ============================================================
-// FIREBASE CONFIG
-// ============================================================
 var firebaseConfig = {
   apiKey: "AIzaSyCRSWClVtULGeWcBWnz-ba7Pj28oIVAOjE",
   authDomain: "mi-crm-96657.firebaseapp.com",
@@ -1030,8 +751,7 @@ function loadDB() {
         if(c.polizas) c.polizas.forEach(function(p){ if(!p.fechaAlta) p.fechaAlta=hoyMig; });
       });
       if (!DB.prospectos) DB.prospectos = [];
-      
-      // Normalización de tareas antiguas para que aparezca el botón "Ver Prospecto"
+
       if (DB.pendientes) {
         DB.pendientes.forEach(function(p) {
           if (!p.prosId && !p.clienteId) {
@@ -1051,8 +771,7 @@ function loadDB() {
     }
     document.getElementById('login-screen').style.display='none';
     document.getElementById('app').style.display='flex';
-    
-    // Verificar si hay una cotización para editar desde el hash de la URL
+
     var hash = window.location.hash;
     if (hash && hash.startsWith('#editCot=')) {
       var cotId = hash.split('=')[1];
@@ -1061,6 +780,7 @@ function loadDB() {
       }, 500);
     } else {
       showSection('dashboard');
+      setTimeout(function(){ mostrarModalBdays(); }, 500);
     }
   }).catch(function(e){ console.error(e); seedData(); showSection('dashboard'); });
 }
@@ -1068,7 +788,7 @@ function loadDB() {
 function saveDB() {
   fbdb.collection('crm').doc('data').set(DB).catch(function(e){ console.error('Error guardando:', e); });
 }
- 
+
 function seedFacturacion() {
   DB.facturacion = [
     {id:101,anio:2026,mes:0,compania:'Federación Patronal',monto:450000},
@@ -1082,7 +802,7 @@ function seedFacturacion() {
     {id:109,anio:2026,mes:2,compania:'Allianz',monto:160000}
   ];
 }
- 
+
 function seedData() {
   DB = {
     clients: [
@@ -1126,10 +846,7 @@ function seedData() {
   seedFacturacion();
   saveDB();
 }
- 
-// ============================================================
-// HELPERS
-// ============================================================
+
 function uid() { return Date.now() + Math.floor(Math.random()*1000); }
 function ini(n) { var p=n.trim().split(' '); return (p[0][0]+(p[1]?p[1][0]:'')).toUpperCase(); }
 function calcEdad(fechaNac) {
@@ -1144,9 +861,8 @@ function fmt(d) { if(!d) return '-'; var p=d.split('-'); return p[2]+'/'+p[1]+'/
 function getClient(id) { return DB.clients.find(function(c){return c.id==id}); }
 function getProspecto(id) { return DB.prospectos.find(function(p){return p.id==id}); }
 function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function abrirFichaProspecto(id) { 
+function abrirFichaProspecto(id) {
   openModal('ficha-prospecto', id);
-  // Hacer el modal más ancho para mostrar cotizaciones
   setTimeout(function(){
     var modal = document.querySelector('.modal');
     if(modal) modal.style.width = '720px';
@@ -1174,16 +890,13 @@ function updateBadges() {
   document.getElementById('badge-sin').textContent=sinOpen;
   document.getElementById('badge-pend').textContent=pndOpen;
   var totalPol=DB.clients.reduce(function(a,c){return a+c.polizas.length},0);
-  
+
   var dTotal=document.getElementById('dash-total'); if(dTotal) dTotal.textContent=DB.clients.length;
   var dPol=document.getElementById('dash-polizas'); if(dPol) dPol.textContent=totalPol;
   var dSin=document.getElementById('dash-sinopen'); if(dSin) dSin.textContent=sinOpen;
   var dPend=document.getElementById('dash-pend'); if(dPend) dPend.textContent=pndOpen;
 }
- 
-// ============================================================
-// NAVEGACIÓN
-// ============================================================
+
 function showSection(s) {
   document.querySelectorAll('.view').forEach(function(v){v.classList.remove('active')});
   document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active')});
@@ -1204,10 +917,7 @@ if(s==='cotizador') initCotizador();
 	  if(s==='historial-cot') renderHistorialCotizaciones();
   updateBadges();
 }
- 
-// ============================================================
-// CIERRE DE SESIÓN POR INACTIVIDAD (1 HORA)
-// ============================================================
+
 var lastActivityTime = Date.now();
 var INACTIVITY_LIMIT = 60 * 60 * 1000; // 1 hora en milisegundos
 
@@ -1217,7 +927,6 @@ function resetInactivityTimer() {
 
 function checkInactivity() {
   if (Date.now() - lastActivityTime > INACTIVITY_LIMIT) {
-    // Si la pantalla de login no está visible (usuario logueado), cerrar sesión
     if (document.getElementById('login-screen').style.display === 'none') {
       console.log("Inactividad detectada. Cerrando sesión...");
       fbauth.signOut().then(function() {
@@ -1227,17 +936,12 @@ function checkInactivity() {
   }
 }
 
-// Escuchar eventos de actividad del usuario
 ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(function(name) {
   document.addEventListener(name, resetInactivityTimer, true);
 });
 
-// Verificar inactividad cada minuto
 setInterval(checkInactivity, 60000);
 
-// ============================================================
-// DASHBOARD & CALENDARIO
-// ============================================================
 var calViewDate = new Date();
 
 function renderDashboard() {
@@ -1287,12 +991,11 @@ function renderCalendario() {
     if(parseInt(parts[0]) === anio && parseInt(parts[1])-1 === mes) {
       var dia = parseInt(parts[2]);
       if(!taskMap[dia]) taskMap[dia]=[];
-      
+
       var tipo = 'general';
       if(p.prosId) tipo = 'prospecto';
       else if(p.clienteId && p.clienteId != 0) tipo = 'cliente';
-      
-      // Si la tarea menciona "siniestro" o "choque" o similares, o está vinculada a un cliente con siniestros (heurística)
+
       if(p.tarea.toLowerCase().includes('siniestro') || p.tarea.toLowerCase().includes('choque') || p.tarea.toLowerCase().includes('denuncia')) {
         tipo = 'siniestro';
       }
@@ -1320,12 +1023,12 @@ function renderCalendario() {
     var esHoy = (d===hoy.getDate() && mes===hoy.getMonth() && anio===hoy.getFullYear());
     var tieneBday = !!bdayMap[d];
     var tieneTarea = !!taskMap[d];
-    
+
     var cls = 'cal-day';
     if(esHoy) cls += ' today';
     if(tieneBday) cls += ' has-bday';
     if(tieneTarea && !tieneBday) cls += ' has-task';
-    
+
     var dotHTML = '<div class="cal-dots-container">';
     if(tieneBday) dotHTML += '<div class="cal-day-dot" style="background:var(--purple)" title="Cumpleaños"></div>';
     if(tieneTarea) {
@@ -1335,12 +1038,12 @@ function renderCalendario() {
       if(tiposEnDia.includes('cliente') || tiposEnDia.includes('general')) dotHTML += '<div class="cal-day-dot" style="background:var(--blue)" title="Tarea/Cliente"></div>';
     }
     dotHTML += '</div>';
-    
+
     var titleParts = [];
     if(tieneBday) titleParts.push('Cumpleaños: ' + bdayMap[d].join(', '));
     if(tieneTarea) titleParts.push('Tareas: ' + taskMap[d].map(function(t){return t.tarea}).join(', '));
     var title = titleParts.length ? ' title="'+escHtml(titleParts.join(' | '))+'"' : '';
-    
+
     var onclick = '';
     if(tieneBday || tieneTarea) {
       var dataKey = 'calday_'+anio+'_'+mes+'_'+d;
@@ -1357,7 +1060,7 @@ function abrirDiaCalendario(dia, anio, mes, bdays, tareas) {
   var MESES_FULL = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
   var titulo = dia + ' de ' + MESES_FULL[mes] + ' ' + anio;
   var html = '<div style="font-size:15px;font-weight:600;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border)"><i class="ti ti-calendar-event" style="margin-right:6px;color:var(--blue)"></i>'+titulo+'</div>';
-  
+
   if(bdays && bdays.length) {
     html += '<div style="margin-bottom:14px"><div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">🎂 Cumpleaños</div>';
     bdays.forEach(function(nombre){
@@ -1366,7 +1069,7 @@ function abrirDiaCalendario(dia, anio, mes, bdays, tareas) {
     });
     html += '</div>';
   }
-  
+
   if(tareas && tareas.length) {
     html += '<div><div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">📋 Tareas pendientes</div>';
     tareas.forEach(function(item){
@@ -1380,7 +1083,7 @@ function abrirDiaCalendario(dia, anio, mes, bdays, tareas) {
       else if(tipo === 'cliente') { bg = 'var(--green-light)'; color = 'var(--green)'; label = 'Cliente'; }
 
       var onClick = id ? 'onclick="closeModal(); openModal(\'editar-pendiente\','+id+')"' : '';
-      
+
       html += '<div '+onClick+' style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:'+bg+';border-radius:var(--radius);margin-bottom:6px;color:'+color+';font-weight:500;cursor:pointer" title="'+label+': Click para ver detalle">'+
         '<i class="ti ti-tag" style="font-size:11px;opacity:0.7"></i> '+escHtml(tareaTexto)+'</div>';
     });
@@ -1395,7 +1098,8 @@ function abrirDiaCalendario(dia, anio, mes, bdays, tareas) {
 }
 
 function renderBdays() {
-  var hoy = new Date();
+  var ahora = new Date();
+  var hoy = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate());
   var hoyAnio = hoy.getFullYear();
   var lista = [];
 
@@ -1404,7 +1108,7 @@ function renderBdays() {
     var p = c.fechaNacimiento.split('-');
     var mes = parseInt(p[1])-1, dia = parseInt(p[2]);
     var cumple = new Date(hoyAnio, mes, dia);
-    if(cumple < hoy && !(cumple.getDate()===hoy.getDate() && cumple.getMonth()===hoy.getMonth())) {
+    if(cumple < hoy) {
       cumple = new Date(hoyAnio+1, mes, dia);
     }
     var diff = Math.round((cumple - hoy) / 86400000);
@@ -1432,13 +1136,18 @@ function renderBdays() {
     if(diff===0){badgeCls='bday-hoy';badgeTxt='¡Hoy! 🎉';}
     else if(diff<=7){badgeCls='bday-pronto';badgeTxt='en '+diff+' día'+(diff>1?'s':'');}
     else{badgeCls='bday-proximo';badgeTxt='en '+diff+' días';}
-    return '<div class="bday-item" style="cursor:pointer" onclick="showDetail('+c.id+')">'+
+    var waBtn = c.whatsapp
+      ? '<button class="btn btn-sm btn-wa" title="Enviar felicitación por WhatsApp" onclick="event.stopPropagation();enviarWABday('+c.id+')" style="margin-left:auto;flex-shrink:0"><i class="ti ti-brand-whatsapp"></i></button>'
+      : '';
+    var itemCls = 'bday-item' + (diff===0 ? ' bday-item-hoy' : '');
+    return '<div class="'+itemCls+'" style="cursor:pointer" onclick="showDetail('+c.id+')">'+
       '<div class="bday-avatar">'+ini(c.nombre)+'</div>'+
-      '<div>'+
+      '<div style="flex:1;min-width:0">'+
         '<div style="font-weight:500">'+escHtml(c.nombre)+'</div>'+
         '<div style="font-size:11px;color:var(--text2)">'+diaStr+' · cumple '+item.edad+' años</div>'+
       '</div>'+
-      '<span class="bday-dias '+badgeCls+'">'+badgeTxt+'</span>'+
+      '<span class="bday-dias '+badgeCls+'" style="flex-shrink:0">'+badgeTxt+'</span>'+
+      waBtn+
     '</div>';
   }).join('');
 }
@@ -1454,17 +1163,15 @@ function renderDashPendientes() {
   el.innerHTML = lista.map(function(p){
     var c=getClient(p.clienteId);
     var displayName = c ? escHtml(c.nombre) : 'Prospecto/General';
-    
-    // Si no hay cliente pero hay prosId, buscar el nombre del prospecto
+
     if (!c && p.prosId) {
       var pros = DB.prospectos.find(function(pr){ return pr.id == p.prosId; });
       if (pros) displayName = escHtml(pros.nombre);
     }
-    
+
     var iconColor = p.prioridad==='Alta'?'var(--red)':p.prioridad==='Media'?'var(--amber)':'var(--text3)';
-    // Modificado para que siempre abra el modal de edición y así se vea el botón "Ver Prospecto"
     var clickAction = 'openModal(\'editar-pendiente\','+p.id+')';
-    return '<div class="dash-pend-item" onclick="'+clickAction+'" title="Ver detalle de tarea">'+ 
+    return '<div class="dash-pend-item" onclick="'+clickAction+'" title="Ver detalle de tarea">'+
       '<i class="ti ti-clock" style="color:'+iconColor+';font-size:15px;flex-shrink:0"></i>'+
       '<div style="flex:1;min-width:0">'+
         '<div style="font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+escHtml(p.tarea)+'</div>'+
@@ -1492,9 +1199,6 @@ function renderDashSiniestros() {
   }).join('');
 }
 
-// ============================================================
-// RENDER CLIENTES
-// ============================================================
 function renderClientes() {
   var q=(document.getElementById('q-clientes').value||'').toLowerCase();
   var sortVal=document.getElementById('sort-clientes').value || 'nombre-asc';
@@ -1505,12 +1209,12 @@ function renderClientes() {
     var matchTraido=!filtroTraido||(c.traidoPor||'Yo')===filtroTraido;
     return matchQ&&matchTraido;
   });
-  
+
   list.sort(function(a, b) {
     if(sortVal === 'nombre-desc') return b.nombre.localeCompare(a.nombre);
     return a.nombre.localeCompare(b.nombre);
   });
-  
+
   var container=document.getElementById('list-clientes');
   if(!list.length){container.innerHTML='<div class="empty"><i class="ti ti-users"></i><p>No se encontraron clientes</p></div>';return;}
   container.innerHTML=list.map(function(c){
@@ -1532,27 +1236,24 @@ function renderClientes() {
     '</div>';
   }).join('');
 }
- 
-// ============================================================
-// DETALLE CLIENTE
-// ============================================================
+
 function showDetail(id) {
   var c=getClient(id);
   if(!c) return;
   currentDetailClientId=id;
- 
+
   document.querySelectorAll('.view').forEach(function(v){v.classList.remove('active')});
   document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active')});
   document.getElementById('sec-detalle').classList.add('active');
   document.getElementById('det-nombre').textContent=c.nombre;
-  
+
   document.getElementById('det-actions').innerHTML=
     '<button class="btn btn-sm btn-wa" onclick="abrirWA(\''+escHtml(c.whatsapp||'')+'\')"><i class="ti ti-brand-whatsapp"></i> WhatsApp</button>'+
     '<button class="btn btn-sm" onclick="openModal(\'nuevo-pendiente\','+c.id+')"><i class="ti ti-clock-play"></i> Tarea</button>'+
     '<button class="btn btn-sm" onclick="agregarPoliza('+c.id+')"><i class="ti ti-plus"></i> Póliza</button>'+
     '<button class="btn btn-sm" onclick="openModal(\'nuevo-siniestro\','+c.id+')"><i class="ti ti-alert-triangle"></i> Cargar Siniestro</button>'+
     '<button class="btn btn-sm btn-danger" onclick="eliminarCliente('+c.id+')"><i class="ti ti-trash"></i> Eliminar Cliente</button>';
- 
+
   var polizasHTML = c.polizas && c.polizas.length ? c.polizas.map(function(p,i){
     var ic=TIPO_ICON[p.tipo]||'ti-file';
     var vendTag=p.vendedor?' · Vendedor: '+p.vendedor:'';
@@ -1570,7 +1271,7 @@ function showDetail(id) {
       '</div>'+
     '</div>';
   }).join('') : '<p style="font-size:13px;color:var(--text2)">Sin pólizas activas vinculadas.</p>';
- 
+
   var sinClient=DB.siniestros.filter(function(s){return s.clienteId==c.id});
   var sinHTML=sinClient.length ? sinClient.map(function(s){
     var dot=s.estado==='Cerrado'?'dot-green':s.estado==='En trámite'?'dot-amber':'dot-blue';
@@ -1579,7 +1280,7 @@ function showDetail(id) {
       '<div class="btn-group" onclick="event.stopPropagation()"><span><span class="status-dot '+dot+'"></span>'+escHtml(s.estado)+'</span>'+
       '<button class="btn btn-sm" style="padding:2px 6px" onclick="abrirFichaSiniestro('+s.id+')"><i class="ti ti-eye"></i></button></div></div>';
   }).join('') : '<p style="font-size:13px;color:var(--text2)">Sin historial de siniestros.</p>';
- 
+
   var pendClient=DB.pendientes.filter(function(p){return p.clienteId==c.id&&!p.done});
   var pendHTML=pendClient.length ? pendClient.map(function(p){
     var pr=p.prioridad==='Alta'?'tag-red':p.prioridad==='Media'?'tag-amber':'tag-gray';
@@ -1593,7 +1294,7 @@ function showDetail(id) {
       '</div>'+
     '</div>';
   }).join('') : '<p style="font-size:13px;color:var(--text2)">Sin tareas pendientes.</p>';
- 
+
   if(!c.interacciones) c.interacciones=[];
   var INT_ICON = {Llamada:'ti-phone',WhatsApp:'ti-brand-whatsapp',Reunión:'ti-users',Email:'ti-mail',Otro:'ti-notes'};
   var INT_CLS  = {Llamada:'int-llamada',WhatsApp:'int-whatsapp',Reunión:'int-reunion',Email:'int-email',Otro:'int-otro'};
@@ -1650,13 +1351,13 @@ function showDetail(id) {
       (c.notas?'<div class="section-card"><div class="section-title">Notas Generales</div><p style="font-size:13px;color:var(--text2);white-space:pre-line">'+escHtml(c.notas)+'</p></div>':'')+
     '</div></div>';
 }
- 
+
 function irASiniestrosFiltrados(nombreCliente) {
   showSection('siniestros');
   document.getElementById('q-siniestros').value=nombreCliente;
   renderSiniestros();
 }
- 
+
 function togglePendDetalle(pendId) {
   var p=DB.pendientes.find(function(i){return i.id==pendId});
   if(p){p.done=true; saveDB(); toast('Tarea completada'); showDetail(currentDetailClientId); updateBadges();}
@@ -1666,14 +1367,14 @@ function borrarPendDetalle(pendId) {
     DB.pendientes=DB.pendientes.filter(function(i){return i.id!=pendId});
     saveDB(); toast('Tarea eliminada'); showDetail(currentDetailClientId); updateBadges();}
 }
- 
+
 function borrarPoliza(clienteId,index) {
   if(confirm('¿Estás seguro de que deseas eliminar esta póliza?')){
     var c=getClient(clienteId);
     if(c&&c.polizas){c.polizas.splice(index,1);saveDB();toast('Póliza eliminada');showDetail(clienteId);updateBadges();}
   }
 }
- 
+
 function eliminarCliente(id) {
   if(confirm('¿Eliminar por completo este cliente y todas sus referencias asociadas?')){
     DB.clients=DB.clients.filter(function(c){return c.id!=id});
@@ -1682,12 +1383,9 @@ function eliminarCliente(id) {
     saveDB();toast('Cliente eliminado de la base de datos');showSection('clientes');
   }
 }
- 
+
 function agregarPoliza(clienteId){openModal('nueva-poliza',clienteId);}
- 
-// ============================================================
-// RENDER SINIESTROS
-// ============================================================
+
 function renderSiniestros() {
   var b=document.getElementById('tb-siniestros');
   var q=(document.getElementById('q-siniestros').value||'').toLowerCase();
@@ -1731,10 +1429,7 @@ function renderSiniestros() {
       '</div></td></tr>';
   }).join('');
 }
- 
-// ============================================================
-// RENDER PENDIENTES
-// ============================================================
+
 function renderPendientes() {
   var b=document.getElementById('tb-pendientes');
   if(!DB.pendientes||!DB.pendientes.length){b.innerHTML='<tr><td colspan="6"><div class="empty"><i class="ti ti-clock"></i><p>Sin tareas pendientes</p></div></td></tr>';return;}
@@ -1766,10 +1461,7 @@ function renderPendientes() {
       '</div></td></tr>';
   }).join('');
 }
- 
-// ============================================================
-// RENDER PÓLIZAS
-// ============================================================
+
 function renderPolizas() {
   var b=document.getElementById('tb-polizas');
   var q=(document.getElementById('q-polizas').value||'').toLowerCase();
@@ -1796,10 +1488,7 @@ return '<tr onclick="showDetail('+i.c.id+')" style="cursor:pointer">'+
 '</tr>';
   }).join('');
 }
- 
-// ============================================================
-// RENDER PROSPECTOS (CON NUEVOS BOTONES)
-// ============================================================
+
 function renderProspectos() {
   var k=document.getElementById('kanban');
   k.innerHTML=STAGES.map(function(st,idx){
@@ -1810,7 +1499,7 @@ function renderProspectos() {
       return dA.localeCompare(dB);
     });
     var cards=filter.map(function(p){
-      
+
       var infoEmision = p.fechaEmision ? '<div style="font-size:11px;color:var(--green);font-weight:600;margin-top:3px"><i class="ti ti-calendar-check"></i> Emisión: '+fmt(p.fechaEmision)+'</div>' : '';
       var infoRecontacto = p.fechaRecontacto ? '<div style="font-size:11px;color:var(--purple);font-weight:600;margin-top:1px"><i class="ti ti-clock"></i> Recontacto: '+fmt(p.fechaRecontacto)+'</div>' : '';
 
@@ -1820,7 +1509,7 @@ function renderProspectos() {
         '<div style="font-size:12px;color:var(--blue);font-weight:500;margin-top:2px">'+escHtml(p.interes)+'</div>'+
         infoEmision + infoRecontacto + '<div style="font-size:11px;color:var(--text2);margin-top:2px"><i class="ti ti-user"></i> Responsable: <b>'+(p.responsable||'YO')+'</b></div>' +
         (p.notes?'<div style="font-size:11px;color:var(--text3);margin-top:5px;border-top:1px dashed var(--border);padding-top:4px;white-space:pre-line">'+escHtml(p.notes)+'</div>':'')+
-        
+
         '<div style="display:flex;gap:4px;margin-top:8px;flex-wrap:wrap">'+
           '<button class="btn btn-sm" style="padding:2px 6px;font-size:11px;background:var(--bg3)" onclick="event.stopPropagation();openModal(\'fecha-emision\','+p.id+')"><i class="ti ti-calendar"></i> Emisión</button>'+
           '<button class="btn btn-sm" style="padding:2px 6px;font-size:11px;background:var(--purple-light);color:var(--purple);border-color:#D2CFFE" onclick="event.stopPropagation();openModal(\'recontacto\','+p.id+')"><i class="ti ti-calendar-plus"></i> Recontacto</button>'+
@@ -1842,7 +1531,7 @@ function renderProspectos() {
 function renderProspectosConvertidos() {
   var tbody = document.getElementById('tb-prospectos-convertidos');
   if (!tbody) return;
-  
+
   var convertidos = DB.clients.filter(function(c) {
     return c.notas && c.notas.includes('Ramo de origen interesado:');
   });
@@ -1860,10 +1549,7 @@ function renderProspectosConvertidos() {
     '</tr>';
   }).join('');
 }
- 
-// ============================================================
-// MÓDULO DE FACTURACIÓN
-// ============================================================
+
 function initFiltrosFacturacion() {
   var selector=document.getElementById('filtro-mes-fact');
   if(!selector) return;
@@ -1884,7 +1570,7 @@ function initFiltrosFacturacion() {
   }).join('');
   if(prevSelection&&selector.querySelector('option[value="'+prevSelection+'"]')) selector.value=prevSelection;
 }
- 
+
 function renderFacturacion() {
   var b=document.getElementById('tb-facturacion');
   var selector=document.getElementById('filtro-mes-fact');
@@ -1932,17 +1618,14 @@ function renderFacturacion() {
     indicadorTotal.innerHTML='<span style="color:var(--text3)">Historial base inicial</span>';
   }
 }
- 
+
 function borrarFactura(id) {
   if(confirm('¿Eliminar este registro de facturación de la cartera?')){
     DB.facturacion=DB.facturacion.filter(function(f){return f.id!=id;});
     saveDB();toast('Registro de producción eliminado');initFiltrosFacturacion();renderFacturacion();
   }
 }
- 
-// ============================================================
-// MÓDULO DE REPORTES
-// ============================================================
+
 function renderReportes() {
   var totalPolizasVigentes=0,ramosCount={},companiasCount={};
   DB.clients.forEach(function(c){
@@ -2036,19 +1719,16 @@ function renderReportes() {
   document.getElementById('rpt-evol-subtitle').textContent = '('+periodos.length+' meses bajo análisis)';
   evolBody.innerHTML = html + tendencia;
 }
- 
+
 function borrarSiniestro(id){if(confirm('¿Eliminar registro de siniestro?')){DB.siniestros=DB.siniestros.filter(function(s){return s.id!=id});saveDB();renderSiniestros();updateBadges();}}
 function togglePend(id){var p=DB.pendientes.find(function(i){return i.id==id});if(p){p.done=!p.done;saveDB();renderPendientes();updateBadges();}}
 function borrarPend(id){DB.pendientes=DB.pendientes.filter(function(i){return i.id!=id});saveDB();renderPendientes();updateBadges();}
 function borrarProspecto(id){if(confirm('¿Eliminar este prospecto del pipeline?')){DB.prospectos=DB.prospectos.filter(function(p){return p.id!=id});saveDB();renderProspectos();}}
- 
-// ============================================================
-// MODALES (INCLUYE NUEVOS FORMULARIOS)
-// ============================================================
+
 function openModal(type, targetId) {
   var b=document.getElementById('modal-body');
   document.getElementById('modal-backdrop').classList.add('open');
- 
+
   if(type==='nueva-factura'){
     var optComp=COMPANIAS.map(function(c){return '<option value="'+c+'">'+c+'</option>'}).join('');
     var optMes=MESES.map(function(m,i){return '<option value="'+i+'">'+m+'</option>'}).join('');
@@ -2061,7 +1741,7 @@ function openModal(type, targetId) {
       '<div class="form-group full"><label>Monto Total Facturado Neto ($)</label><input type="number" step="0.01" id="fact-monto" placeholder="0.00" required></div>'+
       '</div><div class="modal-actions"><button type="button" class="btn" onclick="closeModal()">Cancelar</button><button type="submit" class="btn btn-primary">Registrar Monto</button></div></form>';
   }
- 
+
   else if(type==='editar-factura'){
     var fact=DB.facturacion.find(function(f){return f.id==targetId});
     if(!fact) return closeModal();
@@ -2075,7 +1755,7 @@ function openModal(type, targetId) {
       '<div class="form-group full"><label>Monto Total Facturado Neto ($)</label><input type="number" step="0.01" id="fact-monto" value="'+fact.monto+'" required></div>'+
       '</div><div class="modal-actions"><button type="button" class="btn" onclick="closeModal()">Cancelar</button><button type="submit" class="btn btn-primary">Actualizar Registro</button></div></form>';
   }
- 
+
   else if(type==='nuevo-siniestro'){
     var optCl=DB.clients.map(function(c){
       return '<option value="'+c.id+'"'+(targetId && c.id==targetId?' selected':'')+'>'+escHtml(c.nombre)+'</option>';
@@ -2094,14 +1774,14 @@ function openModal(type, targetId) {
       '<div class="form-group full"><label>Descripción Detallada / Terceros</label><textarea id="sin-notas" required></textarea></div>'+
       '</div><div class="modal-actions"><button type="button" class="btn" onclick="closeModal()">Cancelar</button><button type="submit" class="btn btn-primary">Guardar Siniestro</button></div></form>';
   }
- 
+
     else if(type==='editar-siniestro'){
     var sin=DB.siniestros.find(function(s){return s.id==targetId});
     if(!sin) return closeModal();
     var optCl=DB.clients.map(function(c){return '<option value="'+c.id+'"'+(c.id==sin.clienteId?' selected':'')+'>'+escHtml(c.nombre)+'</option>';}).join('');
     var optTip=TIPOS.map(function(t){return '<option value="'+t+'"'+(t==sin.tipo?' selected':'')+'>'+t+'</option>';}).join('');
     var optComp=COMPANIAS.map(function(c){return '<option value="'+c+'"'+(c==sin.compania?' selected':'')+'>'+c+'</option>';}).join('');
-    
+
     var avancesHTML = (sin.avances || []).map(function(av, idx){
       return '<div class="detail-row" style="font-size:12px"><span>'+fmt(av.fecha)+' - '+escHtml(av.nota)+'</span>'+
              '<button type="button" class="btn btn-sm btn-danger" style="padding:2px 6px" onclick="eliminarAvanceSiniestro('+sin.id+','+idx+')"><i class="ti ti-trash"></i></button></div>';
@@ -2136,7 +1816,7 @@ function openModal(type, targetId) {
       '<div class="form-group full"><label>Prioridad de Atención</label><select id="pnd-prio"><option>Baja</option><option selected>Media</option><option>Alta</option></select></div>'+
       '</div><div class="modal-actions"><button type="button" class="btn" onclick="closeModal()">Cancelar</button><button type="submit" class="btn btn-primary">Crear Tarea</button></div></form>';
   }
- 
+
   else if(type==='editar-pendiente' || type==='editar-pendiente-detalle'){
     var pnd=DB.pendientes.find(function(p){return p.id==targetId});
     if(!pnd) return closeModal();
@@ -2161,7 +1841,7 @@ function openModal(type, targetId) {
       '</select></div>'+
       '</div><div class="modal-actions">'+btnRelacionado+'<button type="button" class="btn" onclick="closeModal()">Cancelar</button><button type="submit" class="btn btn-primary">Actualizar Tarea</button></div></form>';
   }
- 
+
   else if(type==='nueva-poliza'){
     var optTip=TIPOS.map(function(t){return '<option value="'+t+'">'+t+'</option>'}).join('');
     var optComp=COMPANIAS.map(function(c){return '<option value="'+c+'">'+c+'</option>'}).join('');
@@ -2177,7 +1857,7 @@ function openModal(type, targetId) {
       '<div class="form-group"><label>Fecha de Fin Vigencia (Vto)</label><input type="date" id="pol-vto" required></div>'+
       '</div><div class="modal-actions"><button type="button" class="btn" onclick="closeModal()">Cancelar</button><button type="submit" class="btn btn-primary">Vincular Póliza</button></div></form>';
   }
- 
+
   else if(type==='editar-poliza'){
     var parts=String(targetId).split('_');
     var cliId=parseInt(parts[0]),polIdx=parseInt(parts[1]);
@@ -2202,7 +1882,7 @@ function openModal(type, targetId) {
       '<div class="form-group"><label>Vencimiento de Cobertura</label><input type="date" id="pol-vto" value="'+escHtml(p.vto||'')+'" required></div>'+
       '</div><div class="modal-actions"><button type="button" class="btn" onclick="closeModal()">Cancelar</button><button type="submit" class="btn btn-primary">Guardar Póliza</button></div></form>';
   }
- 
+
   else if(type==='editar-contacto'){
     var c=getClient(targetId);
     if(!c) return closeModal();
@@ -2221,7 +1901,7 @@ function openModal(type, targetId) {
       '<div class="form-group full"><label>Notas / Direcciones / Riesgos Vinculados</label><textarea id="cont-notas">'+escHtml(c.notas||'')+'</textarea></div>'+
       '</div><div class="modal-actions"><button type="button" class="btn" onclick="closeModal()">Cancelar</button><button type="submit" class="btn btn-primary">Guardar Cambios</button></div></form>';
   }
- 
+
   else if(type==='nueva-interaccion'){
     var hoy=new Date().toISOString().split('T')[0];
     b.innerHTML='<div class="modal-title">Registrar Interacción con Cliente <button class="modal-close" onclick="closeModal()">&times;</button></div>'+
@@ -2241,7 +1921,7 @@ function openModal(type, targetId) {
       return '<div class="interaccion-item"><div class="interaccion-icon int-reunion"><i class="ti ti-notes"></i></div><div style="flex:1">'+
              '<div style="font-weight:600;font-size:12px">'+fmt(av.fecha)+'</div><div style="font-size:13px;color:var(--text2)">'+escHtml(av.nota)+'</div></div></div>';
     }).join('') || '<p style="font-size:13px;color:var(--text2)">No hay avances registrados aún.</p>';
-    
+
     var hoyStr=new Date().toISOString().split('T')[0];
     b.innerHTML='<div class="modal-title">Seguimiento de Siniestro <button class="modal-close" onclick="closeModal()">&times;</button></div>'+
       '<div class="section-card" style="margin-bottom:12px">'+
@@ -2278,7 +1958,7 @@ function openModal(type, targetId) {
 	      var pr=t.prioridad==='Alta'?'tag-red':t.prioridad==='Media'?'tag-amber':'tag-gray';
 	      return '<div class="detail-row"><span style="flex:1;margin-right:8px">'+escHtml(t.tarea)+'</span><span class="tag '+pr+'">'+escHtml(t.prioridad)+'</span><span style="font-size:12px;color:var(--text2);margin-left:8px">Vto: '+fmt(t.vto)+'</span></div>';
 	    }).join('') : '<p style="font-size:13px;color:var(--text2)">Sin tareas pendientes asociadas.</p>';
-	    
+
 	    var cotsPros=(DB.cotizaciones||[]).filter(function(c){return c.prospectoId==pros.id;});
     var cotsHTML = cotsPros.length ? cotsPros.map(function(c){
       var f = new Date(c.fecha).toLocaleDateString();
@@ -2295,28 +1975,28 @@ function openModal(type, targetId) {
       '</div>';
     }).join('') : '<p style="font-size:13px;color:var(--text2)">No hay cotizaciones vinculadas a este prospecto.</p>';
 
-	    b.innerHTML='<div class="modal-title">Ficha del Prospecto <button class="modal-close" onclick="closeModal()">&times;</button></div>'+ 
+	    b.innerHTML='<div class="modal-title">Ficha del Prospecto <button class="modal-close" onclick="closeModal()">&times;</button></div>'+
 	      '<div class="section-card" style="margin-bottom:12px">'+
 	        '<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">'+
-	          '<div class="client-avatar">'+ini(pros.nombre)+'</div>'+ 
-	          '<div><div style="font-size:16px;font-weight:700">'+escHtml(pros.nombre)+'</div><div style="font-size:12px;color:var(--text2)">Prospecto · '+escHtml(STAGES[pros.stage]||'Sin etapa')+'</div></div>'+ 
-	        '</div>'+ 
-	        '<div class="detail-row"><span class="detail-label"><i class="ti ti-phone"></i> Teléfono</span><span>'+escHtml(pros.telefono||'-')+'</span></div>'+ 
-	        '<div class="detail-row"><span class="detail-label"><i class="ti ti-shield-plus"></i> Interés</span><span>'+escHtml(pros.interes||'-')+'</span></div>'+ 
-	        '<div class="detail-row"><span class="detail-label"><i class="ti ti-user"></i> Responsable</span><span>'+escHtml(pros.responsable||'YO')+'</span></div>'+ 
-	        '<div class="detail-row"><span class="detail-label"><i class="ti ti-calendar-check"></i> Emisión</span><span>'+(pros.fechaEmision?fmt(pros.fechaEmision):'-')+'</span></div>'+ 
-	        '<div class="detail-row"><span class="detail-label"><i class="ti ti-clock"></i> Recontacto</span><span>'+(pros.fechaRecontacto?fmt(pros.fechaRecontacto):'-')+'</span></div>'+ 
+	          '<div class="client-avatar">'+ini(pros.nombre)+'</div>'+
+	          '<div><div style="font-size:16px;font-weight:700">'+escHtml(pros.nombre)+'</div><div style="font-size:12px;color:var(--text2)">Prospecto · '+escHtml(STAGES[pros.stage]||'Sin etapa')+'</div></div>'+
+	        '</div>'+
+	        '<div class="detail-row"><span class="detail-label"><i class="ti ti-phone"></i> Teléfono</span><span>'+escHtml(pros.telefono||'-')+'</span></div>'+
+	        '<div class="detail-row"><span class="detail-label"><i class="ti ti-shield-plus"></i> Interés</span><span>'+escHtml(pros.interes||'-')+'</span></div>'+
+	        '<div class="detail-row"><span class="detail-label"><i class="ti ti-user"></i> Responsable</span><span>'+escHtml(pros.responsable||'YO')+'</span></div>'+
+	        '<div class="detail-row"><span class="detail-label"><i class="ti ti-calendar-check"></i> Emisión</span><span>'+(pros.fechaEmision?fmt(pros.fechaEmision):'-')+'</span></div>'+
+	        '<div class="detail-row"><span class="detail-label"><i class="ti ti-clock"></i> Recontacto</span><span>'+(pros.fechaRecontacto?fmt(pros.fechaRecontacto):'-')+'</span></div>'+
 	        (pros.notes?'<div style="margin-top:10px;font-size:13px;color:var(--text2);white-space:pre-line"><b>Notas:</b><br>'+escHtml(pros.notes)+'</div>':'')+
-	      '</div>'+ 
-	      '<div class="section-card"><div class="section-title">Cotizaciones Vinculadas <span style="font-size:11px;font-weight:400;color:var(--text2)">('+cotsPros.length+')</span></div>'+cotsHTML+'</div>'+ 
-	      '<div class="section-card"><div class="section-title">Tareas asociadas <span style="font-size:11px;font-weight:400;color:var(--text2)">('+tareasPros.length+')</span></div>'+tareasHTML+'</div>'+ 
+	      '</div>'+
+	      '<div class="section-card"><div class="section-title">Cotizaciones Vinculadas <span style="font-size:11px;font-weight:400;color:var(--text2)">('+cotsPros.length+')</span></div>'+cotsHTML+'</div>'+
+	      '<div class="section-card"><div class="section-title">Tareas asociadas <span style="font-size:11px;font-weight:400;color:var(--text2)">('+tareasPros.length+')</span></div>'+tareasHTML+'</div>'+
 	      '<div class="modal-actions">'+
-	        '<button type="button" class="btn" onclick="openModal(\'editar-prospecto\','+pros.id+')"><i class="ti ti-edit"></i> Editar</button>'+ 
-	        '<button type="button" class="btn" onclick="openModal(\'recontacto\','+pros.id+')"><i class="ti ti-calendar-plus"></i> Recontacto</button>'+ 
-	        '<button type="button" class="btn btn-success" onclick="convertirProspectoACliente('+pros.id+')"><i class="ti ti-user-check"></i> Convertir</button>'+ 
+	        '<button type="button" class="btn" onclick="openModal(\'editar-prospecto\','+pros.id+')"><i class="ti ti-edit"></i> Editar</button>'+
+	        '<button type="button" class="btn" onclick="openModal(\'recontacto\','+pros.id+')"><i class="ti ti-calendar-plus"></i> Recontacto</button>'+
+	        '<button type="button" class="btn btn-success" onclick="convertirProspectoACliente('+pros.id+')"><i class="ti ti-user-check"></i> Convertir</button>'+
 	      '</div>';
   }
- 
+
   else if(type==='nuevo-cliente'){
     b.innerHTML='<div class="modal-title">Dar de Alta Nuevo Cliente Inicial <button class="modal-close" onclick="closeModal()">&times;</button></div>'+
       '<form onsubmit="guardarCliente(event)"><div class="form-grid">'+
@@ -2328,7 +2008,7 @@ function openModal(type, targetId) {
       '<div class="form-group full"><label>Notas Iniciales</label><textarea id="cli-notas"></textarea></div>'+
       '</div><div class="modal-actions"><button type="button" class="btn" onclick="closeModal()">Cancelar</button><button type="submit" class="btn btn-primary">Dar de Alta</button></div></form>';
   }
- 
+
   else if(type==='nuevo-prospecto'){
     var optStg=STAGES.map(function(s,i){return '<option value="'+i+'">'+s+'</option>'}).join('');
     b.innerHTML='<div class="modal-title">Nuevo Prospecto Comercial <button class="modal-close" onclick="closeModal()">&times;</button></div>'+
@@ -2341,7 +2021,7 @@ function openModal(type, targetId) {
       '<div class="form-group full"><label>Comentarios adicionales</label><textarea id="pros-notas"></textarea></div>'+
       '</div><div class="modal-actions"><button type="button" class="btn" onclick="closeModal()">Cancelar</button><button type="submit" class="btn btn-primary">Crear Prospecto</button></div></form>';
   }
- 
+
   else if(type==='editar-prospecto'){
     var pros=DB.prospectos.find(function(p){return p.id==targetId});
     if(!pros) return closeModal();
@@ -2357,7 +2037,7 @@ function openModal(type, targetId) {
       '</div><div class="modal-actions"><button type="button" class="btn" onclick="closeModal()">Cancelar</button><button type="submit" class="btn btn-primary">Guardar Prospecto</button></div></form>';
   }
 
-  /* NUEVOS MODALES DE GESTIÓN PARA PROSPECTOS */
+
   else if(type==='fecha-emision'){
     var pros=DB.prospectos.find(function(p){return p.id==targetId});
     if(!pros) return closeModal();
@@ -2378,7 +2058,7 @@ function openModal(type, targetId) {
       '</div><div class="modal-actions"><button type="button" class="btn" onclick="closeModal()">Cancelar</button><button type="submit" class="btn btn-primary">Agendar en Calendario</button></div></form>';
   }
 }
- 
+
 function togglePatente(tipo) {
   var g = document.getElementById('grupo-patente');
   if(g) g.style.display = (tipo==='Auto' || tipo==='Moto') ? '' : 'none';
@@ -2386,10 +2066,7 @@ function togglePatente(tipo) {
 
 function closeModal(){document.getElementById('modal-backdrop').classList.remove('open');}
 function closeModalOutside(e){if(e.target.id==='modal-backdrop') closeModal();}
- 
-// ============================================================
-// SUBMITS & LÓGICA DE NEGOCIO
-// ============================================================
+
 function guardarFactura(e){
   e.preventDefault();
   var anio=parseInt(document.getElementById('fact-anio').value);
@@ -2419,20 +2096,20 @@ function actualizarFactura(e,id){
   document.getElementById('filtro-mes-fact').value=fact.anio+'-'+fact.mes;
   renderFacturacion();
 }
- 
+
 function guardarSiniestro(e){
   e.preventDefault();
   var cliId = parseInt(document.getElementById('sin-cli').value);
   DB.siniestros.push({id:uid(),clienteId:cliId,tipo:document.getElementById('sin-tipo').value,tipoSiniestro:document.getElementById('sin-tsiniestro').value,compania:document.getElementById('sin-comp').value,fecha:document.getElementById('sin-fecha').value,estado:document.getElementById('sin-est').value,notes:document.getElementById('sin-notas').value});
   saveDB();closeModal();toast('Siniestro registrado de manera exitosa');
-  
+
   var secDetalle=document.getElementById('sec-detalle');
   if(secDetalle && secDetalle.classList.contains('active')){showDetail(cliId);}
   else{showSection('siniestros');}
 }
- 
+
 function editarSiniestro(id){openModal('editar-siniestro',id);}
- 
+
 function actualizarSiniestro(e,id){
   e.preventDefault();
   var sin=DB.siniestros.find(function(s){return s.id==id});
@@ -2447,7 +2124,7 @@ function actualizarSiniestro(e,id){
     saveDB();closeModal();toast('Ficha de siniestro actualizada');renderSiniestros();updateBadges();
   }
 }
- 
+
 function guardarPendiente(e){
   e.preventDefault();
   var cliId=parseInt(document.getElementById('pnd-cli').value);
@@ -2457,7 +2134,7 @@ function guardarPendiente(e){
   if(secDetalle&&secDetalle.classList.contains('active')){showDetail(cliId);updateBadges();}
   else{showSection('pendientes');}
 }
- 
+
 function actualizarPendiente(e,id,fromDetail){
   e.preventDefault();
   var pnd=DB.pendientes.find(function(p){return p.id==id});
@@ -2472,7 +2149,7 @@ function actualizarPendiente(e,id,fromDetail){
     updateBadges();
   }
 }
- 
+
 function guardarPoliza(e,clienteId){
   e.preventDefault();
   var c=getClient(clienteId);
@@ -2482,7 +2159,7 @@ function guardarPoliza(e,clienteId){
     saveDB();closeModal();toast('Nueva póliza vinculada al tomador');showDetail(clienteId);
   }
 }
- 
+
 function actualizarPoliza(e,clienteId,polIdx){
   e.preventDefault();
   var c=getClient(clienteId);
@@ -2497,7 +2174,7 @@ function actualizarPoliza(e,clienteId,polIdx){
     saveDB();closeModal();toast('Registro de póliza modificado');showDetail(clienteId);updateBadges();
   }
 }
- 
+
 function actualizarContacto(e,id){
   e.preventDefault();
   var c=getClient(id);
@@ -2514,14 +2191,14 @@ function actualizarContacto(e,id){
     document.getElementById('det-nombre').textContent=nuevoNombre;
   }
 }
- 
+
 function guardarCliente(e){
   e.preventDefault();
   var nuevoId=uid();
   DB.clients.push({id:nuevoId,nombre:document.getElementById('cli-nombre').value,whatsapp:document.getElementById('cli-wa').value,mail:document.getElementById('cli-mail').value,fechaNacimiento:document.getElementById('cli-fnac').value||'',traidoPor:document.getElementById('cli-traido').value,polizas:[],notas:document.getElementById('cli-notas').value,interacciones:[]});
   saveDB();closeModal();toast('Cliente incorporado al CRM');showDetail(nuevoId);updateBadges();
 }
- 
+
 function guardarProspecto(e){
   e.preventDefault();
   if(!DB.prospectos) DB.prospectos=[];
@@ -2539,7 +2216,7 @@ function guardarProspecto(e){
 });
   saveDB();closeModal();toast('Prospecto creado en el pipeline');renderProspectos();
 }
- 
+
 function actualizarProspecto(e,id){
   e.preventDefault();
 
@@ -2560,7 +2237,6 @@ function actualizarProspecto(e,id){
   }
 }
 
-/* CONTROLADORES DE LOS NUEVOS ATRIBUTOS DE PROSPECTOS */
 function guardarFechaEmision(e, id) {
   e.preventDefault();
   var pros = DB.prospectos.find(function(p){return p.id==id});
@@ -2576,20 +2252,17 @@ function guardarRecontacto(e, id) {
   if(pros){
     var fecha = document.getElementById('pros-f-recontacto').value;
     var nota = document.getElementById('pros-nota-recontacto').value;
-    
+
     pros.fechaRecontacto = fecha;
-    
-    // Buscamos si ya existe una tarea de recontacto pendiente para este prospecto
+
     var tareaExistente = (DB.pendientes || []).find(function(p) {
       return p.prosId == id && !p.done;
     });
 
     if (tareaExistente) {
-      // Si existe, la actualizamos
       tareaExistente.tarea = nota;
       tareaExistente.vto = fecha;
     } else {
-      // Si no existe, creamos una nueva
       DB.pendientes.push({
         id: uid(),
         tarea: nota,
@@ -2600,14 +2273,11 @@ function guardarRecontacto(e, id) {
         done: false
       });
     }
-    
+
     saveDB();closeModal();toast('Recontacto actualizado en Calendario');renderProspectos();updateBadges();
   }
 }
 
-// ============================================================
-// BACKUPS Y COPIAS DE SEGURIDAD
-// ============================================================
 function exportarDatos() {
   try {
     var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(DB, null, 2));
@@ -2643,10 +2313,7 @@ function importarDatos(e) {
   };
   reader.readAsText(file);
 }
- 
-// ============================================================
-// BITÁCORA DE INTERACCIONES Y PROCESO DE CONVERSIÓN
-// ============================================================
+
 function eliminarAvanceSiniestro(sinId, idx) {
   if(!confirm('¿Eliminar esta entrada de la bitácora?')) return;
   var s = getSiniestro(sinId);
@@ -2701,11 +2368,11 @@ function convertirProspectoACliente(prosId) {
   var pros = DB.prospectos.find(function(p){ return p.id == prosId; });
   if (!pros) return;
   if (!confirm('¿Desea convertir formalmente a "'+pros.nombre+'" en Cliente Activo? Se creará su ficha comercial y se removerá del pipeline.')) return;
-  
-  var nuevasNotas = (pros.notes || '') + 
-                    (pros.interes ? '\\nRamo de origen interesado: ' + pros.interes : '') + 
+
+  var nuevasNotas = (pros.notes || '') +
+                    (pros.interes ? '\\nRamo de origen interesado: ' + pros.interes : '') +
                     (pros.fechaEmision ? '\\nFecha emisión pactada original: ' + fmt(pros.fechaEmision) : '');
-                    
+
   var nuevo = {
     id: uid(),
     nombre: pros.nombre,
@@ -2717,7 +2384,7 @@ function convertirProspectoACliente(prosId) {
     notas: nuevasNotas.trim(),
     interacciones: []
   };
-  
+
   DB.clients.push(nuevo);
   DB.prospectos = DB.prospectos.filter(function(p){ return p.id != prosId; });
   saveDB();
@@ -2743,7 +2410,7 @@ function doLogin() {
   var errEl = document.getElementById('login-error');
   errEl.textContent = '';
   fbauth.signInWithEmailAndPassword(email, pass)
-    .then(function() { /* onAuthStateChanged handles it */ })
+    .then(function() {  })
     .catch(function(e) {
       errEl.textContent = 'Email o contraseña incorrectos.';
     });
@@ -2753,14 +2420,10 @@ function doLogout() {
   fbauth.signOut();
 }
 
-// ============================================================
-// FUNCIONES DEL COTIZADOR
-// ============================================================
 var cotizandoId = null;
 var cotizandoHogarId = null; // Track para edición de cotización hogar
 
 function initCotizadorHogar() {
-  // Solo limpiar si no estamos editando una cotización existente
   if (!cotizandoHogarId) {
     document.getElementById('cot-h-cliente').value = '';
     document.getElementById('cot-h-riesgo').value = '';
@@ -2771,8 +2434,7 @@ function initCotizadorHogar() {
     document.getElementById('cot-h-costo-base').value = '';
     document.getElementById('cot-h-costo-mediana').value = '';
     document.getElementById('cot-h-costo-full').value = '';
-    
-    // Poblar select de prospectos
+
     var select = document.getElementById('cot-h-vincular-pros');
     select.innerHTML = '<option value="">-- No vincular --</option>';
     if(DB.prospectos) {
@@ -2783,8 +2445,7 @@ function initCotizadorHogar() {
         select.appendChild(opt);
       });
     }
-    
-    // Poblar select de clientes
+
     var selCl = document.getElementById('cot-h-vincular-cliente');
     if(selCl) {
       selCl.innerHTML = '<option value="">-- No vincular --</option>';
@@ -2811,8 +2472,7 @@ function initCotizador() {
       select.appendChild(opt);
     });
   }
-  
-  // Poblar select de clientes
+
   var selCl = document.getElementById('cot-vincular-cliente');
   if(selCl) {
     selCl.innerHTML = '<option value="">-- No vincular --</option>';
@@ -2825,7 +2485,7 @@ function initCotizador() {
       });
     }
   }
-  
+
   if (!cotizandoId) {
     limpiarFormularioCotizacion();
   }
@@ -2846,7 +2506,7 @@ function agregarFilaCotizacion() {
   var container = document.getElementById('cotizacion-items');
   var div = document.createElement('div');
   div.className = 'cotizacion-row';
-  div.style.gridTemplateColumns = '1.2fr 1fr 1.2fr 0.8fr 60px 60px 70px 40px';
+  div.style.gridTemplateColumns = '1.2fr 1fr 1.2fr 0.8fr 50px 50px 60px 50px 40px';
   div.innerHTML = `
     <div class="form-group"><label>Compañía</label><input type="text" class="cot-compania" placeholder="Ej: Fed. Patronal"></div>
     <div class="form-group"><label>Suma Asegurada</label><input type="text" class="cot-suma" placeholder="Ej: $15.000.000"></div>
@@ -2854,10 +2514,20 @@ function agregarFilaCotizacion() {
     <div class="form-group"><label>Costo</label><input type="text" class="cot-costo" placeholder="Ej: $25.000"></div>
     <div class="form-group" style="align-items: center;"><label>Recom.</label><input type="checkbox" class="cot-recom-check"></div>
     <div class="form-group" style="align-items: center;"><label>LoJack</label><input type="checkbox" class="cot-lojack-check"></div>
-    <div class="form-group" style="align-items: center;"><label>Mej. precio</label><input type="checkbox" class="cot-mejor-check"></div>
+    <div class="form-group" style="align-items: center;"><label>Mejor</label><input type="checkbox" class="cot-mejor-check"></div>
+    <div class="form-group" style="align-items: center;"><label>Actual</label><input type="checkbox" class="cot-actual-check" onchange="toggleActualRow(this)"></div>
     <button class="btn btn-danger btn-icon" onclick="this.parentElement.remove()"><i class="ti ti-trash"></i></button>
   `;
   container.appendChild(div);
+}
+
+function toggleActualRow(checkbox) {
+  var row = checkbox.closest('.cotizacion-row');
+  if (checkbox.checked) {
+    row.classList.add('is-actual');
+  } else {
+    row.classList.remove('is-actual');
+  }
 }
 
 function autoGuardarCotizacion() {
@@ -2878,7 +2548,8 @@ function autoGuardarCotizacion() {
         costo: row.querySelector('.cot-costo').value,
         recom: row.querySelector('.cot-recom-check').checked,
         lojack: row.querySelector('.cot-lojack-check').checked,
-        mejor: row.querySelector('.cot-mejor-check') ? row.querySelector('.cot-mejor-check').checked : false
+        mejor: row.querySelector('.cot-mejor-check') ? row.querySelector('.cot-mejor-check').checked : false,
+        actual: row.querySelector('.cot-actual-check') ? row.querySelector('.cot-actual-check').checked : false
       });
     }
   });
@@ -2906,9 +2577,8 @@ function autoGuardarCotizacion() {
       clienteId: clienteVinculadoId
     };
     DB.cotizaciones.push(nuevaCot);
-    // Establecemos el ID para que no se duplique en la siguiente acción (como exportar PDF)
     cotizandoId = nuevaId;
-    
+
     if (prosId) {
       var p = DB.prospectos.find(function(x){return x.id == prosId});
       if (p) p.notes = (p.notes || '') + "\n[Cotización guardada el " + new Date().toLocaleDateString() + "]";
@@ -2922,9 +2592,9 @@ function guardarCotizacionActual() {
   var riesgo = document.getElementById('cot-riesgo-general').value;
   var prosId = document.getElementById('cot-vincular-pros').value;
   var clienteVinculadoId = (document.getElementById('cot-vincular-cliente') || {}).value || '';
-  
+
   if(!cliente) { alert('Ingrese el nombre del cliente'); return; }
-  
+
   var items = [];
   document.querySelectorAll('.cotizacion-row').forEach(function(row) {
     var comp = row.querySelector('.cot-compania').value;
@@ -2936,13 +2606,14 @@ function guardarCotizacionActual() {
         costo: row.querySelector('.cot-costo').value,
         recom: row.querySelector('.cot-recom-check').checked,
         lojack: row.querySelector('.cot-lojack-check').checked,
-        mejor: row.querySelector('.cot-mejor-check') ? row.querySelector('.cot-mejor-check').checked : false
+        mejor: row.querySelector('.cot-mejor-check') ? row.querySelector('.cot-mejor-check').checked : false,
+        actual: row.querySelector('.cot-actual-check') ? row.querySelector('.cot-actual-check').checked : false
       });
     }
   });
 
   if(!DB.cotizaciones) DB.cotizaciones = [];
-  
+
   if (cotizandoId) {
     var idx = DB.cotizaciones.findIndex(function(c){return c.id == cotizandoId});
     if (idx !== -1) {
@@ -2964,14 +2635,14 @@ function guardarCotizacionActual() {
       clienteId: clienteVinculadoId
     };
     DB.cotizaciones.push(nuevaCot);
-    
+
     if(prosId) {
       var p = DB.prospectos.find(function(x){return x.id == prosId});
       if(p) p.notes = (p.notes || '') + "\n[Cotización guardada el " + new Date().toLocaleDateString() + "]";
     }
     toast('Cotización guardada exitosamente');
   }
-  
+
   saveDB();
   limpiarFormularioCotizacion();
   showSection('historial-cot');
@@ -2985,7 +2656,7 @@ function renderHistorialCotizaciones() {
     tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text2)">No hay cotizaciones guardadas</td></tr>';
     return;
   }
-  
+
   var filtradas = DB.cotizaciones.slice().reverse();
   if(search) {
     filtradas = filtradas.filter(function(c) {
@@ -3002,8 +2673,7 @@ function renderHistorialCotizaciones() {
     var tr = document.createElement('tr');
     var fecha = new Date(c.fecha).toLocaleDateString() + ' ' + new Date(c.fecha).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
     var sub = c.tipo === 'hogar' ? 'Hogar (3 Planes)' : (c.items ? c.items.length + ' opciones' : '-');
-    
-    // Mostrar vínculos
+
     var vinculos = '';
     if(c.prospectoId) {
       var pros = DB.prospectos && DB.prospectos.find(function(p){return p.id == c.prospectoId});
@@ -3013,14 +2683,14 @@ function renderHistorialCotizaciones() {
       var cli = DB.clients && DB.clients.find(function(x){return x.id == c.clienteId});
       if(cli) vinculos += '<span class="tag tag-green" style="font-size:10px"><i class="ti ti-user-check" style="font-size:10px"></i> ' + escHtml(cli.nombre) + '</span>';
     }
-    
+
     var botones = `
       <button class="btn btn-sm" onclick="editarCotizacion('${c.id}')"><i class="ti ti-edit"></i> Editar</button>
       <button class="btn btn-sm btn-success" onclick="convertirCotizacionEnProspecto('${c.id}')"><i class="ti ti-user-plus"></i> Conv. a Prospecto</button>
       <button class="btn btn-sm" style="background:var(--green-light);color:var(--green);border-color:#b6d98a" onclick="vincularCotizacionACliente('${c.id}')"><i class="ti ti-link"></i> Vincular Cliente</button>
       <button class="btn btn-sm btn-danger" onclick="eliminarCotizacion('${c.id}')"><i class="ti ti-trash"></i></button>
     `;
-    
+
     tr.innerHTML = `
       <td>${fecha}</td>
       <td><strong>${c.cliente}</strong>${vinculos ? '<br><div style="margin-top:4px">' + vinculos + '</div>' : ''}</td>
@@ -3039,7 +2709,7 @@ function renderHistorialCotizaciones() {
 function editarCotizacion(id) {
   var c = DB.cotizaciones.find(function(x){return x.id == id});
   if(!c) return;
-  
+
   if (c.tipo === 'hogar') {
     cotizandoHogarId = id;
     showSection('cotizador-hogar');
@@ -3048,7 +2718,7 @@ function editarCotizacion(id) {
     document.getElementById('cot-h-vincular-pros').value = c.prospectoId || '';
     var selHCl = document.getElementById('cot-h-vincular-cliente');
     if(selHCl) selHCl.value = c.clienteId || '';
-    
+
     for (var item in c.itemsHogar) {
       for (var plan in c.itemsHogar[item]) {
         var input = document.querySelector(`.cot-h-val[data-item="${item}"][data-plan="${plan}"]`);
@@ -3063,21 +2733,21 @@ function editarCotizacion(id) {
 
   cotizandoId = id;
   showSection('cotizador');
-  
+
   document.getElementById('cot-cliente').value = c.cliente;
   document.getElementById('cot-riesgo-general').value = c.riesgo || '';
   document.getElementById('cot-vincular-pros').value = c.prospectoId || '';
   var selCl = document.getElementById('cot-vincular-cliente');
   if(selCl) selCl.value = c.clienteId || '';
   document.querySelector('.topbar-subtitle').textContent = 'Editando cotización de ' + c.cliente;
-  
+
   var container = document.getElementById('cotizacion-items');
   container.innerHTML = '';
-  
+
   c.items.forEach(function(item) {
     var div = document.createElement('div');
     div.className = 'cotizacion-row';
-    div.style.gridTemplateColumns = '1.2fr 1fr 1.2fr 0.8fr 60px 60px 70px 40px';
+    div.style.gridTemplateColumns = '1.2fr 1fr 1.2fr 0.8fr 50px 50px 60px 50px 40px';
     div.innerHTML = `
       <div class="form-group"><label>Compañía</label><input type="text" class="cot-compania" value="${item.compania}"></div>
       <div class="form-group"><label>Suma Asegurada</label><input type="text" class="cot-suma" value="${item.suma}"></div>
@@ -3085,9 +2755,11 @@ function editarCotizacion(id) {
       <div class="form-group"><label>Costo</label><input type="text" class="cot-costo" value="${item.costo}"></div>
       <div class="form-group" style="align-items: center;"><label>Recom.</label><input type="checkbox" class="cot-recom-check" ${item.recom ? 'checked' : ''}></div>
       <div class="form-group" style="align-items: center;"><label>LoJack</label><input type="checkbox" class="cot-lojack-check" ${item.lojack ? 'checked' : ''}></div>
-      <div class="form-group" style="align-items: center;"><label>Mej. precio</label><input type="checkbox" class="cot-mejor-check" ${item.mejor ? 'checked' : ''}></div>
+      <div class="form-group" style="align-items: center;"><label>Mejor</label><input type="checkbox" class="cot-mejor-check" ${item.mejor ? 'checked' : ''}></div>
+      <div class="form-group" style="align-items: center;"><label>Actual</label><input type="checkbox" class="cot-actual-check" ${item.actual ? 'checked' : ''} onchange="toggleActualRow(this)"></div>
       <button class="btn btn-danger btn-icon" onclick="this.parentElement.remove()"><i class="ti ti-trash"></i></button>
     `;
+    if (item.actual) div.classList.add('is-actual');
     container.appendChild(div);
   });
 }
@@ -3112,11 +2784,11 @@ function exportarCotizacionPDF() {
   if(spanFecha) spanFecha.textContent = fechaActual;
   document.getElementById('pdf-cot-riesgo').textContent = 'Automotor';
   document.getElementById('pdf-cot-vehiculo').textContent = riesgoGeneral || '-';
-  
+
   var rows = document.querySelectorAll('.cotizacion-row');
   var container = document.getElementById('pdf-companias-container');
   container.innerHTML = '';
-  
+
   var data = {}; // { cobertura: { compania: { costo, suma, recom, lojack } } }
   var companiasSet = new Set();
   var coberturasSet = new Set();
@@ -3133,7 +2805,8 @@ function exportarCotizacionPDF() {
         costo: row.querySelector('.cot-costo').value.trim(),
         recom: row.querySelector('.cot-recom-check').checked,
         lojack: row.querySelector('.cot-lojack-check').checked,
-        mejor: row.querySelector('.cot-mejor-check') ? row.querySelector('.cot-mejor-check').checked : false
+        mejor: row.querySelector('.cot-mejor-check') ? row.querySelector('.cot-mejor-check').checked : false,
+        actual: row.querySelector('.cot-actual-check') ? row.querySelector('.cot-actual-check').checked : false
       };
     }
   });
@@ -3145,17 +2818,15 @@ function exportarCotizacionPDF() {
 
   var table = document.createElement('table');
 	  table.className = 'pdf-table';
-	  
-	  // Header: Compañías
+
 	  var thead = '<thead><tr><th>Cobertura</th>';
 	  compNames.forEach(function(c) {
 	    thead += `<th>${c}</th>`;
 	  });
 	  thead += '</tr></thead>';
-	  
+
 	  var tbody = '<tbody>';
-	  
-	  // Fila especial para Suma Asegurada (si existe)
+
 	  var hasSuma = false;
 	  var sumaRow = '<tr><td>Suma Asegurada</td>';
 	  compNames.forEach(function(c) {
@@ -3172,14 +2843,13 @@ function exportarCotizacionPDF() {
 	  sumaRow += '</tr>';
 	  if(hasSuma) tbody += sumaRow;
 
-	  // Body: Coberturas
 	  cobNames.forEach(function(cob) {
 	    tbody += `<tr><td>${cob}</td>`;
 	    compNames.forEach(function(comp) {
 	      var cell = data[cob][comp];
 	      if (cell) {
-	        var cls = cell.recom ? 'recom-cell' : (cell.mejor ? 'mejor-cell' : '');
-	        var badge = cell.recom ? '<span class="recom-badge">RECOMENDADA</span>' : (cell.mejor ? '<span class="mejor-badge">MEJOR PRECIO</span>' : '');
+	        var cls = cell.actual ? 'actual-cell' : (cell.recom ? 'recom-cell' : (cell.mejor ? 'mejor-cell' : ''));
+	        var badge = cell.actual ? '<span class="actual-badge">SEGURO ACTUAL</span>' : (cell.recom ? '<span class="recom-badge">RECOMENDADA</span>' : (cell.mejor ? '<span class="mejor-badge">MEJOR PRECIO</span>' : ''));
 	        var lj = cell.lojack ? '<div style="font-size:10px;color:#e11d48;margin-top:5px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:3px;"><i class="ti ti-broadcast" style="font-size:11px;"></i> Requiere Localizador</div>' : '';
 	        tbody += `<td class="${cls}" style="vertical-align:middle;"><div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;">${badge}<span style="font-size:10px;color:#64748b;font-weight:500;">Cuota mensual</span><span class="price-val">$${cell.costo}</span>${lj}</div></td>`;
 	      } else {
@@ -3189,14 +2859,13 @@ function exportarCotizacionPDF() {
 	    tbody += '</tr>';
 	  });
 	  tbody += '</tbody>';
-	  
+
 	  table.innerHTML = thead + tbody;
 	  container.appendChild(table);
 
-  // Exportar usando html2pdf
   var element = document.getElementById('pdf-export-container');
-  element.style.display = 'block'; 
-  
+  element.style.display = 'block';
+
   var opt = {
     margin: 10,
     filename: 'Cotizacion_' + cliente.replace(/\s+/g, '_') + '.pdf',
@@ -3233,8 +2902,7 @@ function guardarCotizacionHogar(isAutoSave) {
   };
 
   if(!DB.cotizaciones) DB.cotizaciones = [];
-  
-  // Si estamos editando, actualizar la cotización existente
+
   if (cotizandoHogarId) {
     var cot = DB.cotizaciones.find(function(x){return x.id == cotizandoHogarId});
     if (cot) {
@@ -3254,8 +2922,7 @@ function guardarCotizacionHogar(isAutoSave) {
       return;
     }
   }
-  
-  // Si no estamos editando, crear nueva cotización
+
   var nuevaId = uid();
   var nuevaCot = {
     id: nuevaId,
@@ -3268,17 +2935,15 @@ function guardarCotizacionHogar(isAutoSave) {
     prospectoId: document.getElementById('cot-h-vincular-pros').value || '',
     clienteId: (document.getElementById('cot-h-vincular-cliente') || {}).value || ''
   };
-  
+
   DB.cotizaciones.push(nuevaCot);
   saveDB();
-  
+
   if(!isAutoSave) {
     toast('Cotización de hogar guardada');
     cotizandoHogarId = null;
     showSection('historial-cot');
   } else {
-    // Si es auto-guardado, establecemos el ID para que las siguientes ediciones/exportaciones 
-    // sobre esta misma sesión de cotización no generen duplicados
     cotizandoHogarId = nuevaId;
   }
 }
@@ -3288,26 +2953,21 @@ function exportarCotizacionHogarPDF() {
   var riesgo = document.getElementById('cot-h-riesgo').value;
   if (!cliente) { alert('Ingrese el nombre del cliente'); return; }
 
-  // Guardar automáticamente antes de exportar
   guardarCotizacionHogar(true);
 
   var element = document.getElementById('pdf-export-container');
   var originalContent = element.innerHTML;
 
-  // Preparar el template para Hogar
   document.getElementById('pdf-cot-cliente-nombre').textContent = cliente.toUpperCase();
   document.getElementById('pdf-cot-fecha').textContent = new Date().toLocaleDateString();
   document.getElementById('pdf-cot-riesgo').textContent = 'Seguro de Hogar';
-  // Mostrar "Compañía" en lugar de "Vehículo"
   var vehiculoLabel = document.getElementById('pdf-cot-vehiculo-label');
   if (vehiculoLabel) vehiculoLabel.innerHTML = 'Compañía: <span id="pdf-cot-vehiculo">' + (riesgo || '-') + '</span>';
   else document.getElementById('pdf-cot-vehiculo').textContent = riesgo || '-';
 
-  // Ocultar secciones de detalle de cobertura (solo para hogar)
   var idsOcultar = ['pdf-hr-coberturas','pdf-box-detalle-titulo','pdf-box-terceros-base','pdf-box-terceros-full','pdf-box-todo-riesgo'];
   idsOcultar.forEach(function(id){ var el = document.getElementById(id); if(el) el.style.display = 'none'; });
-  
-  // Mostrar leyenda de emergencias para hogar
+
   var leyendaHogar = document.getElementById('pdf-hogar-leyenda');
   if (leyendaHogar) leyendaHogar.style.display = 'block';
 
@@ -3316,32 +2976,28 @@ function exportarCotizacionHogarPDF() {
 
   var table = document.createElement('table');
   table.className = 'pdf-table';
-  
+
   var items = [
-    'Incendio Edificio', 'Incendio Contenido', 'Robo', 'Electrodomesticos', 
+    'Incendio Edificio', 'Incendio Contenido', 'Robo', 'Electrodomesticos',
     'Resp. Civil Linderos', 'Cristales', 'Daños por Agua', 'Resp. Civil Privada'
   ];
-  
-  // Detectar cuáles planes tienen datos
+
   var planesActivos = [];
   var planesLabels = { 'base': 'Plan Base', 'mediana': 'Plan Mediana', 'full': 'Plan Full' };
-  
+
   ['base', 'mediana', 'full'].forEach(function(p) {
     var tieneDatos = false;
-    
-    // Verificar si tiene costo
+
     var costo = document.getElementById(`cot-h-costo-${p}`).value;
     if (costo && costo.trim() !== '') {
       tieneDatos = true;
     }
-    
-    // Si tiene datos, agregarlo a planesActivos
+
     if (tieneDatos) {
       planesActivos.push(p);
     }
   });
-  
-  // Si no hay planes activos, mostrar mensaje
+
   if (planesActivos.length === 0) {
     container.innerHTML = '<p style="padding: 20px; text-align: center; color: #999;">No hay planes cargados</p>';
     element.style.display = 'block';
@@ -3357,7 +3013,7 @@ function exportarCotizacionHogarPDF() {
     });
     return;
   }
-  
+
   var html = `<thead><tr><th>Cobertura</th>`;
   planesActivos.forEach(function(p) {
     html += `<th>${planesLabels[p]}</th>`;
@@ -3379,12 +3035,12 @@ function exportarCotizacionHogarPDF() {
     html += `<td class="recom-cell"><span class="price-val">${costo}</span></td>`;
   });
   html += `</tr></tbody>`;
-  
+
   table.innerHTML = html;
   container.appendChild(table);
 
   element.style.display = 'block';
-  
+
   var opt = {
     margin: 10,
     filename: 'Cotizacion_Hogar_' + cliente.replace(/\s+/g, '_') + '.pdf',
@@ -3395,13 +3051,10 @@ function exportarCotizacionHogarPDF() {
 
   html2pdf().set(opt).from(element).save().then(function() {
     element.style.display = 'none';
-    // Restaurar secciones ocultas
     var idsOcultar = ['pdf-hr-coberturas','pdf-box-detalle-titulo','pdf-box-terceros-base','pdf-box-terceros-full','pdf-box-todo-riesgo'];
     idsOcultar.forEach(function(id){ var el = document.getElementById(id); if(el) el.style.display = ''; });
-    // Ocultar leyenda de hogar
     var leyendaHogar = document.getElementById('pdf-hogar-leyenda');
     if (leyendaHogar) leyendaHogar.style.display = 'none';
-    // Restaurar label de vehículo
     var vehiculoLabel = document.getElementById('pdf-cot-vehiculo-label');
     if (vehiculoLabel) vehiculoLabel.innerHTML = 'Vehículo: <span id="pdf-cot-vehiculo"></span>';
     element.innerHTML = originalContent; // Restaurar
@@ -3417,10 +3070,9 @@ function enviarCotizacionHogarWA() {
 
   if (!cliente) { alert('Ingrese el nombre del cliente'); return; }
 
-  // Detectar cuáles planes tienen datos
   var planesActivos = [];
   var planesLabels = { 'base': 'Plan Base', 'mediana': 'Plan Mediana', 'full': 'Plan Full' };
-  
+
   ['base', 'mediana', 'full'].forEach(function(p) {
     var costo = document.getElementById(`cot-h-costo-${p}`).value.trim();
     if (costo && costo !== '') {
@@ -3428,17 +3080,16 @@ function enviarCotizacionHogarWA() {
     }
   });
 
-  if (planesActivos.length === 0) { 
-    alert('Cargue al menos un plan de hogar'); 
-    return; 
+  if (planesActivos.length === 0) {
+    alert('Cargue al menos un plan de hogar');
+    return;
   }
 
   var mensaje = `*Presupuesto de ${riesgo}*\n`;
   mensaje += `\n`;
 
-  // Armar tabla con solo los planes activos
   var items = [
-    'Incendio Edificio', 'Incendio Contenido', 'Robo', 'Electrodomesticos', 
+    'Incendio Edificio', 'Incendio Contenido', 'Robo', 'Electrodomesticos',
     'Resp. Civil Linderos', 'Cristales', 'Daños por Agua', 'Resp. Civil Privada'
   ];
 
@@ -3448,7 +3099,6 @@ function enviarCotizacionHogarWA() {
     var valores = [];
     planesActivos.forEach(function(p) {
       var val = document.querySelector(`.cot-h-val[data-item="${item}"][data-plan="${p}"]`).value || '-';
-      // Si hay múltiples planes, incluir el nombre del plan
       if (planesActivos.length > 1) {
         valores.push(`${planesLabels[p]}: ${val}`);
       } else {
@@ -3470,7 +3120,7 @@ function enviarCotizacionHogarWA() {
 
   var url = "https://wa.me/" + (tel ? tel : "") + "?text=" + encodeURIComponent(mensaje).replace(/%2A/g, '*').replace(/%5F/g, '_').replace(/%0A/g, '%0A');
   window.open(url, '_blank');
-  
+
   toast('Redirigiendo a WhatsApp...');
 }
 
@@ -3513,8 +3163,7 @@ function enviarCotizacionWA() {
 
     compNames.forEach(function(name) {
     mensaje += `Compañía: ${name.toUpperCase()}\n`;
-    
-    // Ordenar opciones por cobertura: Terceros Completo primero, luego el resto (Todo Riesgo)
+
     companiasMap[name].sort(function(a, b) {
       var cobA = a.cob.toLowerCase();
       var cobB = b.cob.toLowerCase();
@@ -3535,20 +3184,17 @@ function enviarCotizacionWA() {
     mensaje += `--------------------------\n\n`;
   });
 
-  // El chequeo de compNames.length ya cubre esto
-
   var fechaHoy = new Date().toLocaleDateString();
   mensaje += `Presupuesto enviado con fecha ${fechaHoy}. Las sumas aseguradas y costos están sujetos a las condiciones de suscripción y actualización de valores y pueden sufrir variaciones al momento de la contratacion formal.`;
 
   var url = "https://wa.me/" + (tel ? tel : "") + "?text=" + encodeURIComponent(mensaje).replace(/%2A/g, '*').replace(/%5F/g, '_').replace(/%0A/g, '%0A');
   window.open(url, '_blank');
-  
+
   autoGuardarCotizacion();
   toast('Redirigiendo a WhatsApp y guardando en historial...');
   limpiarFormularioCotizacion();
 }
 
-// Funciones para exportar desde el historial
 function exportarPdfDesdeHistorial(id) {
   var c = DB.cotizaciones.find(function(x){return x.id == id});
   if(!c) return;
@@ -3565,7 +3211,7 @@ function exportarPdfHogarDesdeHistorial(c) {
   document.getElementById('pdf-cot-cliente-nombre').textContent = c.cliente.toUpperCase();
   document.getElementById('pdf-cot-fecha').textContent = new Date(c.fecha).toLocaleDateString();
   document.getElementById('pdf-cot-riesgo').textContent = 'Seguro de Hogar';
-  
+
   var vehiculoLabel = document.getElementById('pdf-cot-vehiculo-label');
   if (vehiculoLabel) vehiculoLabel.innerHTML = 'Compañía: <span id="pdf-cot-vehiculo">' + (c.riesgo || '-') + '</span>';
   else document.getElementById('pdf-cot-vehiculo').textContent = c.riesgo || '-';
@@ -3577,17 +3223,17 @@ function exportarPdfHogarDesdeHistorial(c) {
   container.innerHTML = '';
 
   var items = [
-    'Incendio Edificio', 'Incendio Contenido', 'Robo', 'Electrodomesticos', 
+    'Incendio Edificio', 'Incendio Contenido', 'Robo', 'Electrodomesticos',
     'Resp. Civil Linderos', 'Cristales', 'Daños por Agua', 'Resp. Civil Privada'
   ];
-  
+
   var planesActivos = [];
   ['base', 'mediana', 'full'].forEach(function(p) {
     if (c.costosHogar[p] && c.costosHogar[p].trim() !== '') {
       planesActivos.push(p);
     }
   });
-  
+
   var planesLabels = { 'base': 'Plan Base', 'mediana': 'Plan Mediana', 'full': 'Plan Full' };
   var html = `<thead><tr><th>Cobertura</th>`;
   planesActivos.forEach(function(p) {
@@ -3609,14 +3255,14 @@ function exportarPdfHogarDesdeHistorial(c) {
     html += `<td class="recom-cell"><span class="price-val">${c.costosHogar[p]}</span></td>`;
   });
   html += `</tr></tbody>`;
-  
+
   var table = document.createElement('table');
   table.className = 'pdf-table';
   table.innerHTML = html;
   container.appendChild(table);
 
   element.style.display = 'block';
-  
+
   var opt = {
     margin: 10,
     filename: 'Cotizacion_Hogar_' + c.cliente.replace(/\s+/g, '_') + '.pdf',
@@ -3645,16 +3291,16 @@ function enviarWaDesdeHistorial(id) {
 function enviarWaHogarDesdeHistorial(c) {
   var planesActivos = [];
   var planesLabels = { 'base': 'Plan Base', 'mediana': 'Plan Mediana', 'full': 'Plan Full' };
-  
+
   ['base', 'mediana', 'full'].forEach(function(p) {
     if (c.costosHogar[p] && c.costosHogar[p].trim() !== '') {
       planesActivos.push(p);
     }
   });
 
-  if (planesActivos.length === 0) { 
-    alert('No hay planes cargados en esta cotización'); 
-    return; 
+  if (planesActivos.length === 0) {
+    alert('No hay planes cargados en esta cotización');
+    return;
   }
 
   var mensaje = `*Presupuesto de Seguro de Hogar*\n`;
@@ -3663,7 +3309,7 @@ function enviarWaHogarDesdeHistorial(c) {
   mensaje += `\n`;
 
   var items = [
-    'Incendio Edificio', 'Incendio Contenido', 'Robo', 'Electrodomesticos', 
+    'Incendio Edificio', 'Incendio Contenido', 'Robo', 'Electrodomesticos',
     'Resp. Civil Linderos', 'Cristales', 'Daños por Agua', 'Resp. Civil Privada'
   ];
 
@@ -3673,7 +3319,6 @@ function enviarWaHogarDesdeHistorial(c) {
     var valores = [];
     planesActivos.forEach(function(p) {
       var val = (c.itemsHogar[item] && c.itemsHogar[item][p]) ? c.itemsHogar[item][p] : '-';
-      // Si hay múltiples planes, incluir el nombre del plan
       if (planesActivos.length > 1) {
         valores.push(`${planesLabels[p]}: ${val}`);
       } else {
@@ -3700,15 +3345,13 @@ function enviarWaHogarDesdeHistorial(c) {
 function convertirCotizacionEnProspecto(id) {
   var cot = DB.cotizaciones.find(function(x){return x.id == id});
   if(!cot) return;
-  
-  // Verificar si ya existe un prospecto con ese nombre
+
   var prospectoExistente = DB.prospectos.find(function(x){return x.nombre.toLowerCase() === cot.cliente.toLowerCase()});
   if(prospectoExistente) {
     alert('Ya existe un prospecto con ese nombre: ' + cot.cliente);
     return;
   }
-  
-  // Crear nuevo prospecto en la primera etapa (Primer contacto)
+
   var nuevoProspecto = {
     id: uid(),
     nombre: cot.cliente,
@@ -3720,13 +3363,12 @@ function convertirCotizacionEnProspecto(id) {
     fechaEmision: '',
     fechaRecontacto: ''
   };
-  
+
   if(!DB.prospectos) DB.prospectos = [];
   DB.prospectos.push(nuevoProspecto);
-  
-  // Vincular la cotización al nuevo prospecto
+
   cot.prospectoId = nuevoProspecto.id;
-  
+
   saveDB();
   renderHistorialCotizaciones();
   renderProspectos();
@@ -3737,18 +3379,16 @@ function convertirCotizacionEnProspecto(id) {
 function vincularCotizacionACliente(id) {
   var cot = DB.cotizaciones.find(function(x){return x.id == id});
   if(!cot) return;
-  
+
   if(!DB.clients || DB.clients.length === 0) {
     alert('No hay clientes en el sistema. Primero agrega un cliente desde la sección Clientes.');
     return;
   }
-  
-  // Construir lista de clientes para seleccionar
+
   var opciones = DB.clients.map(function(c){
     return '<option value="' + c.id + '">' + c.nombre + '</option>';
   }).join('');
-  
-  // Modal simple usando un select en un confirm
+
   var modal = document.createElement('div');
   modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:2000';
   modal.innerHTML = '<div style="background:#fff;border-radius:12px;padding:24px;width:420px;max-width:95vw;box-shadow:0 8px 40px rgba(0,0,0,.18)">' +
@@ -3760,7 +3400,7 @@ function vincularCotizacionACliente(id) {
       '<button id="modal-ok-vink" style="padding:7px 14px;border-radius:8px;border:none;background:#185FA5;color:#fff;cursor:pointer;font-size:13px;font-weight:500">Vincular</button>' +
     '</div>' +
   '</div>';
-  
+
   document.body.appendChild(modal);
   document.getElementById('modal-cancel-vink').onclick = function(){ document.body.removeChild(modal); };
   document.getElementById('modal-ok-vink').onclick = function(){
@@ -3775,9 +3415,97 @@ function vincularCotizacionACliente(id) {
   };
 }
 
-// DEPRECATED - kept for backward compatibility
 function convertirCotizacionEnCliente(id) {
   convertirCotizacionEnProspecto(id);
+}
+
+function enviarWABday(clienteId) {
+  var c = getClient(clienteId);
+  if(!c || !c.whatsapp) return;
+
+  var nombre = c.nombre.split(' ')[0];
+  var msg = 'Hola ' + nombre + '. Muy feliz cumpleaños. \u{1F382}\n\n' +
+    'Desde ac\u00E1 te mando un abrazo enorme. Deseo que pases un d\u00EDa excelente rodeado de tu familia y amigos, y que comiences este nuevo a\u00F1o con la mejor energ\u00EDa.\n\n' +
+    'Gracias por la confianza de siempre y por permitirme acompa\u00F1arte. \u00A1Que tengas un gran d\u00EDa!';
+
+    var num = c.whatsapp.replace(/\D/g,'');
+  if(num.length === 10) num = '549' + num;
+  var url = 'https://wa.me/' + num + '?text=' + encodeURIComponent(msg);
+  window.open(url, '_blank');
+  toast('Abriendo WhatsApp con mensaje de cumpleaños...');
+}
+
+function mostrarModalBdays() {
+  var ahora = new Date();
+  var hoy = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate());
+  var hoyAnio = hoy.getFullYear();
+  var lista = [];
+
+  DB.clients.forEach(function(c){
+    if(!c.fechaNacimiento) return;
+    var p = c.fechaNacimiento.split('-');
+    var mes = parseInt(p[1])-1, dia = parseInt(p[2]);
+    var cumple = new Date(hoyAnio, mes, dia);
+    if(cumple < hoy) {
+      cumple = new Date(hoyAnio+1, mes, dia);
+    }
+    var diff = Math.round((cumple - hoy) / 86400000);
+    if(diff > 7) return;
+    var edad = hoyAnio - parseInt(p[0]) + (diff === 0 ? 0 : (cumple.getFullYear() > hoyAnio ? -1 : 0));
+    lista.push({c:c, diff:diff, dia:dia, mes:mes, edad:edad});
+  });
+
+  if(!lista.length) return;
+  lista.sort(function(a,b){return a.diff - b.diff;});
+
+  var hayHoy = lista.some(function(x){return x.diff===0;});
+  var titulo = hayHoy ? '¡Hay cumpleaños hoy!' : 'Cumpleaños próximos';
+  var subtxt = lista.length === 1
+    ? 'Tenés 1 cliente con cumpleaños esta semana'
+    : 'Tenés ' + lista.length + ' clientes con cumpleaños esta semana';
+
+  var cardsHtml = lista.map(function(item){
+    var c = item.c;
+    var diff = item.diff;
+    var diaStr = String(item.dia).padStart(2,'0')+'/'+ String(item.mes+1).padStart(2,'0');
+    var badge, badgeColor;
+    if(diff===0){badge='¡Hoy! 🎉';badgeColor='background:#7c3aed;color:#fff';}
+    else if(diff===1){badge='Mañana';badgeColor='background:#f59e0b;color:#fff';}
+    else{badge='en '+diff+' días';badgeColor='background:#e5e7eb;color:#374151';}
+
+    var waBtn = c.whatsapp
+      ? '<button onclick="enviarWABday('+c.id+')" style="margin-left:auto;padding:6px 12px;background:#0F6E56;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:5px;flex-shrink:0"><i class="ti ti-brand-whatsapp"></i> Saludar</button>'
+      : '';
+
+    return '<div class="bday-modal-card">'+
+      '<div class="bday-modal-av">'+ini(c.nombre)+'</div>'+
+      '<div style="flex:1;min-width:0">'+
+        '<div class="bday-modal-name">'+escHtml(c.nombre)+'</div>'+
+        '<div class="bday-modal-info">'+diaStr+' · cumple '+item.edad+' años</div>'+
+      '</div>'+
+      '<span style="font-size:11px;font-weight:600;padding:3px 9px;border-radius:10px;'+badgeColor+';flex-shrink:0;margin-right:8px">'+badge+'</span>'+
+      waBtn+
+    '</div>';
+  }).join('');
+
+  var bd = document.createElement('div');
+  bd.className = 'bday-modal-backdrop';
+  bd.id = 'bday-modal-backdrop';
+  bd.innerHTML =
+    '<div class="bday-modal">'+
+      '<div class="bday-modal-header">'+
+        '<span class="bday-modal-emoji">🎂</span>'+
+        '<div class="bday-modal-title">'+escHtml(titulo)+'</div>'+
+        '<div class="bday-modal-sub">'+escHtml(subtxt)+'</div>'+
+      '</div>'+
+      '<div class="bday-modal-body">'+cardsHtml+'</div>'+
+      '<div class="bday-modal-footer">'+
+        '<button onclick="document.getElementById(\'bday-modal-backdrop\').remove()" style="padding:8px 20px;border-radius:8px;border:1px solid #d1d5db;background:#fff;cursor:pointer;font-size:13px;font-weight:500">Cerrar</button>'+
+      '</div>'+
+    '</div>';
+
+  document.body.appendChild(bd);
+  bd.addEventListener('click', function(e){ if(e.target === bd) bd.remove(); });
 }
 </script>
 </body>
