@@ -2762,6 +2762,32 @@ function editarCotizacion(id) {
   if (c.tipo === 'hogar') {
     cotizandoHogarId = id;
     showSection('cotizador-hogar');
+    
+    // Reinicializar selectores de prospecto y cliente
+    var select = document.getElementById('cot-h-vincular-pros');
+    select.innerHTML = '<option value="">-- No vincular --</option>';
+    if(DB.prospectos) {
+      DB.prospectos.forEach(function(p) {
+        var opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = p.nombre;
+        select.appendChild(opt);
+      });
+    }
+    
+    var selCl = document.getElementById('cot-h-vincular-cliente');
+    if(selCl) {
+      selCl.innerHTML = '<option value="">-- No vincular --</option>';
+      if(DB.clients) {
+        DB.clients.forEach(function(c) {
+          var opt = document.createElement('option');
+          opt.value = c.id;
+          opt.textContent = c.nombre;
+          selCl.appendChild(opt);
+        });
+      }
+    }
+    
     document.getElementById('cot-h-cliente').value = c.cliente;
     document.getElementById('cot-h-riesgo').value = c.riesgo || '';
     if(document.getElementById('cot-h-comentario')) document.getElementById('cot-h-comentario').value = c.comentario || '';
@@ -3136,7 +3162,20 @@ function exportarCotizacionHogarPDF() {
     var vehiculoLabel = document.getElementById('pdf-cot-vehiculo-label');
     if (vehiculoLabel) vehiculoLabel.innerHTML = 'Vehículo: <span id="pdf-cot-vehiculo"></span>';
     element.innerHTML = originalContent; // Restaurar
-    toast('PDF de Hogar generado');
+    toast('PDF de Hogar generado y guardado');
+    
+    // Limpiar el formulario después de exportar
+    cotizandoHogarId = null;
+    document.getElementById('cot-h-cliente').value = '';
+    document.getElementById('cot-h-riesgo').value = '';
+    document.getElementById('cot-h-vincular-pros').value = '';
+    var selClH = document.getElementById('cot-h-vincular-cliente');
+    if(selClH) selClH.value = '';
+    if(document.getElementById('cot-h-comentario')) document.getElementById('cot-h-comentario').value = '';
+    document.querySelectorAll('.cot-h-val').forEach(function(i) { i.value = ''; });
+    document.getElementById('cot-h-costo-base').value = '';
+    document.getElementById('cot-h-costo-mediana').value = '';
+    document.getElementById('cot-h-costo-full').value = '';
   });
 }
 
@@ -3148,6 +3187,9 @@ function enviarCotizacionHogarWA() {
   var tel = '';
 
   if (!cliente) { alert('Ingrese el nombre del cliente'); return; }
+
+  // Guardar la cotización antes de exportar
+  guardarCotizacionHogar(true);
 
   var planesActivos = [];
   var planesLabels = { 'base': 'Plan Base', 'mediana': 'Plan Mediana', 'full': 'Plan Full' };
@@ -3165,8 +3207,8 @@ function enviarCotizacionHogarWA() {
   }
 
   var mensaje = `*Presupuesto de ${riesgo}*\n`;
-  if (c.comentario && c.comentario.trim() !== '') {
-    mensaje += `\n*Nota:* ${c.comentario}\n`;
+  if (comentario && comentario.trim() !== '') {
+    mensaje += `\n*Nota:* ${comentario}\n`;
   }
   mensaje += `\n`;
 
@@ -3207,7 +3249,20 @@ function enviarCotizacionHogarWA() {
   var url = "https://wa.me/" + (tel ? tel : "") + "?text=" + encodeURIComponent(mensaje).replace(/%2A/g, '*').replace(/%5F/g, '_').replace(/%0A/g, '%0A');
   window.open(url, '_blank');
 
-  toast('Redirigiendo a WhatsApp...');
+  toast('Cotización guardada y redirigiendo a WhatsApp...');
+  
+  // Limpiar el formulario después de enviar
+  cotizandoHogarId = null;
+  document.getElementById('cot-h-cliente').value = '';
+  document.getElementById('cot-h-riesgo').value = '';
+  document.getElementById('cot-h-vincular-pros').value = '';
+  var selClH = document.getElementById('cot-h-vincular-cliente');
+  if(selClH) selClH.value = '';
+  if(document.getElementById('cot-h-comentario')) document.getElementById('cot-h-comentario').value = '';
+  document.querySelectorAll('.cot-h-val').forEach(function(i) { i.value = ''; });
+  document.getElementById('cot-h-costo-base').value = '';
+  document.getElementById('cot-h-costo-mediana').value = '';
+  document.getElementById('cot-h-costo-full').value = '';
 }
 
 function enviarCotizacionWA() {
@@ -3693,4 +3748,5 @@ function toggleSidebar() {
 </script>
 </body>
 </html>
+
 
