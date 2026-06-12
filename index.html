@@ -77,7 +77,7 @@
     <button class="nav-item" id="nav-pendientes" onclick="showSection('pendientes')"><i class="ti ti-clock"></i> Pendientes <span class="nav-badge" id="badge-pend">0</span></button>
     <button class="nav-item" id="nav-polizas" onclick="showSection('polizas')"><i class="ti ti-file-certificate"></i> Pólizas</button>
     <div class="nav-section">Administración</div>
-    <button class="nav-item" id="nav-facturacion" onclick="showSection('facturacion')"><i class="ti ti-receipt-2"></i> Facturación</button>
+    <button class="nav-item" id="nav-facturacion" onclick="requirePasswordForSection('facturacion')"><i class="ti ti-receipt-2"></i> Facturación</button>
     <button class="nav-item" id="nav-reportes" onclick="showSection('reportes')"><i class="ti ti-chart-bar"></i> Reportes</button>
     <button class="nav-item" id="nav-cotizador" onclick="showSection('cotizador')"><i class="ti ti-file-invoice"></i> Cotizador</button>
 	    <button class="nav-item" id="nav-cotizador-hogar" onclick="showSection('cotizador-hogar')"><i class="ti ti-home-heart"></i> Cotizar Hogar</button>
@@ -3789,6 +3789,62 @@ function toggleSidebar() {
     if(sb) sb.classList.add('collapsed');
   }
 })();
+</script>
+<!-- Modal de contraseña para Facturación -->
+<div id="pass-modal-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2000;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:14px;padding:32px 28px;width:360px;max-width:95vw;box-shadow:0 10px 40px rgba(0,0,0,.2);text-align:center">
+    <div style="width:52px;height:52px;background:#E6F1FB;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 14px">
+      <i class="ti ti-lock" style="font-size:24px;color:#185FA5"></i>
+    </div>
+    <div style="font-size:17px;font-weight:600;color:#1a1d23;margin-bottom:6px">Sección Protegida</div>
+    <div style="font-size:13px;color:#6b7280;margin-bottom:20px">Ingresá tu contraseña para acceder a Facturación</div>
+    <input id="pass-modal-input" type="password" placeholder="••••••••"
+      style="width:100%;padding:10px 12px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;outline:none;font-family:inherit;text-align:center;letter-spacing:3px;margin-bottom:8px"
+      onkeydown="if(event.key==='Enter')checkSectionPassword()">
+    <div id="pass-modal-error" style="color:#A32D2D;font-size:12px;min-height:16px;margin-bottom:12px"></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn" style="flex:1" onclick="closePassModal()">Cancelar</button>
+      <button class="btn btn-primary" style="flex:1" onclick="checkSectionPassword()"><i class="ti ti-lock-open"></i> Ingresar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function requirePasswordForSection(section) {
+  var backdrop = document.getElementById('pass-modal-backdrop');
+  backdrop.style.display = 'flex';
+  backdrop._targetSection = section;
+  setTimeout(function(){ document.getElementById('pass-modal-input').focus(); }, 80);
+  document.getElementById('pass-modal-input').value = '';
+  document.getElementById('pass-modal-error').textContent = '';
+}
+
+function closePassModal() {
+  document.getElementById('pass-modal-backdrop').style.display = 'none';
+}
+
+function checkSectionPassword() {
+  var input = document.getElementById('pass-modal-input').value;
+  var errEl = document.getElementById('pass-modal-error');
+  var section = document.getElementById('pass-modal-backdrop')._targetSection;
+  // Verifica la contraseña contra Firebase Auth (reutiliza email del usuario actual)
+  var user = fbauth.currentUser;
+  if (!user) { errEl.textContent = 'No hay sesión activa.'; return; }
+  var credential = firebase.auth.EmailAuthProvider.credential(user.email, input);
+  user.reauthenticateWithCredential(credential).then(function() {
+    closePassModal();
+    showSection(section);
+  }).catch(function() {
+    errEl.textContent = 'Contraseña incorrecta. Intentá de nuevo.';
+    document.getElementById('pass-modal-input').value = '';
+    document.getElementById('pass-modal-input').focus();
+  });
+}
+
+// Cerrar con click fuera
+document.getElementById('pass-modal-backdrop').addEventListener('click', function(e){
+  if(e.target === this) closePassModal();
+});
 </script>
 </body>
 </html>
