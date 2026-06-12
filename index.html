@@ -1302,6 +1302,7 @@ function showDetail(id) {
         '<div style="font-size:13px;font-weight:600">'+escHtml(p.tipo)+'</div>'+
         '<div style="font-size:12px;color:var(--text2)">'+escHtml(p.compania)+' · Nro: '+escHtml(p.nro||'-')+(p.patente?(' · Patente: '+escHtml(p.patente)):'')+ escHtml(vendTag)+'</div>'+
         '<div style="font-size:11px;color:var(--text3);margin-top:1px">Alta: '+fmt(p.fechaAlta||'')+'</div>'+
+        (p.notes?'<div style="font-size:12px;color:#5f4b00;background:#fffde7;border:1px solid #fbc02d;border-radius:5px;padding:4px 8px;margin-top:5px;white-space:pre-line">'+escHtml(p.notes)+'</div>':'')+
       '</div>'+
       '<div style="font-size:12px;color:var(--text2);margin-right:8px">Vto: '+fmt(p.vto)+'</div>'+
       '<div class="btn-group">'+
@@ -1387,7 +1388,7 @@ function showDetail(id) {
       '<div class="section-card"><div class="section-title">Cotizaciones vinculadas <span style="font-size:11px;font-weight:400;color:var(--text2)">('+cotsCli.length+')</span></div>'+cotsCliHTML+'</div>'+
       '<div class="section-card"><div class="section-title">Siniestros Tramitados</div>'+sinHTML+'</div>'+
       '<div class="section-card"><div class="section-title">Tareas y Alertas Pendientes <span style="font-size:11px;font-weight:400;color:var(--text2)">('+pendClient.length+')</span></div>'+pendHTML+'</div>'+
-      (c.notas?'<div class="section-card"><div class="section-title">Notas Generales</div><p style="font-size:13px;color:var(--text2);white-space:pre-line">'+escHtml(c.notas)+'</p></div>':'')+
+      (c.notas?'<div class="section-card" style="background:#fffde7;border:2px solid #fbc02d;border-radius:var(--radius-lg)"><div class="section-title" style="border-left-color:#f9a825;color:#6d4c00"><i class="ti ti-bulb" style="margin-right:6px;color:#f9a825"></i>Notas Generales</div><p style="font-size:13px;color:#5f4b00;white-space:pre-line;font-weight:500">'+escHtml(c.notas)+'</p></div>':'')+
     '</div></div>';
 }
 
@@ -1894,6 +1895,7 @@ function openModal(type, targetId) {
       '<div class="form-group"><label>Productor / Canal Ejecutivo</label><select id="pol-vendedor"><option value="Yo">Yo</option><option value="Leandro">Leandro</option></select></div>'+
       '<div class="form-group"><label>Fecha de Inicio Vigencia (Alta)</label><input type="date" id="pol-alta" value="'+hoy+'" required></div>'+
       '<div class="form-group"><label>Fecha de Fin Vigencia (Vto)</label><input type="date" id="pol-vto" required></div>'+
+      '<div class="form-group full"><label>Notas de Póliza</label><div style="background:#fffde7;border:2px solid #fbc02d;border-radius:8px;padding:10px"><textarea id="pol-notas" style="background:transparent;border:none;outline:none;resize:vertical;min-height:70px;font-family:inherit;font-size:13px;color:#5f4b00;font-weight:500;width:100%" placeholder="Observaciones, particularidades de cobertura, acuerdos con el asegurado..."></textarea></div></div>'+
       '</div><div class="modal-actions"><button type="button" class="btn" onclick="closeModal()">Cancelar</button><button type="submit" class="btn btn-primary">Vincular Póliza</button></div></form>';
   }
 
@@ -1919,6 +1921,7 @@ function openModal(type, targetId) {
       '</div>'+
       '<div class="form-group"><label>Fecha de Alta</label><input type="date" id="pol-alta" value="'+escHtml(p.fechaAlta||'')+'" required></div>'+
       '<div class="form-group"><label>Vencimiento de Cobertura</label><input type="date" id="pol-vto" value="'+escHtml(p.vto||'')+'" required></div>'+
+      '<div class="form-group full"><label>Notas de Póliza</label><div style="background:#fffde7;border:2px solid #fbc02d;border-radius:8px;padding:10px"><textarea id="pol-notas" style="background:transparent;border:none;outline:none;resize:vertical;min-height:70px;font-family:inherit;font-size:13px;color:#5f4b00;font-weight:500;width:100%" placeholder="Observaciones, particularidades de cobertura, acuerdos con el asegurado...">'+escHtml(p.notes||'')+'</textarea></div></div>'+
       '</div><div class="modal-actions"><button type="button" class="btn" onclick="closeModal()">Cancelar</button><button type="submit" class="btn btn-primary">Guardar Póliza</button></div></form>';
   }
 
@@ -2044,8 +2047,24 @@ function openModal(type, targetId) {
       '<div class="form-group"><label>Email</label><input type="email" id="cli-mail" required></div>'+
       '<div class="form-group"><label>Lo trajo</label><select id="cli-traido"><option value="Yo">Yo</option><option value="Leandro">Leandro</option></select></div>'+
       '<div class="form-group"><label>Fecha de Nacimiento</label><input type="date" id="cli-fnac"></div>'+
-      '<div class="form-group full"><label>Notas Iniciales</label><textarea id="cli-notas"></textarea></div>'+
+      '<div class="form-group full"><label>Notas Iniciales</label><div style="background:#fffde7;border:2px solid #fbc02d;border-radius:8px;padding:10px"><textarea id="cli-notas" style="background:transparent;border:none;outline:none;resize:vertical;min-height:80px;font-family:inherit;font-size:13px;color:#5f4b00;font-weight:500;width:100%" placeholder="Preferencias del cliente, observaciones importantes..."></textarea></div></div>'+
       '</div><div class="modal-actions"><button type="button" class="btn" onclick="closeModal()">Cancelar</button><button type="submit" class="btn btn-primary">Dar de Alta</button></div></form>';
+  }
+
+  else if(type==='nuevo-cliente-desde-cot'){
+    var cot = DB.cotizaciones.find(function(x){return x.id == targetId});
+    if(!cot) return closeModal();
+    var notas = 'Creado desde cotización de ' + (cot.tipo || 'general') + (cot.riesgo ? ' - ' + cot.riesgo : '');
+    if(cot.comentario) notas += '\n\nComentarios de cotización: ' + cot.comentario;
+    b.innerHTML='<div class="modal-title">Crear Cliente desde Cotización <button class="modal-close" onclick="closeModal()">&times;</button></div>'+
+      '<form onsubmit="guardarClienteDesdeCotzacion(event, \''+cot.id+'\')" ><div class="form-grid">'+
+      '<div class="form-group full"><label>Nombre Completo</label><input type="text" id="cli-nombre" value="'+escHtml(cot.cliente)+'" required></div>'+
+      '<div class="form-group"><label>WhatsApp</label><input type="text" id="cli-wa" placeholder="Ej: 1151567041" required></div>'+
+      '<div class="form-group"><label>Email</label><input type="email" id="cli-mail" required></div>'+
+      '<div class="form-group"><label>Lo trajo</label><select id="cli-traido"><option value="Yo">Yo</option><option value="Leandro">Leandro</option></select></div>'+
+      '<div class="form-group"><label>Fecha de Nacimiento</label><input type="date" id="cli-fnac"></div>'+
+      '<div class="form-group full"><label>Notas Iniciales</label><div style="background:#fff9c4;border:2px solid #fbc02d;border-radius:8px;padding:12px;margin-bottom:8px"><textarea id="cli-notas" style="background:#fff9c4;border:none;outline:none;resize:vertical;min-height:80px;font-family:inherit;font-size:13px;color:#5f4b00;font-weight:500;width:100%">'+escHtml(notas)+'</textarea></div></div>'+
+      '</div><div class="modal-actions"><button type="button" class="btn" onclick="closeModal()">Cancelar</button><button type="submit" class="btn btn-primary">Crear Cliente</button></div></form>';
   }
 
   else if(type==='nuevo-prospecto'){
@@ -2194,7 +2213,7 @@ function guardarPoliza(e,clienteId){
   var c=getClient(clienteId);
   if(c){
     if(!c.polizas) c.polizas=[];
-    var patenteEl=document.getElementById('pol-patente');var patenteVal=patenteEl?patenteEl.value.toUpperCase():'';c.polizas.push({tipo:document.getElementById('pol-tipo').value,compania:document.getElementById('pol-comp').value,nro:document.getElementById('pol-nro').value,patente:patenteVal,vendedor:document.getElementById('pol-vendedor').value,vto:document.getElementById('pol-vto').value,fechaAlta:document.getElementById('pol-alta').value});
+    var patenteEl=document.getElementById('pol-patente');var patenteVal=patenteEl?patenteEl.value.toUpperCase():'';c.polizas.push({tipo:document.getElementById('pol-tipo').value,compania:document.getElementById('pol-comp').value,nro:document.getElementById('pol-nro').value,patente:patenteVal,vendedor:document.getElementById('pol-vendedor').value,vto:document.getElementById('pol-vto').value,fechaAlta:document.getElementById('pol-alta').value,notes:document.getElementById('pol-notas')?document.getElementById('pol-notas').value:''});
     saveDB();closeModal();toast('Nueva póliza vinculada al tomador');showDetail(clienteId);
   }
 }
@@ -2210,6 +2229,7 @@ function actualizarPoliza(e,clienteId,polIdx){
     c.polizas[polIdx].vendedor=document.getElementById('pol-vendedor').value;
     c.polizas[polIdx].vto=document.getElementById('pol-vto').value;
     c.polizas[polIdx].fechaAlta=document.getElementById('pol-alta').value;
+    if(document.getElementById('pol-notas')) c.polizas[polIdx].notes=document.getElementById('pol-notas').value;
     saveDB();closeModal();toast('Registro de póliza modificado');showDetail(clienteId);updateBadges();
   }
 }
@@ -2236,6 +2256,19 @@ function guardarCliente(e){
   var nuevoId=uid();
   DB.clients.push({id:nuevoId,nombre:document.getElementById('cli-nombre').value,whatsapp:document.getElementById('cli-wa').value,mail:document.getElementById('cli-mail').value,fechaNacimiento:document.getElementById('cli-fnac').value||'',traidoPor:document.getElementById('cli-traido').value,polizas:[],notas:document.getElementById('cli-notas').value,interacciones:[]});
   saveDB();closeModal();toast('Cliente incorporado al CRM');showDetail(nuevoId);updateBadges();
+}
+
+function guardarClienteDesdeCotzacion(e, cotizacionId){
+  e.preventDefault();
+  var nuevoId=uid();
+  DB.clients.push({id:nuevoId,nombre:document.getElementById('cli-nombre').value,whatsapp:document.getElementById('cli-wa').value,mail:document.getElementById('cli-mail').value,fechaNacimiento:document.getElementById('cli-fnac').value||'',traidoPor:document.getElementById('cli-traido').value,polizas:[],notas:document.getElementById('cli-notas').value,interacciones:[]});
+  
+  var cot = DB.cotizaciones.find(function(x){return x.id == cotizacionId});
+  if(cot) {
+    cot.clienteId = nuevoId;
+  }
+  
+  saveDB();closeModal();toast('Cliente creado desde cotización y vinculado');showDetail(nuevoId);updateBadges();
 }
 
 function guardarProspecto(e){
@@ -2736,6 +2769,7 @@ function renderHistorialCotizaciones() {
     var botones = `
       <button class="btn btn-sm" onclick="editarCotizacion('${c.id}')"><i class="ti ti-edit"></i> Editar</button>
       <button class="btn btn-sm btn-success" onclick="convertirCotizacionEnProspecto('${c.id}')"><i class="ti ti-user-plus"></i> Conv. a Prospecto</button>
+      <button class="btn btn-sm" style="background:var(--teal-light);color:var(--teal);border-color:#a8e6d9" onclick="convertirCotizacionACliente('${c.id}')"><i class="ti ti-user-check"></i> Conv. en Cliente</button>
       <button class="btn btn-sm" style="background:var(--green-light);color:var(--green);border-color:#b6d98a" onclick="vincularCotizacionACliente('${c.id}')"><i class="ti ti-link"></i> Vincular Cliente</button>
       <button class="btn btn-sm btn-danger" onclick="eliminarCotizacion('${c.id}')"><i class="ti ti-trash"></i></button>
     `;
@@ -3630,8 +3664,18 @@ function vincularCotizacionACliente(id) {
   };
 }
 
-function convertirCotizacionEnCliente(id) {
-  convertirCotizacionEnProspecto(id);
+function convertirCotizacionACliente(id) {
+  var cot = DB.cotizaciones.find(function(x){return x.id == id});
+  if(!cot) return;
+
+  var clienteExistente = DB.clients.find(function(x){return x.nombre.toLowerCase() === cot.cliente.toLowerCase()});
+  if(clienteExistente) {
+    alert('Ya existe un cliente con ese nombre: ' + cot.cliente);
+    return;
+  }
+
+  // Abrir el modal de nuevo cliente con los datos precargados
+  openModal('nuevo-cliente-desde-cot', id);
 }
 
 function enviarWABday(clienteId) {
@@ -3748,5 +3792,4 @@ function toggleSidebar() {
 </script>
 </body>
 </html>
-
 
