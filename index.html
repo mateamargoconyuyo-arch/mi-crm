@@ -255,7 +255,7 @@
       </div>
     </div>
     <div class="table-wrap">
-      <table><thead><tr><th>Cliente</th><th>Cobertura</th><th>Tipo Siniestro</th><th>Compañía</th><th>Fecha</th><th>Estado</th><th>Descripción</th><th>Acciones</th></tr></thead>
+      <table><thead><tr><th>Cliente</th><th>Cobertura</th><th>Tipo Siniestro</th><th>Nº Siniestro</th><th>Compañía</th><th>Fecha</th><th>Estado</th><th>Descripción</th><th>Acciones</th></tr></thead>
       <tbody id="tb-siniestros"></tbody></table>
     </div>
   </div>
@@ -1459,6 +1459,7 @@ function renderSiniestros() {
       '<td style="font-weight:500">'+(c?escHtml(c.nombre):'—')+'</td>'+
       '<td><span class="tag '+(TIPO_TAG[s.tipo]||'tag-blue')+'">'+escHtml(s.tipo)+'</span></td>'+
       '<td><span class="tag tag-gray">'+escHtml(s.tipoSiniestro||'General')+'</span></td>'+
+      '<td><span style="font-size:12px;color:var(--text2)">'+(s.numero?escHtml(s.numero):'—')+'</span></td>'+
       '<td>'+escHtml(s.compania)+'</td>'+
       '<td>'+fmt(s.fecha)+'</td>'+
       '<td><span class="tag '+tagst+'"><span class="status-dot '+dot+'"></span>'+escHtml(s.estado)+'</span></td>'+
@@ -1808,6 +1809,7 @@ function openModal(type, targetId, extraId) {
       '<div class="form-group full"><label>Cliente Asegurado</label><select id="sin-cli">'+optCl+'</select></div>'+
       '<div class="form-group"><label>Ramo Comercial</label><select id="sin-tipo">'+optTip+'</select></div>'+
       '<div class="form-group"><label>Tipo de Siniestro (Hecho)</label><input type="text" id="sin-tsiniestro" placeholder="Ej: Choque, Robo, Daño Eléctrico" required></div>'+
+      '<div class="form-group"><label>Nº Siniestro <span style="color:var(--text3);font-size:11px">(opcional)</span></label><input type="text" id="sin-numero" placeholder="Ej: 2024-001234"></div>'+
       '<div class="form-group"><label>Compañía Concurrente</label><select id="sin-comp">'+optComp+'</select></div>'+
       '<div class="form-group"><label>Fecha del Siniestro</label><input type="date" id="sin-fecha" value="'+hoyStr+'" required></div>'+
       '<div class="form-group full"><label>Estado del Trámite</label><select id="sin-est"><option>En trámite</option><option>Peritado</option><option>Cerrado</option></select></div>'+
@@ -1832,6 +1834,7 @@ function openModal(type, targetId, extraId) {
       '<div class="form-group full"><label>Cliente</label><select id="sin-cli">'+optCl+'</select></div>'+
       '<div class="form-group"><label>Ramo</label><select id="sin-tipo">'+optTip+'</select></div>'+
       '<div class="form-group"><label>Tipo de Siniestro</label><input type="text" id="sin-tsiniestro" value="'+escHtml(sin.tipoSiniestro||'')+'" required></div>'+
+      '<div class="form-group"><label>Nº Siniestro <span style="color:var(--text3);font-size:11px">(opcional)</span></label><input type="text" id="sin-numero" value="'+escHtml(sin.numero||'')+'" placeholder="Ej: 2024-001234"></div>'+
       '<div class="form-group"><label>Compañía</label><select id="sin-comp">'+optComp+'</select></div>'+
       '<div class="form-group"><label>Fecha</label><input type="date" id="sin-fecha" value="'+sin.fecha+'" required></div>'+
       '<div class="form-group full"><label>Estado</label><select id="sin-est">'+
@@ -2186,7 +2189,7 @@ function actualizarFactura(e,id){
 function guardarSiniestro(e){
   e.preventDefault();
   var cliId = parseInt(document.getElementById('sin-cli').value);
-  DB.siniestros.push({id:uid(),clienteId:cliId,tipo:document.getElementById('sin-tipo').value,tipoSiniestro:document.getElementById('sin-tsiniestro').value,compania:document.getElementById('sin-comp').value,fecha:document.getElementById('sin-fecha').value,estado:document.getElementById('sin-est').value,notes:document.getElementById('sin-notas').value});
+  DB.siniestros.push({id:uid(),clienteId:cliId,tipo:document.getElementById('sin-tipo').value,tipoSiniestro:document.getElementById('sin-tsiniestro').value,numero:document.getElementById('sin-numero').value.trim()||undefined,compania:document.getElementById('sin-comp').value,fecha:document.getElementById('sin-fecha').value,estado:document.getElementById('sin-est').value,notes:document.getElementById('sin-notas').value});
   saveDB();closeModal();toast('Siniestro registrado de manera exitosa');
 
   var secDetalle=document.getElementById('sec-detalle');
@@ -2203,6 +2206,7 @@ function actualizarSiniestro(e,id){
     sin.clienteId=parseInt(document.getElementById('sin-cli').value);
     sin.tipo=document.getElementById('sin-tipo').value;
     sin.tipoSiniestro=document.getElementById('sin-tsiniestro').value;
+    sin.numero=document.getElementById('sin-numero').value.trim()||undefined;
     sin.compania=document.getElementById('sin-comp').value;
     sin.fecha=document.getElementById('sin-fecha').value;
     sin.estado=document.getElementById('sin-est').value;
