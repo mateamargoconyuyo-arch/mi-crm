@@ -2509,6 +2509,12 @@ function convertirProspectoACliente(prosId) {
 
   DB.clients.push(nuevo);
   DB.prospectos = DB.prospectos.filter(function(p){ return p.id != prosId; });
+  
+  // Eliminar cotizaciones vinculadas al prospecto para evitar duplicados
+  if (DB.cotizaciones && DB.cotizaciones.length > 0) {
+    DB.cotizaciones = DB.cotizaciones.filter(function(cot){ return cot.prospectoId != prosId; });
+  }
+  
   saveDB();
   toast(pros.nombre + ' migrado a Cliente Activo');
   showDetail(nuevo.id);
