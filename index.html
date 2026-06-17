@@ -1802,7 +1802,6 @@ function openModal(type, targetId, extraId) {
       return '<option value="'+c.id+'"'+(targetId && c.id==targetId?' selected':'')+'>'+escHtml(c.nombre)+'</option>';
     }).join('');
     var optTip=TIPOS.map(function(t){return '<option value="'+t+'">'+t+'</option>'}).join('');
-    var optComp=COMPANIAS.map(function(c){return '<option value="'+c+'">'+c+'</option>'}).join('');
     var hoyStr=new Date().toISOString().split('T')[0];
     b.innerHTML='<div class="modal-title">Registrar Nuevo Siniestro <button class="modal-close" onclick="closeModal()">&times;</button></div>'+
       '<form onsubmit="guardarSiniestro(event)"><div class="form-grid">'+
@@ -1810,7 +1809,9 @@ function openModal(type, targetId, extraId) {
       '<div class="form-group"><label>Ramo Comercial</label><select id="sin-tipo">'+optTip+'</select></div>'+
       '<div class="form-group"><label>Tipo de Siniestro (Hecho)</label><input type="text" id="sin-tsiniestro" placeholder="Ej: Choque, Robo, Daño Eléctrico" required></div>'+
       '<div class="form-group"><label>Nº Siniestro <span style="color:var(--text3);font-size:11px">(opcional)</span></label><input type="text" id="sin-numero" placeholder="Ej: 2024-001234"></div>'+
-      '<div class="form-group"><label>Compañía Concurrente</label><select id="sin-comp">'+optComp+'</select></div>'+
+      '<div class="form-group"><label>Compañía del Asegurado</label><input type="text" id="sin-comp" placeholder="Ej: Federación Patronal" required></div>'+
+      '<div class="form-group"><label>Compañía del Tercero <span style="color:var(--text3);font-size:11px">(opcional)</span></label><input type="text" id="sin-comp-tercero" placeholder="Ej: Sancor Seguros"></div>'+
+      '<div class="form-group"><label>Nº de Póliza <span style="color:var(--text3);font-size:11px">(opcional)</span></label><input type="text" id="sin-nro-poliza" placeholder="Ej: A-1234567"></div>'+
       '<div class="form-group"><label>Fecha del Siniestro</label><input type="date" id="sin-fecha" value="'+hoyStr+'" required></div>'+
       '<div class="form-group full"><label>Estado del Trámite</label><select id="sin-est"><option>En trámite</option><option>Peritado</option><option>Cerrado</option></select></div>'+
       '<div class="form-group full"><label>Descripción Detallada / Terceros</label><textarea id="sin-notas" required></textarea></div>'+
@@ -1822,7 +1823,6 @@ function openModal(type, targetId, extraId) {
     if(!sin) return closeModal();
     var optCl=DB.clients.map(function(c){return '<option value="'+c.id+'"'+(c.id==sin.clienteId?' selected':'')+'>'+escHtml(c.nombre)+'</option>';}).join('');
     var optTip=TIPOS.map(function(t){return '<option value="'+t+'"'+(t==sin.tipo?' selected':'')+'>'+t+'</option>';}).join('');
-    var optComp=COMPANIAS.map(function(c){return '<option value="'+c+'"'+(c==sin.compania?' selected':'')+'>'+c+'</option>';}).join('');
 
     var avancesHTML = (sin.avances || []).map(function(av, idx){
       return '<div class="detail-row" style="font-size:12px"><span>'+fmt(av.fecha)+' - '+escHtml(av.nota)+'</span>'+
@@ -1835,7 +1835,9 @@ function openModal(type, targetId, extraId) {
       '<div class="form-group"><label>Ramo</label><select id="sin-tipo">'+optTip+'</select></div>'+
       '<div class="form-group"><label>Tipo de Siniestro</label><input type="text" id="sin-tsiniestro" value="'+escHtml(sin.tipoSiniestro||'')+'" required></div>'+
       '<div class="form-group"><label>Nº Siniestro <span style="color:var(--text3);font-size:11px">(opcional)</span></label><input type="text" id="sin-numero" value="'+escHtml(sin.numero||'')+'" placeholder="Ej: 2024-001234"></div>'+
-      '<div class="form-group"><label>Compañía</label><select id="sin-comp">'+optComp+'</select></div>'+
+      '<div class="form-group"><label>Compañía del Asegurado</label><input type="text" id="sin-comp" value="'+escHtml(sin.compania||'')+'" placeholder="Ej: Federación Patronal" required></div>'+
+      '<div class="form-group"><label>Compañía del Tercero <span style="color:var(--text3);font-size:11px">(opcional)</span></label><input type="text" id="sin-comp-tercero" value="'+escHtml(sin.companiaTercero||'')+'" placeholder="Ej: Sancor Seguros"></div>'+
+      '<div class="form-group"><label>Nº de Póliza <span style="color:var(--text3);font-size:11px">(opcional)</span></label><input type="text" id="sin-nro-poliza" value="'+escHtml(sin.nroPoliza||'')+'" placeholder="Ej: A-1234567"></div>'+
       '<div class="form-group"><label>Fecha</label><input type="date" id="sin-fecha" value="'+sin.fecha+'" required></div>'+
       '<div class="form-group full"><label>Estado</label><select id="sin-est">'+
         '<option'+(sin.estado==='En trámite'?' selected':'')+'>En trámite</option>'+
@@ -2000,12 +2002,14 @@ function openModal(type, targetId, extraId) {
       '<div class="section-card" style="margin-bottom:12px">'+
         '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">'+
           '<div><div style="font-size:16px;font-weight:700">'+(c?escHtml(c.nombre):'Cliente Desconocido')+'</div>'+
-          '<div style="font-size:12px;color:var(--text2)">'+escHtml(s.tipo)+' · '+escHtml(s.compania)+'</div></div>'+
+          '<div style="font-size:12px;color:var(--text2)">'+escHtml(s.tipo)+' · Cía. Asegurado: '+escHtml(s.compania)+'</div></div>'+
           '<span class="tag"><span class="status-dot '+dot+'"></span>'+escHtml(s.estado)+'</span>'+
         '</div>'+
         '<div class="detail-row"><span class="detail-label">Hecho</span><span>'+escHtml(s.tipoSiniestro||'General')+'</span></div>'+
         '<div class="detail-row"><span class="detail-label">Fecha Hecho</span><span>'+fmt(s.fecha)+'</span></div>'+
         (s.numero?'<div class="detail-row"><span class="detail-label">Nº Siniestro</span><span style="font-weight:600;color:var(--blue)">'+escHtml(s.numero)+'</span></div>':'')+
+        (s.nroPoliza?'<div class="detail-row"><span class="detail-label">Nº de Póliza</span><span style="font-weight:600">'+escHtml(s.nroPoliza)+'</span></div>':'')+
+        (s.companiaTercero?'<div class="detail-row"><span class="detail-label">Cía. del Tercero</span><span>'+escHtml(s.companiaTercero)+'</span></div>':'')+
         '<div style="margin-top:10px;font-size:13px;color:var(--text2);background:var(--bg3);padding:8px;border-radius:var(--radius)">'+escHtml(s.notes||'Sin descripción inicial.')+'</div>'+
       '</div>'+
       '<div class="section-card"><div class="section-title">Bitácora de Avances</div>'+
@@ -2190,7 +2194,7 @@ function actualizarFactura(e,id){
 function guardarSiniestro(e){
   e.preventDefault();
   var cliId = parseInt(document.getElementById('sin-cli').value);
-  DB.siniestros.push({id:uid(),clienteId:cliId,tipo:document.getElementById('sin-tipo').value,tipoSiniestro:document.getElementById('sin-tsiniestro').value,numero:document.getElementById('sin-numero').value.trim(),compania:document.getElementById('sin-comp').value,fecha:document.getElementById('sin-fecha').value,estado:document.getElementById('sin-est').value,notes:document.getElementById('sin-notas').value});
+  DB.siniestros.push({id:uid(),clienteId:cliId,tipo:document.getElementById('sin-tipo').value,tipoSiniestro:document.getElementById('sin-tsiniestro').value,numero:document.getElementById('sin-numero').value.trim(),compania:document.getElementById('sin-comp').value.trim(),companiaTercero:document.getElementById('sin-comp-tercero').value.trim(),nroPoliza:document.getElementById('sin-nro-poliza').value.trim(),fecha:document.getElementById('sin-fecha').value,estado:document.getElementById('sin-est').value,notes:document.getElementById('sin-notas').value});
   saveDB();closeModal();toast('Siniestro registrado de manera exitosa');
 
   var secDetalle=document.getElementById('sec-detalle');
@@ -2208,7 +2212,9 @@ function actualizarSiniestro(e,id){
     sin.tipo=document.getElementById('sin-tipo').value;
     sin.tipoSiniestro=document.getElementById('sin-tsiniestro').value;
     sin.numero=document.getElementById('sin-numero').value.trim();
-    sin.compania=document.getElementById('sin-comp').value;
+    sin.compania=document.getElementById('sin-comp').value.trim();
+    sin.companiaTercero=document.getElementById('sin-comp-tercero').value.trim();
+    sin.nroPoliza=document.getElementById('sin-nro-poliza').value.trim();
     sin.fecha=document.getElementById('sin-fecha').value;
     sin.estado=document.getElementById('sin-est').value;
     sin.notes=document.getElementById('sin-notas').value;
