@@ -697,7 +697,7 @@
     <p style="font-size: 11px; color: #666;">Orientativo y general, las condiciones exactas están sujetas a la póliza particular</p>
   </div>
 
-  <div class="pdf-info-box" id="pdf-box-terceros-base">
+  <div class="pdf-info-box" id="pdf-box-terceros-base" style="page-break-inside:avoid;">
     <p><b>¿Qué incluye la cobertura Terceros Completo Base?</b></p>
     <p style="color: #666; font-size: 12px;">La siguiente descripción tiene carácter <b>orientativo y general</b>, y refleja los alcances habituales de la cobertura Terceros Completo Base en el mercado asegurador.</p>
     <ul style="color: #666; font-size: 12px; padding-left: 20px;">
@@ -711,7 +711,7 @@
     </ul>
   </div>
 
-  <div class="pdf-info-box" id="pdf-box-terceros-full">
+  <div class="pdf-info-box" id="pdf-box-terceros-full" style="page-break-inside:avoid;">
     <p><b>¿Qué incluye la cobertura Terceros Completo Full?</b></p>
     <p style="color: #666; font-size: 12px;">La siguiente descripción tiene carácter <b>orientativo y general</b>, y refleja los alcances habituales de la cobertura Terceros Completo Full en el mercado asegurador.</p>
     <ul style="color: #666; font-size: 12px; padding-left: 20px;">
@@ -722,11 +722,15 @@
       <li>Granizo sin límite</li>
       <li>Reposición de neumáticos sin desgaste (puede variar según la compañía)</li>
       <li>Criterio del 80% en caso de destrucción total</li>
-      <li>Daños parciales al amparo de robo total: 10% de la suma asegurada (puede variar según la compañía)</li>
+      <li>Daños parciales al amparo de robo total: <b>ver diferencias por compañía abajo</b></li>
     </ul>
+    <div id="pdf-box-diferencias-companias" style="display:none;margin-top:12px;border-top:1px solid #e2e8f0;padding-top:10px;">
+      <p style="font-size:12px;font-weight:700;color:#185FA5;margin-bottom:6px;">⚠️ Diferencias por compañía — Daños parciales al amparo del robo total:</p>
+      <table style="width:100%;border-collapse:collapse;font-size:12px;" id="pdf-tabla-diferencias"></table>
+    </div>
   </div>
 
-  <div class="pdf-info-box" id="pdf-box-todo-riesgo">
+  <div class="pdf-info-box" id="pdf-box-todo-riesgo" style="page-break-inside:avoid;">
     <p><b>¿Qué incluye la cobertura Todo Riesgo con franquicia?</b></p>
     <p style="color: #666; font-size: 12px;">La siguiente descripción es de carácter <b>orientativo y general</b>, y representa los alcances habituales de la cobertura Todo Riesgo con franquicia en el mercado asegurador. Las condiciones específicas, franquicias y límites pueden variar según cada compañía y plan contratado, prevaleciendo siempre lo establecido en la póliza particular.</p>
     <ul style="color: #666; font-size: 12px; padding-left: 20px;">
@@ -758,6 +762,20 @@
 var TIPOS = ['Auto','Hogar','Comercio','Vida','Accidentes Personales','Moto','Transporte','Embarcación','Responsabilidad Civil','Agrícola','Incendio'];
 var COMPANIAS = ['Federación Patronal','Mercantil','San Cristóbal','Río Uruguay','Sancor','Allianz','Rivadavia','Banco del Sol','SMG','Prevención','Libra'];
 var STAGES = ['Primer contacto','En negociación','Propuesta enviada'];
+
+// Diferencias de cobertura por compañía para Terceros Completo Full
+var COBERTURAS_DIFERENCIAS = {
+  'Sancor':              { danoParacialRobo: '100% de la suma asegurada' },
+  'Allianz':             { danoParacialRobo: '100% de la suma asegurada' },
+  'San Cristobal':       { danoParacialRobo: '10% de la suma asegurada' },
+  'Federacion Patronal': { danoParacialRobo: 'Hasta $850.000' },
+  'Mercantil':           { danoParacialRobo: '40% de la suma asegurada' },
+  'Rivadavia':           { danoParacialRobo: '10% de la suma asegurada' }
+};
+
+function normalizarTexto(s) {
+  return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
 var TIPO_ICON = {Auto:'ti-car',Hogar:'ti-home',Vida:'ti-heart',Comercio:'ti-building-store',Moto:'ti-motorbike','Accidentes Personales':'ti-first-aid-kit',Transporte:'ti-truck','Embarcación':'ti-sailboat','Responsabilidad Civil':'ti-certificate','Agrícola':'ti-plant'};
 var TIPO_TAG = {Auto:'tag-blue',Hogar:'tag-teal',Vida:'tag-purple',Comercio:'tag-amber',Moto:'tag-blue','Accidentes Personales':'tag-red',Transporte:'tag-amber','Embarcación':'tag-teal','Responsabilidad Civil':'tag-gray','Agrícola':'tag-green'};
 var MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
@@ -3063,6 +3081,37 @@ function exportarCotizacionPDF() {
     } else {
       comBox.style.display = 'none';
     }
+  }
+
+  // Diferencias por compañía en Terceros Completo Full
+  var hasTercerosFullCobNames = cobNames.filter(function(c){ return c.toLowerCase().includes('full'); });
+  var difContainer = document.getElementById('pdf-box-diferencias-companias');
+  var difTabla = document.getElementById('pdf-tabla-diferencias');
+  if (difContainer && difTabla && hasTercerosFullCobNames.length > 0) {
+    // Solo mostrar compañías que tienen Terceros Full Y están en COBERTURAS_DIFERENCIAS
+    var companiasConDif = compNames.filter(function(comp) {
+      var match = Object.keys(COBERTURAS_DIFERENCIAS).find(function(k){ return normalizarTexto(comp).includes(normalizarTexto(k)) || normalizarTexto(k).includes(normalizarTexto(comp)); });
+      return !!match;
+    });
+    if (companiasConDif.length > 0) {
+      var filas = companiasConDif.map(function(comp) {
+        var key = Object.keys(COBERTURAS_DIFERENCIAS).find(function(k){ return normalizarTexto(comp).includes(normalizarTexto(k)) || normalizarTexto(k).includes(normalizarTexto(comp)); });
+        var dif = COBERTURAS_DIFERENCIAS[key];
+        var esAlto = dif.danoParacialRobo.includes('100%');
+        var color = esAlto ? '#166534' : '#92400e';
+        var bg = esAlto ? '#f0fdf4' : '#fffbeb';
+        return '<tr style="border-bottom:1px solid #e2e8f0;">'+
+          '<td style="padding:5px 8px;font-weight:600;color:#1e293b;width:45%">'+comp+'</td>'+
+          '<td style="padding:5px 8px;color:'+color+';background:'+bg+';border-radius:4px;font-weight:600">'+dif.danoParacialRobo+'</td>'+
+        '</tr>';
+      }).join('');
+      difTabla.innerHTML = filas;
+      difContainer.style.display = 'block';
+    } else {
+      difContainer.style.display = 'none';
+    }
+  } else if (difContainer) {
+    difContainer.style.display = 'none';
   }
 
   var element = document.getElementById('pdf-export-container');
