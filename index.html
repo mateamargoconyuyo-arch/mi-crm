@@ -764,6 +764,7 @@ var MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','
 
 var DB = {clients:[], siniestros:[], pendientes:[], prospectos:[], facturacion:[], cotizaciones:[]};
 var currentDetailClientId = null;
+var _facturacionAutorizada = false; // Se resetea al cerrar sesión
 
 var firebaseConfig = {
   apiKey: "AIzaSyCRSWClVtULGeWcBWnz-ba7Pj28oIVAOjE",
@@ -776,6 +777,9 @@ var firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 var fbdb = firebase.firestore();
 var fbauth = firebase.auth();
+
+// Persistencia de sesión: solo dura mientras la pestaña esté abierta
+fbauth.setPersistence(firebase.auth.Auth.Persistence.SESSION).catch(function(e){ console.error('Persistencia:', e); });
 
 function loadDB() {
   fbdb.collection('crm').doc('data').get().then(function(doc) {
@@ -916,6 +920,7 @@ function toast(msg) {
 }
 function logout() {
   if(confirm('¿Cerrar sesión?')) {
+    _facturacionAutorizada = false;
     fbauth.signOut().then(function() {
       document.getElementById('app').style.display='none';
       document.getElementById('login-screen').style.display='flex';
@@ -937,6 +942,11 @@ function updateBadges() {
 }
 
 function showSection(s) {
+  // Facturación siempre requiere verificación de contraseña
+  if (s === 'facturacion' && !_facturacionAutorizada) {
+    requirePasswordForSection('facturacion');
+    return;
+  }
   document.querySelectorAll('.view').forEach(function(v){v.classList.remove('active')});
   document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active')});
   var sec=document.getElementById('sec-'+s);
@@ -949,7 +959,7 @@ function showSection(s) {
   if(s==='pendientes') renderPendientes();
   if(s==='prospectos') renderProspectos();
   if(s==='polizas') renderPolizas();
-  if(s==='facturacion'){initFiltrosFacturacion();renderFacturacion();}
+  if(s==='facturacion'){_facturacionAutorizada=false; initFiltrosFacturacion();renderFacturacion();}
   if(s==='reportes') renderReportes();
 if(s==='cotizador') initCotizador();
 	  if(s==='cotizador-hogar') initCotizadorHogar();
@@ -969,6 +979,7 @@ function checkInactivity() {
     if (document.getElementById('login-screen').style.display === 'none') {
       console.log("Inactividad detectada. Cerrando sesión...");
       fbauth.signOut().then(function() {
+        _facturacionAutorizada = false;
         location.reload(); // Recargar para volver al login
       });
     }
@@ -2556,6 +2567,7 @@ function doLogin() {
 }
 
 function doLogout() {
+  _facturacionAutorizada = false;
   fbauth.signOut();
 }
 
@@ -3900,6 +3912,7 @@ function checkSectionPassword() {
   var credential = firebase.auth.EmailAuthProvider.credential(user.email, input);
   user.reauthenticateWithCredential(credential).then(function() {
     closePassModal();
+    if (section === 'facturacion') _facturacionAutorizada = true;
     showSection(section);
   }).catch(function() {
     errEl.textContent = 'Contraseña incorrecta. Intentá de nuevo.';
