@@ -1239,7 +1239,7 @@ function renderDashSiniestros() {
   el.innerHTML = lista.map(function(s){
     var c=getClient(s.clienteId);
     var dot = s.estado==='Peritado'?'dot-blue':'dot-amber';
-    return '<div class="dash-pend-item" onclick="showSection(\'siniestros\')">'+
+    return '<div class="dash-pend-item" onclick="showSection(\'siniestros\');abrirFichaSiniestro('+s.id+')">'+
       '<span class="status-dot '+dot+'" style="flex-shrink:0;margin-right:0"></span>'+
       '<div style="flex:1;min-width:0">'+
         '<div style="font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(c?escHtml(c.nombre):'—')+' — '+escHtml(s.tipoSiniestro||s.tipo)+'</div>'+
