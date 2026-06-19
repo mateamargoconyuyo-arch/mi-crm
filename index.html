@@ -81,6 +81,7 @@
     <button class="nav-item" id="nav-reportes" onclick="showSection('reportes')"><i class="ti ti-chart-bar"></i> Reportes</button>
     <button class="nav-item" id="nav-cotizador" onclick="showSection('cotizador')"><i class="ti ti-file-invoice"></i> Cotizador</button>
 	    <button class="nav-item" id="nav-cotizador-hogar" onclick="showSection('cotizador-hogar')"><i class="ti ti-home-heart"></i> Cotizar Hogar</button>
+	    <button class="nav-item" id="nav-cotizador-moto" onclick="showSection('cotizador-moto')"><i class="ti ti-moped"></i> Cotizar Moto</button>
     <button class="nav-item" id="nav-historial-cot" onclick="showSection('historial-cot')"><i class="ti ti-history"></i> Historial Cotizaciones</button>
     <button class="nav-item" id="nav-links" onclick="showSection('links')"><i class="ti ti-external-link"></i> Links útiles</button>
   </nav>
@@ -288,6 +289,10 @@
     <div style="flex:1"><div class="topbar-title">Pólizas</div></div>
   </div>
   <div class="content">
+    <div style="display:flex;gap:8px;margin-bottom:16px;border-bottom:1px solid var(--border)">
+      <button type="button" class="btn" id="tab-pol-vigentes" onclick="cambiarTabPolizas('vigentes')" style="border-radius:8px 8px 0 0;border-bottom:none;font-weight:600">Vigentes</button>
+      <button type="button" class="btn" id="tab-pol-anuladas" onclick="cambiarTabPolizas('anuladas')" style="border-radius:8px 8px 0 0;border-bottom:none;font-weight:600">Anuladas</button>
+    </div>
     <div class="controls-row" style="margin-bottom:16px">
       <div class="search-wrap">
         <i class="ti ti-search"></i>
@@ -303,7 +308,7 @@
       </div>
     </div>
     <div class="table-wrap">
-      <table><thead><tr><th>Cliente</th><th>Tipo</th><th>Compañía</th><th>Nro. póliza</th><th>Vendedor</th><th>Vencimiento</th><th>Estado</th></tr></thead>
+      <table><thead id="thead-polizas"><tr><th>Cliente</th><th>Tipo</th><th>Compañía</th><th>Nro. póliza</th><th>Vendedor</th><th>Vencimiento</th><th>Estado</th></tr></thead>
       <tbody id="tb-polizas"></tbody></table>
     </div>
   </div>
@@ -423,6 +428,70 @@
   </div>
 </div>
 
+<div class="view" id="sec-cotizador-moto">
+  <div class="topbar">
+    <div style="flex:1"><div class="topbar-title">Cotizador de Moto</div><div class="topbar-subtitle">Generar presupuesto para cliente</div></div>
+    <div class="btn-group">
+      <button class="btn btn-success" onclick="guardarCotizacionMoto()"><i class="ti ti-device-floppy"></i> Guardar Cotización</button>
+      <button class="btn btn-primary" onclick="exportarCotizacionMotoPDF()"><i class="ti ti-download"></i> Exportar PDF</button>
+      <button class="btn btn-wa" onclick="enviarCotizacionMotoWA()"><i class="ti ti-brand-whatsapp"></i> Enviar por WhatsApp</button>
+    </div>
+  </div>
+  <div class="content">
+    <div class="cotizador-form">
+      <div class="form-grid" style="margin-bottom: 24px;">
+        <div class="form-group">
+          <label>Nombre y Apellido del Cliente</label>
+          <input type="text" id="cot-m-cliente" placeholder="Ej: Juan Pérez">
+        </div>
+        <div class="form-group">
+          <label>Riesgo a Cotizar</label>
+          <input type="text" id="cot-m-riesgo-general" placeholder="Ej: Honda Wave 110 /22">
+        </div>
+        <div class="form-group">
+          <label>Vincular a Prospecto (Opcional)</label>
+          <select id="cot-m-vincular-pros">
+            <option value="">-- No vincular --</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Vincular a Cliente (Opcional)</label>
+          <select id="cot-m-vincular-cliente">
+            <option value="">-- No vincular --</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label>Comentario / Observación Destacada (Opcional)</label>
+          <textarea id="cot-m-comentario" placeholder="Escriba algo que quiera resaltar en el PDF y WhatsApp..." style="min-height: 80px; border-color: #fbc02d; background: #fffde7;"></textarea>
+        </div>
+      </div>
+
+      <datalist id="cot-m-coberturas-sugeridas">
+        <option value="B: Resp. Civil, Robo Total, Incendio Total, Accidente Total">
+        <option value="B1: Resp. Civil, Robo Total, Incendio Total">
+        <option value="A: Resp. Civil">
+      </datalist>
+
+      <div class="section-title">Opciones de Cobertura</div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:10px">Coberturas sugeridas — empezá a escribir <b>B</b>, <b>B1</b> o <b>A</b> en el campo Cobertura para autocompletar.</div>
+      <div id="cotizacion-items-moto">
+        <div class="cotizacion-row" style="grid-template-columns: 1.2fr 1fr 1.4fr 0.8fr 50px 60px 50px 40px;">
+          <div class="form-group"><label>Compañía</label><input type="text" class="cot-m-compania" placeholder="Ej: Fed. Patronal"></div>
+          <div class="form-group"><label>Suma Asegurada</label><input type="text" class="cot-m-suma" placeholder="Ej: $1.500.000"></div>
+          <div class="form-group"><label>Cobertura</label><input type="text" class="cot-m-cobertura" list="cot-m-coberturas-sugeridas" placeholder="Ej: B: Resp. Civil, Robo Total..."></div>
+          <div class="form-group"><label>Costo</label><input type="text" class="cot-m-costo" placeholder="Ej: $15.000"></div>
+          <div class="form-group" style="align-items: center;"><label>Recom.</label><input type="checkbox" class="cot-m-recom-check"></div>
+          <div class="form-group" style="align-items: center;"><label>Mejor</label><input type="checkbox" class="cot-m-mejor-check"></div>
+          <div class="form-group" style="align-items: center;"><label>Actual</label><input type="checkbox" class="cot-m-actual-check" onchange="toggleActualRow(this)"></div>
+          <button class="btn btn-danger btn-icon" onclick="this.parentElement.remove()"><i class="ti ti-trash"></i></button>
+        </div>
+      </div>
+
+      <button class="btn btn-sm" style="margin-top: 10px;" onclick="agregarFilaCotizacionMoto()"><i class="ti ti-plus"></i> Agregar otra opción</button>
+    </div>
+  </div>
+</div>
+
 <div class="view" id="sec-cotizador-hogar">
 	  <div class="topbar">
 	    <div style="flex:1"><div class="topbar-title">Cotizador de Hogar</div><div class="topbar-subtitle">Generar presupuesto de hogar para cliente</div></div>
@@ -490,9 +559,12 @@
 	        </table>
 	      </div>
 
-	      <div style="background: #E6F1FB; border-left: 4px solid #185FA5; padding: 16px; border-radius: 8px; margin-top: 20px; font-size: 13px; line-height: 1.7;">
-	        <strong style="display: block; margin-bottom: 10px; color: #185FA5;">⚠️ Cobertura de Servicios de Emergencias</strong>
-	        <p style="margin: 0; color: #1a1d23;">La propuesta incluye servicios de emergencias en Plomería, Gasista, Electricista y Cerrajería. La cobertura opera exclusivamente ante eventos de urgencia, con un límite máximo de servicios anuales y topes de costos por evento según las condiciones de la póliza.</p>
+	      <div style="background: #E6F1FB; border-left: 4px solid #185FA5; padding: 14px; border-radius: 8px; margin-top: 20px; font-size: 13px; display:flex; align-items:flex-start; gap:12px;">
+	        <input type="checkbox" id="cot-h-emergencias" style="width:18px;height:18px;margin-top:2px;cursor:pointer;flex-shrink:0">
+	        <div>
+	          <strong style="display: block; margin-bottom: 6px; color: #185FA5;">⚠️ Incluir Cobertura de Servicios de Emergencias en el PDF</strong>
+	          <p style="margin: 0; color: #1a1d23;">Plomería, Gasista, Electricista y Cerrajería. Tildá esta opción solo si la cotización incluye este servicio.</p>
+	        </div>
 	      </div>
 	    </div>
 	  </div>
@@ -976,11 +1048,12 @@ function showSection(s) {
   if(s==='siniestros') renderSiniestros();
   if(s==='pendientes') renderPendientes();
   if(s==='prospectos') renderProspectos();
-  if(s==='polizas') renderPolizas();
+  if(s==='polizas') cambiarTabPolizas(tabPolizasActual);
   if(s==='facturacion'){_facturacionAutorizada=false; initFiltrosFacturacion();renderFacturacion();}
   if(s==='reportes') renderReportes();
 if(s==='cotizador') initCotizador();
 	  if(s==='cotizador-hogar') initCotizadorHogar();
+	  if(s==='cotizador-moto') initCotizadorMoto();
 	  if(s==='historial-cot') renderHistorialCotizaciones();
   updateBadges();
 }
@@ -1325,12 +1398,14 @@ function showDetail(id) {
   var polizasHTML = c.polizas && c.polizas.length ? c.polizas.map(function(p,i){
     var ic=TIPO_ICON[p.tipo]||'ti-file';
     var vendTag=p.vendedor?' · Vendedor: '+p.vendedor:'';
+    var anuladaTag = p.estado==='Anulada' ? ' <span class="tag tag-red" style="font-size:10px">ANULADA</span>' : '';
     return '<div class="poliza-item">'+
       '<div class="poliza-icon"><i class="ti '+ic+'"></i></div>'+
       '<div style="flex:1">'+
-        '<div style="font-size:13px;font-weight:600">'+escHtml(p.tipo)+'</div>'+
+        '<div style="font-size:13px;font-weight:600">'+escHtml(p.tipo)+anuladaTag+'</div>'+
         '<div style="font-size:12px;color:var(--text2)">'+escHtml(p.compania)+' · Nro: '+escHtml(p.nro||'-')+(p.patente?(' · Patente: '+escHtml(p.patente)):'')+ escHtml(vendTag)+'</div>'+
         '<div style="font-size:11px;color:var(--text3);margin-top:1px">Alta: '+fmt(p.fechaAlta||'')+'</div>'+
+        (p.estado==='Anulada'&&p.motivoAnulacion?'<div style="font-size:11px;color:#991b1b;margin-top:1px"><i class="ti ti-x"></i> Motivo: '+escHtml(p.motivoAnulacion)+'</div>':'')+
         (p.notes?'<div style="font-size:12px;color:#5f4b00;background:#fffde7;border:1px solid #fbc02d;border-radius:5px;padding:4px 8px;margin-top:5px;white-space:pre-line">'+escHtml(p.notes)+'</div>':'')+
       '</div>'+
       '<div style="font-size:12px;color:var(--text2);margin-right:8px">Vto: '+fmt(p.vto)+'</div>'+
@@ -1455,6 +1530,12 @@ function eliminarCliente(id) {
 
 function agregarPoliza(clienteId){openModal('nueva-poliza',clienteId);}
 
+function toggleMotivoAnulacion() {
+  var sel = document.getElementById('pol-estado');
+  var grupo = document.getElementById('grupo-motivo-anulacion');
+  if (sel && grupo) grupo.style.display = sel.value === 'Anulada' ? 'block' : 'none';
+}
+
 function renderSiniestros() {
   var b=document.getElementById('tb-siniestros');
   var q=(document.getElementById('q-siniestros').value||'').toLowerCase();
@@ -1532,29 +1613,55 @@ function renderPendientes() {
   }).join('');
 }
 
+var tabPolizasActual = 'vigentes';
+
+function cambiarTabPolizas(tab) {
+  tabPolizasActual = tab;
+  document.getElementById('tab-pol-vigentes').style.background = tab==='vigentes' ? 'var(--blue)' : '';
+  document.getElementById('tab-pol-vigentes').style.color = tab==='vigentes' ? '#fff' : '';
+  document.getElementById('tab-pol-anuladas').style.background = tab==='anuladas' ? 'var(--red)' : '';
+  document.getElementById('tab-pol-anuladas').style.color = tab==='anuladas' ? '#fff' : '';
+  var thead = document.getElementById('thead-polizas');
+  thead.innerHTML = tab==='anuladas'
+    ? '<tr><th>Cliente</th><th>Tipo</th><th>Compañía</th><th>Nro. póliza</th><th>Vendedor</th><th>Motivo de Anulación</th><th>Estado</th></tr>'
+    : '<tr><th>Cliente</th><th>Tipo</th><th>Compañía</th><th>Nro. póliza</th><th>Vendedor</th><th>Vencimiento</th><th>Estado</th></tr>';
+  renderPolizas();
+}
+
 function renderPolizas() {
   var b=document.getElementById('tb-polizas');
   var q=(document.getElementById('q-polizas').value||'').toLowerCase();
   var filtroVendedor=(document.getElementById('filtro-vendedor-pol').value||'');
   var list=[];
   DB.clients.forEach(function(c){
-    if(c.polizas) c.polizas.forEach(function(p){
+    if(c.polizas) c.polizas.forEach(function(p,idx){
+      var esAnulada = p.estado === 'Anulada';
+      var matchTab = tabPolizasActual==='anuladas' ? esAnulada : !esAnulada;
       var matchQ=!q||c.nombre.toLowerCase().includes(q)||p.tipo.toLowerCase().includes(q)||p.compania.toLowerCase().includes(q);
       var matchVendedor=!filtroVendedor||(p.vendedor||'Yo')===filtroVendedor;
-      if(matchQ&&matchVendedor)
-        list.push({c:c,p:p});
+      if(matchQ&&matchVendedor&&matchTab)
+        list.push({c:c,p:p,idx:idx});
     });
   });
-  if(!list.length){b.innerHTML='<tr><td colspan="7"><div class="empty"><i class="ti ti-file"></i><p>Sin pólizas vigentes encontradas</p></div></td></tr>';return;}
+  if(!list.length){
+    var msg = tabPolizasActual==='anuladas' ? 'Sin pólizas anuladas encontradas' : 'Sin pólizas vigentes encontradas';
+    b.innerHTML='<tr><td colspan="7"><div class="empty"><i class="ti ti-file"></i><p>'+msg+'</p></div></td></tr>';return;
+  }
   b.innerHTML=list.map(function(i){
+    var ultimaCol = tabPolizasActual==='anuladas'
+      ? '<td>'+escHtml(i.p.motivoAnulacion||'-')+'</td>'
+      : '<td>'+fmt(i.p.vto)+'</td>';
+    var estadoTag = tabPolizasActual==='anuladas'
+      ? '<span class="tag tag-red">Anulada</span>'
+      : '<span class="tag tag-green">Vigente</span>';
 return '<tr onclick="showDetail('+i.c.id+')" style="cursor:pointer">'+
 '<td>'+escHtml(i.c.nombre)+'</td>'+
 '<td>'+escHtml(i.p.tipo)+'</td>'+
 '<td>'+escHtml(i.p.compania)+'</td>'+
 '<td>'+escHtml(i.p.nro)+'</td>'+
 '<td><span class="tag tag-gray">'+escHtml(i.p.vendedor||'Yo')+'</span></td>'+
-'<td>'+fmt(i.p.vto)+'</td>'+
-'<td><span class="tag tag-green">Vigente</span></td>'+
+ultimaCol+
+'<td>'+estadoTag+'</td>'+
 '</tr>';
   }).join('');
 }
@@ -1983,6 +2090,11 @@ function openModal(type, targetId, extraId) {
       '</div>'+
       '<div class="form-group"><label>Fecha de Alta</label><input type="date" id="pol-alta" value="'+escHtml(p.fechaAlta||'')+'" required></div>'+
       '<div class="form-group"><label>Vencimiento de Cobertura</label><input type="date" id="pol-vto" value="'+escHtml(p.vto||'')+'" required></div>'+
+      '<div class="form-group full"><label>Estado de la Póliza</label><select id="pol-estado" onchange="toggleMotivoAnulacion()">'+
+        '<option value="Vigente"'+(p.estado!=='Anulada'?' selected':'')+'>Vigente</option>'+
+        '<option value="Anulada"'+(p.estado==='Anulada'?' selected':'')+'>Anulada</option>'+
+      '</select></div>'+
+      '<div class="form-group full" id="grupo-motivo-anulacion" style="display:'+(p.estado==='Anulada'?'block':'none')+'"><label>Motivo de Anulación</label><input type="text" id="pol-motivo-anulacion" value="'+escHtml(p.motivoAnulacion||'')+'" placeholder="Ej: Falta de pago, pedido del cliente, etc."></div>'+
       '<div class="form-group full"><label>Notas de Póliza</label><div style="background:#fffde7;border:2px solid #fbc02d;border-radius:8px;padding:10px"><textarea id="pol-notas" style="background:transparent;border:none;outline:none;resize:vertical;min-height:70px;font-family:inherit;font-size:13px;color:#5f4b00;font-weight:500;width:100%" placeholder="Observaciones, particularidades de cobertura, acuerdos con el asegurado...">'+escHtml(p.notes||'')+'</textarea></div></div>'+
       '</div><div class="modal-actions"><button type="button" class="btn" onclick="closeModal()">Cancelar</button><button type="submit" class="btn btn-primary">Guardar Póliza</button></div></form>';
   }
@@ -2093,7 +2205,7 @@ function openModal(type, targetId, extraId) {
 	        '<div class="detail-row"><span class="detail-label"><i class="ti ti-user"></i> Responsable</span><span>'+escHtml(pros.responsable||'YO')+'</span></div>'+
 	        '<div class="detail-row"><span class="detail-label"><i class="ti ti-calendar-check"></i> Emisión</span><span>'+(pros.fechaEmision?fmt(pros.fechaEmision):'-')+'</span></div>'+
 	        '<div class="detail-row"><span class="detail-label"><i class="ti ti-clock"></i> Recontacto</span><span>'+(pros.fechaRecontacto?fmt(pros.fechaRecontacto):'-')+'</span></div>'+
-	        (pros.notes?'<div style="margin-top:10px;font-size:13px;color:var(--text2);white-space:pre-line"><b>Notas:</b><br>'+escHtml(pros.notes)+'</div>':'')+
+	        (pros.notes?'<div style="margin-top:12px;font-size:13px;color:#7a5c00;white-space:pre-line;background:#fff8e1;border-left:4px solid #fbc02d;padding:10px 12px;border-radius:6px"><b style="color:#7a5c00">📝 Notas:</b><br>'+escHtml(pros.notes)+'</div>':'')+
 	      '</div>'+
 	      '<div class="section-card"><div class="section-title">Cotizaciones Vinculadas <span style="font-size:11px;font-weight:400;color:var(--text2)">('+cotsPros.length+')</span></div>'+cotsHTML+'</div>'+
 	      '<div class="section-card"><div class="section-title">Tareas asociadas <span style="font-size:11px;font-weight:400;color:var(--text2)">('+tareasPros.length+')</span><button type="button" class="btn btn-sm" style="padding:2px 8px;font-size:11px;margin-left:auto" onclick="openModal(\'nueva-tarea-pros\','+pros.id+')"><i class="ti ti-plus"></i> Nueva</button></div>'+tareasHTML+'</div>'+
@@ -2319,6 +2431,11 @@ function actualizarPoliza(e,clienteId,polIdx){
     c.polizas[polIdx].vendedor=document.getElementById('pol-vendedor').value;
     c.polizas[polIdx].vto=document.getElementById('pol-vto').value;
     c.polizas[polIdx].fechaAlta=document.getElementById('pol-alta').value;
+    var estadoEl=document.getElementById('pol-estado');
+    if(estadoEl){
+      c.polizas[polIdx].estado=estadoEl.value;
+      c.polizas[polIdx].motivoAnulacion=estadoEl.value==='Anulada'?(document.getElementById('pol-motivo-anulacion')||{}).value||'':'';
+    }
     if(document.getElementById('pol-notas')) c.polizas[polIdx].notes=document.getElementById('pol-notas').value;
     saveDB();closeModal();toast('Registro de póliza modificado');showDetail(clienteId);updateBadges();
   }
@@ -2591,6 +2708,7 @@ function doLogout() {
 
 var cotizandoId = null;
 var cotizandoHogarId = null; // Track para edición de cotización hogar
+var cotizandoMotoId = null; // Track para edición de cotización moto
 
 function initCotizadorHogar() {
   if (!cotizandoHogarId) {
@@ -2603,6 +2721,8 @@ function initCotizadorHogar() {
     document.getElementById('cot-h-costo-base').value = '';
     document.getElementById('cot-h-costo-mediana').value = '';
     document.getElementById('cot-h-costo-full').value = '';
+    var chkEmergReset = document.getElementById('cot-h-emergencias');
+    if(chkEmergReset) chkEmergReset.checked = false;
 
     var select = document.getElementById('cot-h-vincular-pros');
     select.innerHTML = '<option value="">-- No vincular --</option>';
@@ -2851,7 +2971,7 @@ function renderHistorialCotizaciones() {
   filtradas.forEach(function(c) {
     var tr = document.createElement('tr');
     var fecha = new Date(c.fecha).toLocaleDateString() + ' ' + new Date(c.fecha).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-    var sub = c.tipo === 'hogar' ? 'Hogar (3 Planes)' : (c.items ? c.items.length + ' opciones' : '-');
+    var sub = c.tipo === 'hogar' ? 'Hogar (3 Planes)' : (c.tipo === 'moto' ? 'Moto · ' + (c.items ? c.items.length + ' opciones' : '-') : (c.items ? c.items.length + ' opciones' : '-'));
 
     var vinculos = '';
     if(c.prospectoId) {
@@ -2922,6 +3042,7 @@ function editarCotizacion(id) {
     document.getElementById('cot-h-cliente').value = c.cliente;
     document.getElementById('cot-h-riesgo').value = c.riesgo || '';
     if(document.getElementById('cot-h-comentario')) document.getElementById('cot-h-comentario').value = c.comentario || '';
+    if(document.getElementById('cot-h-emergencias')) document.getElementById('cot-h-emergencias').checked = c.includeEmergencias || false;
     document.getElementById('cot-h-vincular-pros').value = c.prospectoId || '';
     var selHCl = document.getElementById('cot-h-vincular-cliente');
     if(selHCl) selHCl.value = c.clienteId || '';
@@ -2935,6 +3056,65 @@ function editarCotizacion(id) {
     document.getElementById('cot-h-costo-base').value = c.costosHogar.base;
     document.getElementById('cot-h-costo-mediana').value = c.costosHogar.mediana;
     document.getElementById('cot-h-costo-full').value = c.costosHogar.full;
+    return;
+  }
+
+  if (c.tipo === 'moto') {
+    cotizandoMotoId = id;
+    showSection('cotizador-moto');
+
+    var selM = document.getElementById('cot-m-vincular-pros');
+    selM.innerHTML = '<option value="">-- No vincular --</option>';
+    if(DB.prospectos) {
+      DB.prospectos.forEach(function(p) {
+        var opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = p.nombre;
+        selM.appendChild(opt);
+      });
+    }
+
+    var selMCl = document.getElementById('cot-m-vincular-cliente');
+    if(selMCl) {
+      selMCl.innerHTML = '<option value="">-- No vincular --</option>';
+      if(DB.clients) {
+        DB.clients.forEach(function(cl) {
+          var opt = document.createElement('option');
+          opt.value = cl.id;
+          opt.textContent = cl.nombre;
+          selMCl.appendChild(opt);
+        });
+      }
+    }
+
+    document.getElementById('cot-m-cliente').value = c.cliente;
+    document.getElementById('cot-m-riesgo-general').value = c.riesgo || '';
+    if(document.getElementById('cot-m-comentario')) document.getElementById('cot-m-comentario').value = c.comentario || '';
+    document.getElementById('cot-m-vincular-pros').value = c.prospectoId || '';
+    if(selMCl) selMCl.value = c.clienteId || '';
+    var subM = document.querySelector('#sec-cotizador-moto .topbar-subtitle');
+    if(subM) subM.textContent = 'Editando cotización de ' + c.cliente;
+
+    var containerM = document.getElementById('cotizacion-items-moto');
+    containerM.innerHTML = '';
+
+    c.items.forEach(function(item) {
+      var div = document.createElement('div');
+      div.className = 'cotizacion-row';
+      div.style.gridTemplateColumns = '1.2fr 1fr 1.4fr 0.8fr 50px 60px 50px 40px';
+      div.innerHTML = `
+        <div class="form-group"><label>Compañía</label><input type="text" class="cot-m-compania" value="${item.compania}"></div>
+        <div class="form-group"><label>Suma Asegurada</label><input type="text" class="cot-m-suma" value="${item.suma}"></div>
+        <div class="form-group"><label>Cobertura</label><input type="text" class="cot-m-cobertura" list="cot-m-coberturas-sugeridas" value="${item.cobertura}"></div>
+        <div class="form-group"><label>Costo</label><input type="text" class="cot-m-costo" value="${item.costo}"></div>
+        <div class="form-group" style="align-items: center;"><label>Recom.</label><input type="checkbox" class="cot-m-recom-check" ${item.recom ? 'checked' : ''}></div>
+        <div class="form-group" style="align-items: center;"><label>Mejor</label><input type="checkbox" class="cot-m-mejor-check" ${item.mejor ? 'checked' : ''}></div>
+        <div class="form-group" style="align-items: center;"><label>Actual</label><input type="checkbox" class="cot-m-actual-check" ${item.actual ? 'checked' : ''} onchange="toggleActualRow(this)"></div>
+        <button class="btn btn-danger btn-icon" onclick="this.parentElement.remove()"><i class="ti ti-trash"></i></button>
+      `;
+      if (item.actual) div.classList.add('is-actual');
+      containerM.appendChild(div);
+    });
     return;
   }
 
@@ -3127,10 +3307,393 @@ function exportarCotizacionPDF() {
   });
 }
 
+function initCotizadorMoto() {
+  var select = document.getElementById('cot-m-vincular-pros');
+  select.innerHTML = '<option value="">-- No vincular --</option>';
+  if(DB.prospectos) {
+    DB.prospectos.forEach(function(p) {
+      var opt = document.createElement('option');
+      opt.value = p.id;
+      opt.textContent = p.nombre;
+      select.appendChild(opt);
+    });
+  }
+
+  var selCl = document.getElementById('cot-m-vincular-cliente');
+  if(selCl) {
+    selCl.innerHTML = '<option value="">-- No vincular --</option>';
+    if(DB.clients) {
+      DB.clients.forEach(function(c) {
+        var opt = document.createElement('option');
+        opt.value = c.id;
+        opt.textContent = c.nombre;
+        selCl.appendChild(opt);
+      });
+    }
+  }
+
+  if (!cotizandoMotoId) {
+    limpiarFormularioCotizacionMoto();
+  }
+}
+
+function limpiarFormularioCotizacionMoto() {
+  cotizandoMotoId = null;
+  document.getElementById('cot-m-cliente').value = '';
+  document.getElementById('cot-m-riesgo-general').value = '';
+  document.getElementById('cot-m-vincular-pros').value = '';
+  if(document.getElementById('cot-m-comentario')) document.getElementById('cot-m-comentario').value = '';
+  var selCl = document.getElementById('cot-m-vincular-cliente');
+  if(selCl) selCl.value = '';
+  var container = document.getElementById('cotizacion-items-moto');
+  if(container) {
+    container.innerHTML = '';
+    agregarFilaCotizacionMoto();
+  }
+  var sub = document.querySelector('#sec-cotizador-moto .topbar-subtitle');
+  if(sub) sub.textContent = 'Generar presupuesto para cliente';
+}
+
+function agregarFilaCotizacionMoto() {
+  var container = document.getElementById('cotizacion-items-moto');
+  var div = document.createElement('div');
+  div.className = 'cotizacion-row';
+  div.style.gridTemplateColumns = '1.2fr 1fr 1.4fr 0.8fr 50px 60px 50px 40px';
+  div.innerHTML = `
+    <div class="form-group"><label>Compañía</label><input type="text" class="cot-m-compania" placeholder="Ej: Fed. Patronal"></div>
+    <div class="form-group"><label>Suma Asegurada</label><input type="text" class="cot-m-suma" placeholder="Ej: $1.500.000"></div>
+    <div class="form-group"><label>Cobertura</label><input type="text" class="cot-m-cobertura" list="cot-m-coberturas-sugeridas" placeholder="Ej: B: Resp. Civil, Robo Total..."></div>
+    <div class="form-group"><label>Costo</label><input type="text" class="cot-m-costo" placeholder="Ej: $15.000"></div>
+    <div class="form-group" style="align-items: center;"><label>Recom.</label><input type="checkbox" class="cot-m-recom-check"></div>
+    <div class="form-group" style="align-items: center;"><label>Mejor</label><input type="checkbox" class="cot-m-mejor-check"></div>
+    <div class="form-group" style="align-items: center;"><label>Actual</label><input type="checkbox" class="cot-m-actual-check" onchange="toggleActualRow(this)"></div>
+    <button class="btn btn-danger btn-icon" onclick="this.parentElement.remove()"><i class="ti ti-trash"></i></button>
+  `;
+  container.appendChild(div);
+}
+
+function autoGuardarCotizacionMoto() {
+  var cliente = document.getElementById('cot-m-cliente').value;
+  var riesgo = document.getElementById('cot-m-riesgo-general').value;
+  var prosId = document.getElementById('cot-m-vincular-pros').value;
+  var comentario = (document.getElementById('cot-m-comentario') || {}).value || '';
+  var clienteVinculadoId = (document.getElementById('cot-m-vincular-cliente') || {}).value || '';
+  if (!cliente) return;
+
+  var items = [];
+  document.querySelectorAll('#cotizacion-items-moto .cotizacion-row').forEach(function(row) {
+    var comp = row.querySelector('.cot-m-compania').value;
+    if (comp) {
+      items.push({
+        compania: comp,
+        suma: row.querySelector('.cot-m-suma').value,
+        cobertura: row.querySelector('.cot-m-cobertura').value,
+        costo: row.querySelector('.cot-m-costo').value,
+        recom: row.querySelector('.cot-m-recom-check').checked,
+        mejor: row.querySelector('.cot-m-mejor-check') ? row.querySelector('.cot-m-mejor-check').checked : false,
+        actual: row.querySelector('.cot-m-actual-check') ? row.querySelector('.cot-m-actual-check').checked : false
+      });
+    }
+  });
+
+  if (!DB.cotizaciones) DB.cotizaciones = [];
+
+  if (cotizandoMotoId) {
+    var idx = DB.cotizaciones.findIndex(function(c){return c.id == cotizandoMotoId});
+    if (idx !== -1) {
+      DB.cotizaciones[idx].cliente = cliente;
+      DB.cotizaciones[idx].riesgo = riesgo;
+      DB.cotizaciones[idx].items = items;
+      DB.cotizaciones[idx].comentario = comentario;
+      DB.cotizaciones[idx].prospectoId = prosId;
+      DB.cotizaciones[idx].clienteId = clienteVinculadoId;
+    }
+  } else {
+    var nuevaId = uid();
+    var nuevaCot = {
+      id: nuevaId,
+      fecha: new Date().toISOString(),
+      cliente: cliente,
+      riesgo: riesgo,
+      tipo: 'moto',
+      items: items,
+      comentario: comentario,
+      prospectoId: prosId,
+      clienteId: clienteVinculadoId
+    };
+    DB.cotizaciones.push(nuevaCot);
+    cotizandoMotoId = nuevaId;
+
+    if (prosId) {
+      var p = DB.prospectos.find(function(x){return x.id == prosId});
+      if (p) p.notes = (p.notes || '') + "\n[Cotización guardada el " + new Date().toLocaleDateString() + "]";
+    }
+  }
+  saveDB();
+}
+
+function guardarCotizacionMoto() {
+  var cliente = document.getElementById('cot-m-cliente').value;
+  var riesgo = document.getElementById('cot-m-riesgo-general').value;
+  var prosId = document.getElementById('cot-m-vincular-pros').value;
+  var comentario = (document.getElementById('cot-m-comentario') || {}).value || '';
+  var clienteVinculadoId = (document.getElementById('cot-m-vincular-cliente') || {}).value || '';
+
+  if(!cliente) { alert('Ingrese el nombre del cliente'); return; }
+
+  var items = [];
+  document.querySelectorAll('#cotizacion-items-moto .cotizacion-row').forEach(function(row) {
+    var comp = row.querySelector('.cot-m-compania').value;
+    if (comp) {
+      items.push({
+        compania: comp,
+        suma: row.querySelector('.cot-m-suma').value,
+        cobertura: row.querySelector('.cot-m-cobertura').value,
+        costo: row.querySelector('.cot-m-costo').value,
+        recom: row.querySelector('.cot-m-recom-check').checked,
+        mejor: row.querySelector('.cot-m-mejor-check') ? row.querySelector('.cot-m-mejor-check').checked : false,
+        actual: row.querySelector('.cot-m-actual-check') ? row.querySelector('.cot-m-actual-check').checked : false
+      });
+    }
+  });
+
+  if(!DB.cotizaciones) DB.cotizaciones = [];
+
+  if (cotizandoMotoId) {
+    var idx = DB.cotizaciones.findIndex(function(c){return c.id == cotizandoMotoId});
+    if (idx !== -1) {
+      DB.cotizaciones[idx].cliente = cliente;
+      DB.cotizaciones[idx].riesgo = riesgo;
+      DB.cotizaciones[idx].items = items;
+      DB.cotizaciones[idx].comentario = comentario;
+      DB.cotizaciones[idx].prospectoId = prosId;
+      DB.cotizaciones[idx].clienteId = clienteVinculadoId;
+      toast('Cotización actualizada');
+    }
+  } else {
+    var nuevaCot = {
+      id: uid(),
+      fecha: new Date().toISOString(),
+      cliente: cliente,
+      riesgo: riesgo,
+      tipo: 'moto',
+      items: items,
+      comentario: comentario,
+      prospectoId: prosId,
+      clienteId: clienteVinculadoId
+    };
+    DB.cotizaciones.push(nuevaCot);
+
+    if(prosId) {
+      var p = DB.prospectos.find(function(x){return x.id == prosId});
+      if(p) p.notes = (p.notes || '') + "\n[Cotización guardada el " + new Date().toLocaleDateString() + "]";
+    }
+    toast('Cotización guardada exitosamente');
+  }
+
+  saveDB();
+  limpiarFormularioCotizacionMoto();
+  showSection('historial-cot');
+}
+
+function exportarCotizacionMotoPDF() {
+  var cliente = document.getElementById('cot-m-cliente').value;
+  var riesgoGeneral = document.getElementById('cot-m-riesgo-general').value;
+  var comentario = (document.getElementById('cot-m-comentario') || {}).value || '';
+  if (!cliente) { alert('Por favor, ingrese el nombre del cliente.'); return; }
+
+  document.getElementById('pdf-cot-cliente-nombre').textContent = cliente.toUpperCase();
+  var fechaActual = new Date().toLocaleDateString();
+  document.getElementById('pdf-cot-fecha').textContent = fechaActual;
+  var spanFecha = document.querySelector('.pdf-fecha-dinamica');
+  if(spanFecha) spanFecha.textContent = fechaActual;
+  document.getElementById('pdf-cot-riesgo').textContent = 'Motovehículo';
+  var vehiculoLabel = document.getElementById('pdf-cot-vehiculo-label');
+  if (vehiculoLabel) vehiculoLabel.innerHTML = 'Vehículo: <span id="pdf-cot-vehiculo">' + (riesgoGeneral || '-') + '</span>';
+  else document.getElementById('pdf-cot-vehiculo').textContent = riesgoGeneral || '-';
+
+  var rows = document.querySelectorAll('#cotizacion-items-moto .cotizacion-row');
+  var container = document.getElementById('pdf-companias-container');
+  container.innerHTML = '';
+
+  var idsOcultar = ['pdf-hr-coberturas','pdf-box-detalle-titulo','pdf-box-terceros-base','pdf-box-terceros-full','pdf-box-todo-riesgo','pdf-hogar-leyenda'];
+  idsOcultar.forEach(function(id){ var el = document.getElementById(id); if(el) el.style.display = 'none'; });
+  var difContainerInit = document.getElementById('pdf-box-diferencias-companias');
+  if (difContainerInit) difContainerInit.style.display = 'none';
+
+  var data = {};
+  var companiasSet = new Set();
+  var coberturasSet = new Set();
+
+  rows.forEach(function(row) {
+    var comp = row.querySelector('.cot-m-compania').value.trim();
+    var cob = row.querySelector('.cot-m-cobertura').value.trim();
+    if (comp && cob) {
+      companiasSet.add(comp);
+      coberturasSet.add(cob);
+      if (!data[cob]) data[cob] = {};
+      data[cob][comp] = {
+        suma: row.querySelector('.cot-m-suma').value.trim(),
+        costo: row.querySelector('.cot-m-costo').value.trim(),
+        recom: row.querySelector('.cot-m-recom-check').checked,
+        mejor: row.querySelector('.cot-m-mejor-check') ? row.querySelector('.cot-m-mejor-check').checked : false,
+        actual: row.querySelector('.cot-m-actual-check') ? row.querySelector('.cot-m-actual-check').checked : false
+      };
+    }
+  });
+
+  var compNames = Array.from(companiasSet);
+  var cobNames = Array.from(coberturasSet).sort();
+
+  if (compNames.length === 0) { alert('Cargue al menos una opción completa.'); return; }
+
+  var table = document.createElement('table');
+  table.className = 'pdf-table';
+
+  var thead = '<thead><tr><th>Cobertura</th>';
+  compNames.forEach(function(c) {
+    thead += `<th>${c}</th>`;
+  });
+  thead += '</tr></thead>';
+
+  var tbody = '<tbody>';
+
+  var hasSuma = false;
+  var sumaRow = '<tr><td>Suma Asegurada</td>';
+  compNames.forEach(function(c) {
+    var sVal = '';
+    for (var i = 0; i < cobNames.length; i++) {
+      if (data[cobNames[i]] && data[cobNames[i]][c] && data[cobNames[i]][c].suma) {
+        sVal = data[cobNames[i]][c].suma;
+        hasSuma = true;
+        break;
+      }
+    }
+    sumaRow += `<td style="vertical-align:middle; background: #f8fafc;"><div style="display:inline-block; background:#e2e8f0; color:#475569; padding:4px 10px; border-radius:12px; font-size:13px; font-weight:700; border:1px solid #cbd5e1;">${sVal || '-'}</div></td>`;
+  });
+  sumaRow += '</tr>';
+  if(hasSuma) tbody += sumaRow;
+
+  cobNames.forEach(function(cob) {
+    tbody += `<tr><td>${cob}</td>`;
+    compNames.forEach(function(comp) {
+      var cell = data[cob][comp];
+      if (cell) {
+        var cls = cell.actual ? 'actual-cell' : (cell.recom ? 'recom-cell' : (cell.mejor ? 'mejor-cell' : ''));
+        var badge = cell.actual ? '<span class="actual-badge">SEGURO ACTUAL</span>' : (cell.recom ? '<span class="recom-badge">RECOMENDADA</span>' : (cell.mejor ? '<span class="mejor-badge">MEJOR PRECIO</span>' : ''));
+        tbody += `<td class="${cls}" style="vertical-align:middle;"><div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;">${badge}<span style="font-size:10px;color:#64748b;font-weight:500;">Cuota mensual</span><span class="price-val">$${cell.costo}</span></div></td>`;
+      } else {
+        tbody += '<td>-</td>';
+      }
+    });
+    tbody += '</tr>';
+  });
+  tbody += '</tbody>';
+
+  table.innerHTML = thead + tbody;
+  container.appendChild(table);
+
+  var comBox = document.getElementById('pdf-cot-comentario-container');
+  var comText = document.getElementById('pdf-cot-comentario-text');
+  if (comBox && comText) {
+    if (comentario && comentario.trim() !== '') {
+      comText.textContent = comentario;
+      comBox.style.display = 'block';
+    } else {
+      comBox.style.display = 'none';
+    }
+  }
+
+  var element = document.getElementById('pdf-export-container');
+  element.style.display = 'block';
+
+  var opt = {
+    margin: 10,
+    filename: 'Cotizacion_Moto_' + cliente.replace(/\s+/g, '_') + '.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2 },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+
+  html2pdf().set(opt).from(element).save().then(function() {
+    element.style.display = 'none';
+    autoGuardarCotizacionMoto();
+    toast('Cotización de moto exportada y guardada en historial');
+    limpiarFormularioCotizacionMoto();
+  });
+}
+
+function enviarCotizacionMotoWA() {
+  var cliente = document.getElementById('cot-m-cliente').value;
+  var riesgo = document.getElementById('cot-m-riesgo-general').value || 'Seguro de Moto';
+  var comentario = (document.getElementById('cot-m-comentario') || {}).value || '';
+  var prosId = document.getElementById('cot-m-vincular-pros').value;
+  var tel = '';
+
+  if (!cliente) { alert('Ingrese el nombre del cliente'); return; }
+
+  if (prosId) {
+    var p = DB.prospectos.find(function(x){return x.id == prosId});
+    if (p && p.telefono) tel = p.telefono.replace(/\D/g, '');
+  }
+
+  var mensaje = `*Presupuesto de ${riesgo}*\n`;
+  mensaje += `\n`;
+
+  var rows = document.querySelectorAll('#cotizacion-items-moto .cotizacion-row');
+  var companiasMap = {};
+
+  rows.forEach(function(row) {
+    var comp = row.querySelector('.cot-m-compania').value;
+    if (comp) {
+      if (!companiasMap[comp]) companiasMap[comp] = [];
+      companiasMap[comp].push({
+        suma: row.querySelector('.cot-m-suma').value,
+        cob: row.querySelector('.cot-m-cobertura').value,
+        costo: row.querySelector('.cot-m-costo').value,
+        recom: row.querySelector('.cot-m-recom-check').checked,
+        mejor: row.querySelector('.cot-m-mejor-check') ? row.querySelector('.cot-m-mejor-check').checked : false
+      });
+    }
+  });
+
+  var compNames = Object.keys(companiasMap);
+  if (compNames.length === 0) { alert('Cargue al menos una opción'); return; }
+
+  compNames.forEach(function(name) {
+    mensaje += `Compañía: ${name.toUpperCase()}\n`;
+
+    companiasMap[name].forEach(function(opt, i) {
+      var etiqueta = opt.recom ? ' - _*Recomendada*_' : (opt.mejor ? ' - _*Mejor precio*_' : '');
+      mensaje += `*Opción ${i + 1}*${etiqueta}\n`;
+      if (opt.cob) mensaje += `- *Cobertura:* ${opt.cob}\n`;
+      if (opt.suma) mensaje += `- *Suma:* ${opt.suma}\n`;
+      mensaje += `- *Costo Mensual:* ${opt.costo}\n`;
+      mensaje += `\n`;
+    });
+    mensaje += `--------------------------\n\n`;
+  });
+
+  if (comentario && comentario.trim() !== '') {
+    mensaje += `*Nota:* ${comentario}\n\n`;
+  }
+
+  var fechaHoy = new Date().toLocaleDateString();
+  mensaje += `Presupuesto enviado con fecha ${fechaHoy}. Las sumas aseguradas y costos están sujetos a las condiciones de suscripción y actualización de valores y pueden sufrir variaciones al momento de la contratacion formal.`;
+
+  var url = "https://wa.me/" + (tel ? tel : "") + "?text=" + encodeURIComponent(mensaje).replace(/%2A/g, '*').replace(/%5F/g, '_').replace(/%0A/g, '%0A');
+  window.open(url, '_blank');
+
+  autoGuardarCotizacionMoto();
+  toast('Redirigiendo a WhatsApp y guardando en historial...');
+  limpiarFormularioCotizacionMoto();
+}
+
 function guardarCotizacionHogar(isAutoSave) {
   var cliente = document.getElementById('cot-h-cliente').value;
   var riesgo = document.getElementById('cot-h-riesgo').value;
   var comentario = (document.getElementById('cot-h-comentario') || {}).value || '';
+  var includeEmergencias = document.getElementById('cot-h-emergencias') ? document.getElementById('cot-h-emergencias').checked : false;
   if(!cliente) { if(!isAutoSave) alert('Ingrese el nombre del cliente'); return; }
 
   var items = {};
@@ -3157,6 +3720,7 @@ function guardarCotizacionHogar(isAutoSave) {
       cot.itemsHogar = items;
       cot.costosHogar = costos;
       cot.comentario = comentario;
+      cot.includeEmergencias = includeEmergencias;
       cot.prospectoId = document.getElementById('cot-h-vincular-pros').value || '';
       cot.clienteId = (document.getElementById('cot-h-vincular-cliente') || {}).value || '';
       cot.fecha = new Date().toISOString();
@@ -3180,6 +3744,7 @@ function guardarCotizacionHogar(isAutoSave) {
     itemsHogar: items,
     costosHogar: costos,
     comentario: comentario,
+    includeEmergencias: includeEmergencias,
     prospectoId: document.getElementById('cot-h-vincular-pros').value || '',
     clienteId: (document.getElementById('cot-h-vincular-cliente') || {}).value || ''
   };
@@ -3218,7 +3783,8 @@ function exportarCotizacionHogarPDF() {
   idsOcultar.forEach(function(id){ var el = document.getElementById(id); if(el) el.style.display = 'none'; });
 
   var leyendaHogar = document.getElementById('pdf-hogar-leyenda');
-  if (leyendaHogar) leyendaHogar.style.display = 'block';
+  var chkEmerg = document.getElementById('cot-h-emergencias');
+  if (leyendaHogar) leyendaHogar.style.display = (chkEmerg && chkEmerg.checked) ? 'block' : 'none';
 
   var comBox = document.getElementById('pdf-cot-comentario-container');
   var comText = document.getElementById('pdf-cot-comentario-text');
@@ -3503,6 +4069,32 @@ function exportarPdfDesdeHistorial(id) {
 
   if (c.tipo === 'hogar') {
     exportarPdfHogarDesdeHistorial(c);
+  } else if (c.tipo === 'moto') {
+    document.getElementById('cot-m-cliente').value = c.cliente;
+    document.getElementById('cot-m-riesgo-general').value = c.riesgo || '';
+    if(document.getElementById('cot-m-comentario')) document.getElementById('cot-m-comentario').value = c.comentario || '';
+
+    var containerM = document.getElementById('cotizacion-items-moto');
+    containerM.innerHTML = '';
+    c.items.forEach(function(item) {
+      var div = document.createElement('div');
+      div.className = 'cotizacion-row';
+      div.style.gridTemplateColumns = '1.2fr 1fr 1.4fr 0.8fr 50px 60px 50px 40px';
+      div.innerHTML = `
+        <div class="form-group"><label>Compañía</label><input type="text" class="cot-m-compania" value="${item.compania}"></div>
+        <div class="form-group"><label>Suma Asegurada</label><input type="text" class="cot-m-suma" value="${item.suma}"></div>
+        <div class="form-group"><label>Cobertura</label><input type="text" class="cot-m-cobertura" list="cot-m-coberturas-sugeridas" value="${item.cobertura}"></div>
+        <div class="form-group"><label>Costo</label><input type="text" class="cot-m-costo" value="${item.costo}"></div>
+        <div class="form-group" style="align-items: center;"><label>Recom.</label><input type="checkbox" class="cot-m-recom-check" ${item.recom ? 'checked' : ''}></div>
+        <div class="form-group" style="align-items: center;"><label>Mejor</label><input type="checkbox" class="cot-m-mejor-check" ${item.mejor ? 'checked' : ''}></div>
+        <div class="form-group" style="align-items: center;"><label>Actual</label><input type="checkbox" class="cot-m-actual-check" ${item.actual ? 'checked' : ''} onchange="toggleActualRow(this)"></div>
+        <button class="btn btn-danger btn-icon" onclick="this.parentElement.remove()"><i class="ti ti-trash"></i></button>
+      `;
+      if (item.actual) div.classList.add('is-actual');
+      containerM.appendChild(div);
+    });
+
+    exportarCotizacionMotoPDF();
   } else {
     // Para auto, cargamos los datos en el formulario y disparamos la exportación normal
     // Esto asegura que se use toda la lógica de renderizado ya existente
@@ -3561,6 +4153,9 @@ function exportarPdfHogarDesdeHistorial(c) {
 
   var idsOcultar = ['pdf-hr-coberturas','pdf-box-detalle-titulo','pdf-box-terceros-base','pdf-box-terceros-full','pdf-box-todo-riesgo'];
   idsOcultar.forEach(function(id){ var el = document.getElementById(id); if(el) el.style.display = 'none'; });
+
+  var leyendaHogar = document.getElementById('pdf-hogar-leyenda');
+  if (leyendaHogar) leyendaHogar.style.display = c.includeEmergencias ? 'block' : 'none';
 
   var container = document.getElementById('pdf-companias-container');
   container.innerHTML = '';
